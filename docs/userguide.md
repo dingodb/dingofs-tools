@@ -50,6 +50,9 @@ A tool for DingoFS
       - [quota list](#quota-list)
       - [quota delete](#quota-delete)
       - [quota check](#quota-check)
+    - [stats](#stats)
+      - [stats mountpoint](#stats-mountpoint)
+      - [stats cluster](#stats-cluster)
       
 ## How to use dingo tool
 
@@ -930,6 +933,92 @@ or
 +----------+------------+----------------+------+----------+------------+-------+-----------+--------+
 | 10485760 | /quotadir | 10,737,418,240 | 22   | 33       | 20,000,000 | 2     | 3         | failed |
 +----------+------------+----------------+------+----------+------------+-------+-----------+--------+
+```
+
+#### stats
+#### stats mountpoint
+
+show real time performance statistics of dingofs mountpoin
+
+Usage:
+
+```shell
+# normal
+dingo stats mountpoint /mnt/dingofs
+			
+# fuse metrics
+dingo stats mountpoint /mnt/dingofs --schema f
+
+# s3 metrics
+dingo stats mountpoint /mnt/dingofs --schema o
+
+# More metrics
+dingo stats mountpoint /mnt/dingofs --verbose
+
+# Show 3 times
+dingo stats mountpoint /mnt/dingofs --count 3
+
+# Show every 4 seconds
+dingo stats mountpoint /mnt/dingofs --interval 4s
+
+```
+Output:
+
+```shell
+dingo stats mountpoint /mnt/dingofs
+
+------usage------ ----------fuse--------- -metaserver -blockcache ---object--
+ cpu   mem   wbuf| ops   lat   read write| ops   lat | read write| get   put 
+ 0.5% 1108M    0 |   0     0     0     0 |   0     0 |   0     0 |   0     0 
+ 0.6% 1109M    0 |  18  0.40     0     0 |   0     0 |   0     0 |   0     0 
+ 0.6% 1109M    0 |  18  0.16     0     0 |   0     0 |   0     0 |   0     0 
+ 0.7% 1109M    0 |  18  0.15     0     0 |   0     0 |   0     0 |   0     0 
+ 0.7% 1109M    0 |  18  0.14     0     0 |   0     0 |   0     0 |   0     0 
+ 0.7% 1109M    0 |  18  0.16     0     0 |   0     0 |   0     0 |   0     0 
+ 0.7% 1109M    0 |  18  0.16     0     0 |   0     0 |   0     0 |   0     0 
+```
+
+#### stats cluster
+
+show real time performance statistics of dingofs cluster
+
+Usage:
+
+```shell
+# Show by fsid
+dingo stats cluster --fsid 1
+			
+# Show by fsname
+dingo stats cluster --fsname dingofs
+
+# Show 3 times
+dingo stats cluster --fsid 1 --count 3
+
+# Show every 4 seconds
+dingo stats cluster --fsid 1 --interval 4s
+
+```
+Output:
+
+```shell
+dingo stats cluster --fsname dingofs
+
+----------fuse--------- ---------object--------
+ read  ops  write  ops | get   ops   put   ops 
+   0     0     0     0 |   0     0     0     0 
+   0     0  3689K 3689 |   0     0  4096K    1 
+   0     0  3220K 3220 |   0     0  4096K    1 
+   0     0  3752K 3752 |   0     0  4096K    1 
+ 133M 1067  3078K 3078 |   0     0  4096K    1 
+ 240M 1921  2498K 2498 |   0     0     0     0 
+ 207M 1663  1713K 1713 |   0     0  4096K    1 
+ 254M 2033  2538K 2538 |   0     0     0     0 
+ 254M 2032  2506K 2506 |   0     0  4096K    1 
+ 237M 1899  2342K 2342 |   0     0  4096K    1 
+ 195M 1563  1715K 1715 |   0     0     0     0 
+ 207M 1662  1987K 1987 |   0     0  4096K    1 
+ 251M 2010  2599K 2599 |   0     0     0     0 
+ 245M 1967  2586K 2586 |   0     0  4096K    1 
 ```
 
 ## Comparison of old and new commands

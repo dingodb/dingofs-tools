@@ -4,6 +4,7 @@ import (
 	"context"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"google.golang.org/grpc"
@@ -81,6 +82,12 @@ type GetDentryRpc struct {
 	metaServerClient metaserver.MetaServerServiceClient
 }
 
+type GetFsStatsRpc struct {
+	Info      *basecmd.Rpc
+	Request   *mds.GetFsStatsRequest
+	mdsClient mds.MdsServiceClient
+}
+
 var _ basecmd.RpcFunc = (*GetFsQuotaRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*SetFsQuotaRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*CheckQuotaRpc)(nil)    // check interface
@@ -93,6 +100,7 @@ var _ basecmd.RpcFunc = (*ListPartitionRpc)(nil) // check interface
 var _ basecmd.RpcFunc = (*GetInodeAttrRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*ListDentryRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*GetDentryRpc)(nil)     // check interface
+var _ basecmd.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
 
 func (getFsQuotaRpc *GetFsQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	getFsQuotaRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
@@ -210,5 +218,15 @@ func (getDentryRpc *GetDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (getDentryRpc *GetDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := getDentryRpc.metaServerClient.GetDentry(ctx, getDentryRpc.Request)
 	output.ShowRpcData(getDentryRpc.Request, response, getDentryRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (getFsStatsRpc *GetFsStatsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	getFsStatsRpc.mdsClient = mds.NewMdsServiceClient(cc)
+}
+
+func (getFsStatsRpc *GetFsStatsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := getFsStatsRpc.mdsClient.GetFsStats(ctx, getFsStatsRpc.Request)
+	output.ShowRpcData(getFsStatsRpc.Request, response, getFsStatsRpc.Info.RpcDataShow)
 	return response, err
 }
