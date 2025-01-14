@@ -45,3 +45,7 @@ cd dingofs-tools
 
 make build
 ```
+
+### User Guide 
+
+[用户使用指南](./docs/userguide.md)
