@@ -34,7 +34,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	mds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -120,8 +119,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	)
 
 	fCmd.Rows = make([]map[string]string, 0)
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	for i := range fsNames {
 		request := &mds.GetFsInfoRequest{
 			FsName: &fsNames[i],

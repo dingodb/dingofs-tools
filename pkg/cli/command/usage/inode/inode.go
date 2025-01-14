@@ -33,7 +33,6 @@ import (
 	config "github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 const (
@@ -99,7 +98,7 @@ func (iCmd *InodeNumCommand) Init(cmd *cobra.Command, args []string) error {
 			fsId = ""
 		}
 		subUri := fmt.Sprintf("/vars/"+PREFIX+"_%s*"+SUFFIX, fsId)
-		timeout := viper.GetDuration(config.VIPER_GLOBALE_HTTPTIMEOUT)
+		timeout := config.GetHttpTimeout(cmd)
 		metric := basecmd.NewMetric(addrs, subUri, timeout)
 		filetype2Metric := make(map[string]*basecmd.Metric)
 		filetype2Metric["inode_num"] = metric

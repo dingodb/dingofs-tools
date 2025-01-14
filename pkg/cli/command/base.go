@@ -25,7 +25,6 @@ package basecmd
 import (
 	"context"
 	"encoding/json"
-	"github.com/dingodb/dingofs-tools/internal/utils/process"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -37,6 +36,7 @@ import (
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingofs-tools/internal/utils/process"
 	cobratemplate "github.com/dingodb/dingofs-tools/internal/utils/template"
 	config "github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/olekukonko/tablewriter"

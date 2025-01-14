@@ -32,7 +32,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 )
 
@@ -88,7 +87,7 @@ func (eCmd *EtcdCommand) Init(cmd *cobra.Command, args []string) error {
 	}
 	for _, addr := range etcdAddrs {
 		// set metric
-		timeout := viper.GetDuration(config.VIPER_GLOBALE_HTTPTIMEOUT)
+		timeout := config.GetHttpTimeout(cmd)
 		addrs := []string{addr}
 		statusMetric := basecmd.NewMetric(addrs, STATUS_SUBURI, timeout)
 		eCmd.metrics = append(eCmd.metrics, statusMetric)

@@ -25,7 +25,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type DeleteQuotaCommand struct {
@@ -98,8 +97,8 @@ func (deleteQuotaCmd *DeleteQuotaCommand) Init(cmd *cobra.Command, args []string
 	if addrErr != nil {
 		return addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	deleteQuotaCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "DeleteDirQuota")
 	deleteQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(deleteQuotaCmd.Cmd, config.VERBOSE)
 

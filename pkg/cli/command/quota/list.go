@@ -26,7 +26,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type ListQuotaCommand struct {
@@ -88,8 +87,8 @@ func (listQuotaCmd *ListQuotaCommand) Init(cmd *cobra.Command, args []string) er
 	if addrErr != nil {
 		return addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	listQuotaCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "LoadDirQuotas")
 	listQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(listQuotaCmd.Cmd, config.VERBOSE)
 

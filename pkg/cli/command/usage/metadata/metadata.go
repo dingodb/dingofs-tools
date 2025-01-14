@@ -34,7 +34,6 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -95,8 +94,8 @@ func (mCmd *MetadataCommand) Init(cmd *cobra.Command, args []string) error {
 
 	mCmd.Rpc = &MetadataRpc{}
 	mCmd.Rpc.Request = &topology.StatMetadataUsageRequest{}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	mCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "StatMetadataUsage")
 	mCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(mCmd.Cmd, "verbose")
 

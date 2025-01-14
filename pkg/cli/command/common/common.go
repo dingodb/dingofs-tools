@@ -17,6 +17,14 @@ package common
 import (
 	"context"
 	"fmt"
+	"log"
+	"math"
+	"path"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"syscall"
+
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
@@ -29,15 +37,7 @@ import (
 	"github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
-	"log"
-	"math"
-	"path"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"syscall"
 )
 
 type LeaderInfoMeta struct {
@@ -146,8 +146,8 @@ func GetPartitionList(cmd *cobra.Command, fsId uint32) ([]*common.PartitionInfo,
 	listPartitionRpc := &ListPartitionRpc{
 		Request: request,
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	listPartitionRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListPartition")
 	listPartitionRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
 	result, err := basecmd.GetRpcResponse(listPartitionRpc.Info, listPartitionRpc)
@@ -197,8 +197,8 @@ func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartb
 	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(addrErr.Message)
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	copysetKey := topology.CopysetKey{
 		PoolId:    &poolId,
 		CopysetId: &copyetId,
@@ -289,8 +289,8 @@ func GetInodeAttr(cmd *cobra.Command, fsId uint32, inodeId uint64) (*metaserver.
 	if addrErr != nil {
 		return nil, addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	getInodeRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetInodeAttr")
 	getInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
 
@@ -338,8 +338,8 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]*metaserver.
 	if addrErr != nil {
 		return nil, addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	listDentryRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListDentry")
 	listDentryRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
 
@@ -421,8 +421,8 @@ func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string) (*
 	if addrErr != nil {
 		return nil, addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	getDentryRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetDentry")
 	getDentryRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
 

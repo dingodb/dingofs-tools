@@ -34,7 +34,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	topology "github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
@@ -128,8 +127,8 @@ func (tCmd *TopologyCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(addrErr.Message)
 	}
 	tCmd.Rpc.Request = &topology.ListTopologyRequest{}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	tCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListTopology")
 	tCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
 

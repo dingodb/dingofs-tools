@@ -25,6 +25,7 @@ package fs
 import (
 	"context"
 	"fmt"
+
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
@@ -34,7 +35,6 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -184,8 +184,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		Request: request,
 	}
 
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	fCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "CreateFs")
 	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 

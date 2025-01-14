@@ -118,8 +118,8 @@ func (pCmd *PartitionCommand) Init(cmd *cobra.Command, args []string) error {
 	pCmd.Rpc = &QueryPartitionRpc{
 		Request: request,
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	pCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetCopysetOfPartition")
 	pCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(pCmd.Cmd, "verbose")
 

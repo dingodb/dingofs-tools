@@ -36,7 +36,6 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -117,8 +116,8 @@ func (pCmd *PartitionCommand) Init(cmd *cobra.Command, args []string) error {
 
 	pCmd.fsId2Rows = make(map[uint32][]map[string]string)
 	pCmd.fsId2PartitionList = make(map[uint32][]*common.PartitionInfo)
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	for _, fsId := range fsIds {
 		id, err := strconv.ParseUint(fsId, 10, 32)
 		if err != nil {

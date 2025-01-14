@@ -34,7 +34,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	mds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
@@ -100,8 +99,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	}
 	fCmd.Rpc = &ListFsRpc{}
 	fCmd.Rpc.Request = &mds.ListClusterFsInfoRequest{}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	fCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListClusterFsInfo")
 	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 

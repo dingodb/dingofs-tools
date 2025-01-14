@@ -16,9 +16,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"strconv"
+
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -27,12 +27,11 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type GetFsQuotaCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *common.GetFsQuotaRpc
+	Rpc *cmdCommon.GetFsQuotaRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*GetFsQuotaCommand)(nil) // check interface
@@ -131,15 +130,15 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*metaserver.GetFsQuotaRequ
 		CopysetId: &copyetId,
 		FsId:      &fsId,
 	}
-	requestRpc := &common.GetFsQuotaRpc{
+	requestRpc := &cmdCommon.GetFsQuotaRpc{
 		Request: request,
 	}
 	addrs, addrErr := cmdCommon.GetLeaderPeerAddr(cmd, uint32(fsId), config.ROOTINODEID)
 	if addrErr != nil {
 		return nil, nil, addrErr
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	requestRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "getFsQuota")
 	requestRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
 

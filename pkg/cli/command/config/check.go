@@ -16,23 +16,22 @@ package config
 
 import (
 	"fmt"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common"
 	"strconv"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	cmdCommon "github.com/dingodb/dingofs-tools/pkg/cli/command/common"
+
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 type CheckQuotaCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *common.SetFsQuotaRpc
+	Rpc *cmdCommon.SetFsQuotaRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CheckQuotaCommand)(nil) // check interface
@@ -103,15 +102,15 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 			FsId:      &fsId,
 			Quota:     &metaserver.Quota{UsedBytes: &realUsedBytes, UsedInodes: &realUsedInodes},
 		}
-		checkQuotaCmd.Rpc = &common.SetFsQuotaRpc{
+		checkQuotaCmd.Rpc = &cmdCommon.SetFsQuotaRpc{
 			Request: request,
 		}
 		addrs, addrErr := cmdCommon.GetLeaderPeerAddr(checkQuotaCmd.Cmd, fsId, config.ROOTINODEID)
 		if addrErr != nil {
 			return addrErr
 		}
-		timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-		retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+		timeout := config.GetRpcTimeout(cmd)
+		retrytimes := config.GetRpcRetryTimes(cmd)
 		checkQuotaCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "SetFsQuota")
 		checkQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(checkQuotaCmd.Cmd, config.VERBOSE)
 

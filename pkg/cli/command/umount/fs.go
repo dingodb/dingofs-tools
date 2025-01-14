@@ -35,7 +35,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	mds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -116,8 +115,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		Port:     &port_,
 		Path:     &mountpointSlice[2],
 	}
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	fCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "UmountFs")
 	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 

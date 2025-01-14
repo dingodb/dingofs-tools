@@ -36,7 +36,6 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
@@ -161,8 +160,8 @@ func (iCmd *InodeCommand) Prepare() error {
 	}
 	addrs := []string{addr}
 
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(iCmd.Cmd)
+	retrytimes := config.GetRpcRetryTimes(iCmd.Cmd)
 	iCmd.QIRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetInode")
 	iCmd.QIRpc.Info.RpcDataShow = config.GetFlagBool(iCmd.Cmd, "verbose")
 	return nil

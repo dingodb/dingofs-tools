@@ -115,8 +115,8 @@ func (mCmd *MetaserverCommand) Init(cmd *cobra.Command, args []string) error {
 	mCmd.SetHeader(header)
 
 	mCmd.Rows = make([]map[string]string, 0)
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	for i := range metaserverAddrs {
 		addr := strings.Split(metaserverAddrs[i], ":")
 		if len(addr) != 2 {

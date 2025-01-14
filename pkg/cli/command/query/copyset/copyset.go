@@ -36,7 +36,6 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/heartbeat"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
@@ -130,8 +129,8 @@ func (cCmd *CopysetCommand) Init(cmd *cobra.Command, args []string) error {
 	cCmd.Header = []string{cobrautil.ROW_COPYSET_KEY, cobrautil.ROW_COPYSET_ID, cobrautil.ROW_POOL_ID, cobrautil.ROW_LEADER_PEER, cobrautil.ROW_EPOCH}
 
 	cCmd.Rows = make([]map[string]string, 0)
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
 	getRequest := &topology.GetCopysetsInfoRequest{}
 	cCmd.key2Copyset = make(map[uint64]*cobrautil.CopysetInfoStatus)
 	for i := range poolids {
@@ -295,8 +294,8 @@ func (cCmd *CopysetCommand) UpdateCopysetsStatus(values []*topology.CopysetValue
 	}
 
 	// update row & copysetInfoStatus
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_RPCTIMEOUT)
-	retrytimes := viper.GetInt32(config.VIPER_GLOBALE_RPCRETRYTIMES)
+	timeout := config.GetRpcTimeout(cCmd.Cmd)
+	retrytimes := config.GetRpcRetryTimes(cCmd.Cmd)
 	var results []*StatusResult
 	if len(addr2Request) != 0 {
 		results = GetCopysetsStatus(&addr2Request, timeout, retrytimes)

@@ -520,6 +520,14 @@ func GetRpcTimeout(cmd *cobra.Command) time.Duration {
 	return GetFlagDuration(cmd, RPCTIMEOUT)
 }
 
+func GetHttpTimeout(cmd *cobra.Command) time.Duration {
+	return GetFlagDuration(cmd, HTTPTIMEOUT)
+}
+
+func GetRpcRetryTimes(cmd *cobra.Command) int32 {
+	return GetFlagInt32(cmd, RPCRETRYTIMES)
+}
+
 // mds dummy addr
 func AddFsMdsDummyAddrFlag(cmd *cobra.Command) {
 	cmd.Flags().String(DINGOFS_MDSDUMMYADDR, "", "mds dummy address, should be like 127.0.0.1:7700,127.0.0.1:7701,127.0.0.1:7702")
