@@ -34,7 +34,6 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/warmup/query"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/spf13/cobra"
@@ -87,11 +86,13 @@ func NewAddCommand() *cobra.Command {
 
 func (aCmd *AddCommand) AddFlags() {
 	config.AddFileListOptionFlag(aCmd.Cmd)
-	config.AddDaemonOptionPFlag(aCmd.Cmd)
 	config.AddStorageOptionFlag(aCmd.Cmd)
 }
 
 func (aCmd *AddCommand) Init(cmd *cobra.Command, args []string) error {
+
+	header := []string{cobrautil.ROW_RESULT}
+	aCmd.SetHeader(header)
 	// check has dingofs mountpoint
 	mountpoints, err := cobrautil.GetDingoFSMountPoints()
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -208,9 +209,8 @@ func (aCmd *AddCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		setErr.Format(DINGOFS_WARMUP_OP_XATTR, err.Error())
 		return setErr.ToError()
 	}
-	if !config.GetDaemonFlag(aCmd.Cmd) {
-		query.GetWarmupProgress(aCmd.Cmd, aCmd.Path)
-	}
+	aCmd.TableNew.Append([]string{"success"})
+
 	return nil
 }
 

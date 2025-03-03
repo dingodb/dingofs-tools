@@ -31,7 +31,8 @@ import (
 )
 
 const (
-	DINGOFS_MOUNTPOINT_FSTYPE = "fuse"
+	DINGOFS_MOUNTPOINT_FSTYPE  = "fuse.dingofs"
+	DINGOFS_MOUNTPOINT_FSTYPE2 = "fuse" //for backward compatibility
 )
 
 func GetDingoFSMountPoints() ([]*mountinfo.MountInfo, *cmderror.CmdError) {
@@ -43,7 +44,7 @@ func GetDingoFSMountPoints() ([]*mountinfo.MountInfo, *cmderror.CmdError) {
 	}
 	retMoutpoints := make([]*mountinfo.MountInfo, 0)
 	for _, m := range mountpoints {
-		if m.FilesystemType == DINGOFS_MOUNTPOINT_FSTYPE {
+		if m.FilesystemType == DINGOFS_MOUNTPOINT_FSTYPE || m.FilesystemType == DINGOFS_MOUNTPOINT_FSTYPE2 {
 			// check if the mountpoint is a dingofs mountpoint
 			retMoutpoints = append(retMoutpoints, m)
 		}
