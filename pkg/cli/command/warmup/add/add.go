@@ -92,6 +92,11 @@ func (aCmd *AddCommand) AddFlags() {
 }
 
 func (aCmd *AddCommand) Init(cmd *cobra.Command, args []string) error {
+	if config.GetDaemonFlag(aCmd.Cmd) {
+		header := []string{cobrautil.ROW_RESULT}
+		aCmd.SetHeader(header)
+	}
+
 	// check has dingofs mountpoint
 	mountpoints, err := cobrautil.GetDingoFSMountPoints()
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -210,6 +215,8 @@ func (aCmd *AddCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	}
 	if !config.GetDaemonFlag(aCmd.Cmd) {
 		query.GetWarmupProgress(aCmd.Cmd, aCmd.Path)
+	} else {
+		aCmd.TableNew.Append([]string{"success"})
 	}
 	return nil
 }

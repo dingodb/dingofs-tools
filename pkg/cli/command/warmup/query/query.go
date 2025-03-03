@@ -25,15 +25,18 @@ package query
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
+	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	"github.com/dustin/go-humanize"
 	"github.com/gookit/color"
 	"github.com/pkg/xattr"
 	"github.com/schollz/progressbar/v3"
@@ -72,6 +75,7 @@ func NewQueryCommand() *cobra.Command {
 
 func (qCmd *QueryCommand) AddFlags() {
 	config.AddIntervalOptionFlag(qCmd.Cmd)
+	config.AddDaemonOptionPFlag(qCmd.Cmd)
 }
 
 func (qCmd *QueryCommand) Init(cmd *cobra.Command, args []string) error {
@@ -88,34 +92,42 @@ func (qCmd *QueryCommand) Print(cmd *cobra.Command, args []string) error {
 }
 
 func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
+
+	isDaemon := config.GetDaemonFlag(qCmd.Cmd)
 	filename := strings.Split(qCmd.path, "/")
-	bar := progressbar.NewOptions64(1,
-		progressbar.OptionSetDescription("[cyan]Warmup[reset] "+filename[len(filename)-1]+"..."),
-		progressbar.OptionShowCount(),
-		progressbar.OptionShowIts(),
-		progressbar.OptionSpinnerType(14),
-		progressbar.OptionFullWidth(),
-		progressbar.OptionThrottle(65*time.Millisecond),
-		progressbar.OptionSetRenderBlankState(true),
-		progressbar.OptionOnCompletion(func() {
-			fmt.Fprint(os.Stderr, "\n")
-		}),
-		progressbar.OptionEnableColorCodes(true),
-		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "[green]=[reset]",
-			SaucerHead:    "[green]>[reset]",
-			SaucerPadding: " ",
-			BarStart:      "[",
-			BarEnd:        "]",
-		}))
+	var bar *progressbar.ProgressBar
+	if !isDaemon {
+		bar = progressbar.NewOptions64(1,
+			progressbar.OptionSetDescription("[cyan]Warmup[reset] "+filename[len(filename)-1]+"..."),
+			progressbar.OptionShowCount(),
+			progressbar.OptionShowIts(),
+			progressbar.OptionSpinnerType(14),
+			progressbar.OptionFullWidth(),
+			progressbar.OptionThrottle(65*time.Millisecond),
+			progressbar.OptionSetRenderBlankState(true),
+			progressbar.OptionOnCompletion(func() {
+				fmt.Fprint(os.Stderr, "\n")
+			}),
+			progressbar.OptionEnableColorCodes(true),
+			progressbar.OptionSetTheme(progressbar.Theme{
+				Saucer:        "[green]=[reset]",
+				SaucerHead:    "[green]>[reset]",
+				SaucerPadding: " ",
+				BarStart:      "[",
+				BarEnd:        "]",
+			}))
+	}
 	var warmErrors uint64 = 0
+	var finished uint64 = 0
+	var total uint64 = 0
+	var resultStr string
 	for {
-		time.Sleep(qCmd.interval)
+		// result data format [finished/total/errors] or ["finished"]
 		result, err := xattr.Get(qCmd.path, DINGOFS_WARMUP_OP_XATTR)
 		if err != nil {
 			return err
 		}
-		resultStr := string(result)
+		resultStr = string(result)
 		if resultStr == "finished" {
 			break
 		}
@@ -123,11 +135,11 @@ func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		if len(strs) != 3 {
 			break
 		}
-		finished, err := strconv.ParseUint(strs[0], 10, 64)
+		finished, err = strconv.ParseUint(strs[0], 10, 64)
 		if err != nil {
 			break
 		}
-		total, err := strconv.ParseUint(strs[1], 10, 64)
+		total, err = strconv.ParseUint(strs[1], 10, 64)
 		if err != nil {
 			break
 		}
@@ -135,14 +147,45 @@ func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		if err != nil || warmErrors > 0 {
 			break
 		}
-		bar.ChangeMax64(int64(total))
-		bar.Set64(int64(finished))
+		if isDaemon {
+			break
+		} else {
+			bar.ChangeMax64(int64(total))
+			bar.Set64(int64(finished))
+		}
+		time.Sleep(qCmd.interval)
 	}
 	if warmErrors > 0 { //warmup failed
-		fmt.Println(color.Red.Sprintf("\nwarmup failed,errors:%d\n", warmErrors))
+		fmt.Println(color.Red.Sprintf("\nwarmup finished,%d errors\n", warmErrors))
+	}
+
+	if isDaemon { //can't show progress bar
+		var progress_str string
+		if resultStr == "finished" {
+			header := []string{cobrautil.ROW_RESULT}
+			qCmd.SetHeader(header)
+			qCmd.TableNew.Append([]string{"finished"})
+
+		} else {
+			header := []string{"total", "finished", "errors", cobrautil.ROW_RESULT}
+			qCmd.SetHeader(header)
+			total_str := humanize.Comma(int64(total))
+			finished_str := humanize.Comma(int64(finished))
+			warmErrors_str := humanize.Comma(int64(warmErrors))
+			if total > 0 {
+				progress := math.Round(float64(warmErrors+finished) * 100 / float64(total))
+				progress_str = fmt.Sprintf("%d%%", int(progress))
+			}
+			qCmd.TableNew.Append([]string{total_str, finished_str, warmErrors_str, progress_str})
+		}
 	} else {
+		if total > 0 { //current warmup finished,last time warmup finished total will be 0
+			bar.ChangeMax64(int64(total))
+			bar.Set64(int64(total))
+		}
 		bar.Finish()
 	}
+
 	return nil
 }
 
