@@ -133,7 +133,7 @@ func (tCmd *TopologyCommand) Init(cmd *cobra.Command, args []string) error {
 	tCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
 
 	// header := []string{cobrautil.ROW_ID, cobrautil.ROW_TYPE, cobrautil.ROW_NAME, cobrautil.ROW_CHILD_TYPE, cobrautil.ROW_CHILD_LIST}
-	header := []string{cobrautil.ROW_POOL, cobrautil.ROW_ZONE, cobrautil.ROW_SERVER, cobrautil.ROW_METASERVER}
+	header := []string{cobrautil.ROW_POOL, cobrautil.ROW_ZONE, cobrautil.ROW_SERVERID, cobrautil.ROW_SERVER, cobrautil.ROW_METASERVERID, cobrautil.ROW_METASERVER}
 	tCmd.SetHeader(header)
 	var mergeIndex []int
 	mergeRow := []string{cobrautil.ROW_POOL, cobrautil.ROW_ZONE, cobrautil.ROW_SERVER}
@@ -191,14 +191,16 @@ func (tCmd *TopologyCommand) updateTable(topoMap *map[string]interface{}) *cmder
 					zone.Servers[j].GetServerID()
 			})
 			for _, server := range zone.Servers {
+				serverIdStr := fmt.Sprintf("%d", server.GetServerID())
 				serverStr := server.GetHostName()
 				sort.SliceStable(server.Metaservers, func(i, j int) bool {
 					return server.Metaservers[i].GetMetaServerID() <
 						server.Metaservers[j].GetMetaServerID()
 				})
 				for _, metaserver := range server.Metaservers {
+					metaserverIdStr := fmt.Sprintf("%d", metaserver.GetMetaServerID())
 					metaserverStr := fmt.Sprintf("%s:%d", metaserver.GetExternalIp(), metaserver.GetExternalPort())
-					row := []string{poolStr, zoneStr, serverStr, metaserverStr}
+					row := []string{poolStr, zoneStr, serverIdStr, serverStr, metaserverIdStr, metaserverStr}
 					tCmd.TableNew.Append(row)
 				}
 				if len(server.Metaservers) == 0 {
