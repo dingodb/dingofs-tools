@@ -59,6 +59,7 @@ const (
 	ROW_LEADER          = "leader"
 	ROW_OLDLEADER       = "oldLeader"
 	ROW_LEADER_PEER     = "leaderPeer"
+	ROW_FOLLOWER_PEER   = "followerPeer"
 	ROW_LEFT            = "left"
 	ROW_LENGTH          = "length"
 	ROW_LOCATION        = "location"

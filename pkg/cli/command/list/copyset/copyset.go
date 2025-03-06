@@ -25,6 +25,7 @@ package copyset
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -104,7 +105,7 @@ func (cCmd *CopysetCommand) Init(cmd *cobra.Command, args []string) error {
 	cCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListCopysetInfo")
 	cCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(cCmd.Cmd, "verbose")
 
-	header := []string{cobrautil.ROW_KEY, cobrautil.ROW_COPYSET_ID, cobrautil.ROW_POOL_ID, cobrautil.ROW_EPOCH, cobrautil.ROW_LEADER_PEER, cobrautil.ROW_PEER_NUMBER}
+	header := []string{cobrautil.ROW_KEY, cobrautil.ROW_COPYSET_ID, cobrautil.ROW_POOL_ID, cobrautil.ROW_EPOCH, cobrautil.ROW_LEADER_PEER, cobrautil.ROW_FOLLOWER_PEER, cobrautil.ROW_PEER_NUMBER}
 	cCmd.SetHeader(header)
 	index_pool := slices.Index(header, cobrautil.ROW_POOL_ID)
 	index_leader := slices.Index(header, cobrautil.ROW_LEADER_PEER)
@@ -151,12 +152,21 @@ func (cCmd *CopysetCommand) updateTable() {
 			row[cobrautil.ROW_PEER_NUMBER] = fmt.Sprintf("%d", len(info.GetPeers()))
 		} else {
 			row[cobrautil.ROW_LEADER_PEER] = info.GetLeaderPeer().String()
+
+			//all peers
 			peerNum := 0
-			for _, peer := range info.GetPeers() {
+			all_peers := info.GetPeers()
+			leader_id := info.GetLeaderPeer().GetId()
+			var follower_peers string
+			for _, peer := range all_peers {
 				if peer != nil {
 					peerNum++
+					if peer.GetId() != leader_id {
+						follower_peers += strings.Replace(peer.String(), "\r\n", " ", -1) + "\n"
+					}
 				}
 			}
+			row[cobrautil.ROW_FOLLOWER_PEER] = follower_peers[:len(follower_peers)-1] //remove last \n
 			row[cobrautil.ROW_PEER_NUMBER] = fmt.Sprintf("%d", peerNum)
 		}
 		rows = append(rows, row)
