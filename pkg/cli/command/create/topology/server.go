@@ -25,6 +25,7 @@ package topology
 import (
 	"context"
 	"fmt"
+
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 
@@ -158,22 +159,23 @@ func (tCmd *TopologyCommand) scanServers() *cmderror.CmdError {
 		index := slices.IndexFunc(tCmd.clusterServersInfo, func(serverInfo *topology.ServerInfo) bool {
 			return compare(server, serverInfo)
 		})
+		newServer := server
 		if index == -1 {
 			request := &topology.ServerRegistRequest{
-				HostName:     &server.Name,
-				InternalIp:   &server.InternalIp,
-				InternalPort: &server.InternalPort,
-				ExternalIp:   &server.ExternalIp,
-				ExternalPort: &server.ExternalPort,
-				ZoneName:     &server.ZoneName,
-				PoolName:     &server.PoolName,
+				HostName:     &newServer.Name,
+				InternalIp:   &newServer.InternalIp,
+				InternalPort: &newServer.InternalPort,
+				ExternalIp:   &newServer.ExternalIp,
+				ExternalPort: &newServer.ExternalPort,
+				ZoneName:     &newServer.ZoneName,
+				PoolName:     &newServer.PoolName,
 			}
 			tCmd.createServer = append(tCmd.createServer, request)
 			row := make(map[string]string)
-			row[cobrautil.ROW_NAME] = server.Name
+			row[cobrautil.ROW_NAME] = newServer.Name
 			row[cobrautil.ROW_TYPE] = cobrautil.TYPE_SERVER
 			row[cobrautil.ROW_OPERATION] = cobrautil.ROW_VALUE_ADD
-			row[cobrautil.ROW_PARENT] = server.ZoneName
+			row[cobrautil.ROW_PARENT] = newServer.ZoneName
 			tCmd.rows = append(tCmd.rows, row)
 			tCmd.TableNew.Append(cobrautil.Map2List(row, tCmd.Header))
 		}

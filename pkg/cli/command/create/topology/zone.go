@@ -146,9 +146,11 @@ func (tCmd *TopologyCommand) scanZones() *cmderror.CmdError {
 			return compare(zone, zoneInfo)
 		})
 		if index == -1 {
+			zoneName := zone.Name
+			poolName := zone.PoolName
 			request := &topology.CreateZoneRequest{
-				ZoneName: &zone.Name,
-				PoolName: &zone.PoolName,
+				ZoneName: &zoneName,
+				PoolName: &poolName,
 			}
 			tCmd.createZone = append(tCmd.createZone, request)
 			row := make(map[string]string)
