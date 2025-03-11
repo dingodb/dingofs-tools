@@ -25,6 +25,7 @@ package topology
 import (
 	"context"
 	"fmt"
+	"slices"
 	"sort"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
@@ -34,7 +35,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	topology "github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slices"
 	"google.golang.org/grpc"
 )
 
@@ -204,17 +204,17 @@ func (tCmd *TopologyCommand) updateTable(topoMap *map[string]interface{}) *cmder
 					tCmd.TableNew.Append(row)
 				}
 				if len(server.Metaservers) == 0 {
-					row := []string{poolStr, zoneStr, serverStr, ""}
+					row := []string{poolStr, zoneStr, serverIdStr, serverStr, "", ""}
 					tCmd.TableNew.Append(row)
 				}
 			}
 			if len(zone.Servers) == 0 {
-				row := []string{poolStr, zoneStr, "", ""}
+				row := []string{poolStr, zoneStr, "", "", "", ""}
 				tCmd.TableNew.Append(row)
 			}
 		}
 		if len(pool.Zones) == 0 {
-			row := []string{poolStr, "", "", ""}
+			row := []string{poolStr, "", "", "", "", ""}
 			tCmd.TableNew.Append(row)
 		}
 	}
