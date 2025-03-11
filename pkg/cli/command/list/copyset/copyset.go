@@ -166,7 +166,10 @@ func (cCmd *CopysetCommand) updateTable() {
 					}
 				}
 			}
-			row[cobrautil.ROW_FOLLOWER_PEER] = follower_peers[:len(follower_peers)-1] //remove last \n
+			if len(follower_peers) > 0 {
+				row[cobrautil.ROW_FOLLOWER_PEER] = follower_peers[:len(follower_peers)-1] //remove last \n
+			}
+			row[cobrautil.ROW_FOLLOWER_PEER] = follower_peers
 			row[cobrautil.ROW_PEER_NUMBER] = fmt.Sprintf("%d", peerNum)
 		}
 		rows = append(rows, row)
