@@ -163,54 +163,60 @@ func GetLeaderCopysetGap(addr string, key2LeaderInfo *sync.Map, timeout time.Dur
 					return parseErr
 				}
 				lastLogIdFlag = true
-			} else if leaderFlag && strings.HasPrefix(line, REPLICATOR) {
-				// replicator_2203318222854@10.219.192.50:6802:0: next_index=4  flying_append_entries_size=0 idle hc=150785 ac=2 ic=0
-				if strings.Contains(line, SNAPSHOT) {
-					snapshot = true
-				}
-				nextIndexRegexp := regexp.MustCompile(NEXT_INDEX_PATTERN)
-				nextIndexParams := nextIndexRegexp.FindStringSubmatch(line)
-				if len(nextIndexParams) == 2 {
-					nextLogId, _ = strconv.ParseUint(nextIndexParams[1], 10, 64)
+			} else if leaderFlag {
+				replicatorFlag = strings.HasPrefix(line, REPLICATOR)
+				if !replicatorFlag { // no follower
+					leader := NewCopysetLeaderInfo()
+					key2LeaderInfo.Store(key, leader)
 				} else {
-					pareseErr := cmderror.ErrCopysetGapReplicator()
-					pareseErr.Format(key, line)
-					return pareseErr
-				}
-
-				flyingIdRegexp := regexp.MustCompile(FLYING_PATTERN)
-				flyingIdParams := flyingIdRegexp.FindStringSubmatch(line)
-				if len(flyingIdParams) == 2 {
-					flyingId, _ = strconv.ParseUint(flyingIdParams[1], 10, 64)
-				} else {
-					pareseErr := cmderror.ErrCopysetGapReplicator()
-					pareseErr.Format(key, line)
-					return pareseErr
-				}
-				replicatorFlag = true
-				if lastLogIdFlag && gap < lastLogId-(nextLogId-flyingId) {
-					gap = lastLogId - (nextLogId - flyingId - 1)
-					if leaderFlag && !(lastLogIdFlag && replicatorFlag) {
-						// leader, but no last_log_id or replicator
-						pareseErr := cmderror.ErrCopysetGap()
-						pareseErr.Format(key)
-						return pareseErr
+					// replicator_2203318222854@10.219.192.50:6802:0: next_index=4  flying_append_entries_size=0 idle hc=150785 ac=2 ic=0
+					if strings.Contains(line, SNAPSHOT) {
+						snapshot = true
+					}
+					nextIndexRegexp := regexp.MustCompile(NEXT_INDEX_PATTERN)
+					nextIndexParams := nextIndexRegexp.FindStringSubmatch(line)
+					if len(nextIndexParams) == 2 {
+						nextLogId, _ = strconv.ParseUint(nextIndexParams[1], 10, 64)
 					} else {
-						leader := NewCopysetLeaderInfo()
-						leader.Gap = gap
-						leader.Snapshot = snapshot
-						act, loaded := key2LeaderInfo.LoadOrStore(key, leader)
-						if loaded {
-							actLeader := act.(*CopysetLeaderInfo)
-							if actLeader.Gap < gap ||
-								(!actLeader.Snapshot && snapshot) {
-								// act need update
-								if actLeader.Gap > gap {
-									leader.Gap = actLeader.Gap
-								} else if actLeader.Snapshot && !snapshot {
-									leader.Snapshot = actLeader.Snapshot
+						pareseErr := cmderror.ErrCopysetGapReplicator()
+						pareseErr.Format(key, line)
+						return pareseErr
+					}
+
+					flyingIdRegexp := regexp.MustCompile(FLYING_PATTERN)
+					flyingIdParams := flyingIdRegexp.FindStringSubmatch(line)
+					if len(flyingIdParams) == 2 {
+						flyingId, _ = strconv.ParseUint(flyingIdParams[1], 10, 64)
+					} else {
+						pareseErr := cmderror.ErrCopysetGapReplicator()
+						pareseErr.Format(key, line)
+						return pareseErr
+					}
+
+					if lastLogIdFlag && gap < lastLogId-(nextLogId-flyingId) {
+						gap = lastLogId - (nextLogId - flyingId - 1)
+						if leaderFlag && !(lastLogIdFlag && replicatorFlag) {
+							// leader, but no last_log_id or replicator
+							pareseErr := cmderror.ErrCopysetGap()
+							pareseErr.Format(key)
+							return pareseErr
+						} else {
+							leader := NewCopysetLeaderInfo()
+							leader.Gap = gap
+							leader.Snapshot = snapshot
+							act, loaded := key2LeaderInfo.LoadOrStore(key, leader)
+							if loaded {
+								actLeader := act.(*CopysetLeaderInfo)
+								if actLeader.Gap < gap ||
+									(!actLeader.Snapshot && snapshot) {
+									// act need update
+									if actLeader.Gap > gap {
+										leader.Gap = actLeader.Gap
+									} else if actLeader.Snapshot && !snapshot {
+										leader.Snapshot = actLeader.Snapshot
+									}
+									key2LeaderInfo.Store(key, leader)
 								}
-								key2LeaderInfo.Store(key, leader)
 							}
 						}
 					}
