@@ -174,10 +174,18 @@ func (aCmd *AddCommand) convertFilelist() *cmderror.CmdError {
 		readErr.Format(aCmd.Path, err.Error())
 		return readErr
 	}
+	if len(data) == 0 {
+		readErr := cmderror.ErrReadFile()
+		readErr.Format(aCmd.Path, "file is empty")
+		return readErr
+	}
 
 	lines := strings.Split(string(data), "\n")
 	validPath := ""
 	for _, line := range lines {
+		if len(line)==0 {
+			continue
+		}
 		rel, err := filepath.Rel(aCmd.Mountpoint.MountPoint, line)
 		if err == nil && !strings.HasPrefix(rel, "..") {
 			// convert to dingofs path
@@ -187,6 +195,11 @@ func (aCmd *AddCommand) convertFilelist() *cmderror.CmdError {
 			convertFail := fmt.Sprintf("[%s] is not saved in dingofs", line)
 			aCmd.ConvertFails = append(aCmd.ConvertFails, convertFail)
 		}
+	}
+	if validPath == "" {
+		readErr := cmderror.ErrReadFile()
+		readErr.Format(aCmd.Path, "not find valid path in filelist")
+		return readErr
 	}
 	if err = ioutil.WriteFile(aCmd.Path, []byte(validPath), 0644); err != nil {
 		writeErr := cmderror.ErrWriteFile()
