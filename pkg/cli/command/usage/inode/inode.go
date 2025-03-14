@@ -54,8 +54,8 @@ type Result struct {
 var _ basecmd.FinalDingoCmdFunc = (*InodeNumCommand)(nil) // check interface
 
 const (
-	inodeExample = `$ dingofs fs usage inode
-$ dingofs fs usage inode --fsid 1,2,3`
+	inodeExample = `$ dingofs usage inode
+$ dingofs usage inode --fsid 1,2,3`
 )
 
 func NewInodeNumCommand() *cobra.Command {

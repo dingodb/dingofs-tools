@@ -64,7 +64,7 @@ func (mRpc *MetadataRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 const (
-	metadataExample = `$ dingofs fs usage metadata`
+	metadataExample = `$ dingofs usage metadata`
 )
 
 func NewMetadataCommand() *cobra.Command {
