@@ -2,12 +2,13 @@ package basecmd
 
 import (
 	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"math"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ConnectionPool struct {
@@ -39,6 +40,7 @@ func (c *ConnectionPool) GetConnection(address string, timeout time.Duration) (*
 	conn, err := grpc.DialContext(ctx, address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
+		grpc.WithMaxMsgSize(math.MaxInt32),
 		grpc.WithInitialConnWindowSize(math.MaxInt32),
 		grpc.WithInitialWindowSize(math.MaxInt32))
 	if err != nil {
