@@ -56,4 +56,4 @@ protoc --go_out=proto --proto_path=${PROTO_PATH} \
 
 # grpc
 ## fs
-protoc --go-grpc_out=proto --proto_path=${PROTO_PATH} ${PROTO_PATH}/dingofs/*.proto
+protoc --experimental_allow_proto3_optional --go-grpc_out=proto --proto_path=${PROTO_PATH} ${PROTO_PATH}/dingofs/*.proto
