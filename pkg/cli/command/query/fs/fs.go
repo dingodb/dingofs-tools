@@ -131,16 +131,6 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetFsInfo")
 		rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 		fCmd.Rpc = append(fCmd.Rpc, rpc)
-		row := make(map[string]string)
-		row[cobrautil.ROW_NAME] = fsNames[i]
-		row[cobrautil.ROW_ID] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_STATUS] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_BLOCKSIZE] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_FS_TYPE] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_SUM_IN_DIR] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_OWNER] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_MOUNT_NUM] = cobrautil.ROW_VALUE_DNE
-		fCmd.Rows = append(fCmd.Rows, row)
 	}
 
 	for i := range fsIds {
@@ -158,16 +148,6 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetFsInfo")
 		rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 		fCmd.Rpc = append(fCmd.Rpc, rpc)
-		row := make(map[string]string)
-		row[cobrautil.ROW_ID] = fsIds[i]
-		row[cobrautil.ROW_NAME] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_STATUS] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_BLOCKSIZE] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_FS_TYPE] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_SUM_IN_DIR] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_OWNER] = cobrautil.ROW_VALUE_DNE
-		row[cobrautil.ROW_MOUNT_NUM] = cobrautil.ROW_VALUE_DNE
-		fCmd.Rows = append(fCmd.Rows, row)
 	}
 
 	return nil
@@ -192,17 +172,10 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	}
 	var resList []interface{}
 	for _, result := range results {
-		if result == nil {
+		response := result.(*mds.GetFsInfoResponse)
+		if response == nil {
 			continue
 		}
-		response := result.(*mds.GetFsInfoResponse)
-		res, err := output.MarshalProtoJson(response)
-		if err != nil {
-			errMar := cmderror.ErrMarShalProtoJson()
-			errMar.Format(err.Error())
-			errs = append(errs, errMar)
-		}
-		resList = append(resList, res)
 		if response.GetStatusCode() != mds.FSStatusCode_OK {
 			code := response.GetStatusCode()
 			err := cmderror.ErrGetFsInfo(int(code))
@@ -210,20 +183,25 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 			errs = append(errs, err)
 			continue
 		}
-		fsInfo := response.GetFsInfo()
-		for _, row := range fCmd.Rows {
-			id := strconv.FormatUint(uint64(fsInfo.GetFsId()), 10)
-			if row[cobrautil.ROW_ID] == id || row[cobrautil.ROW_NAME] == fsInfo.GetFsName() {
-				row[cobrautil.ROW_ID] = id
-				row[cobrautil.ROW_NAME] = fsInfo.GetFsName()
-				row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
-				row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
-				row[cobrautil.ROW_FS_TYPE] = fsInfo.GetFsType().String()
-				row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
-				row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
-				row[cobrautil.ROW_MOUNT_NUM] = fmt.Sprintf("%d", fsInfo.GetMountNum())
-			}
+		res, err := output.MarshalProtoJson(response)
+		if err != nil {
+			errMar := cmderror.ErrMarShalProtoJson()
+			errMar.Format(err.Error())
+			errs = append(errs, errMar)
 		}
+		resList = append(resList, res)
+
+		fsInfo := response.GetFsInfo()
+		row := make(map[string]string)
+		row[cobrautil.ROW_ID] = strconv.FormatUint(uint64(fsInfo.GetFsId()), 10)
+		row[cobrautil.ROW_NAME] = fsInfo.GetFsName()
+		row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
+		row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
+		row[cobrautil.ROW_FS_TYPE] = fsInfo.GetFsType().String()
+		row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
+		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
+		row[cobrautil.ROW_MOUNT_NUM] = fmt.Sprintf("%d", fsInfo.GetMountNum())
+		fCmd.Rows = append(fCmd.Rows, row)
 	}
 
 	list := cobrautil.ListMap2ListSortByKeys(fCmd.Rows, fCmd.Header, []string{
