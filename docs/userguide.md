@@ -739,17 +739,18 @@ umount fs from the dingofs cluster
 Usage:
 
 ```shell
-dingo umount fs --fsname dingofs --mountpoint /mnt/dingofs
+dingo umount fs --fsname dingofs --mountpoint dingofs-103:9009:/mnt/dingofs
 ```
+you can get mountpoint from "dingo list mountpoint" command.
 
 Output:
 
 ```shell
-+---------+-----------------+---------+
-| FSNAME  |  MOUNTPOINT     | RESULT  |
-+---------+-----------------+---------+
-| dingofs |  /mnt/dingofs   | success |
-+--------+------------------+---------+
++----------+--------------------------------+---------+
+|  FSNAME  |           MOUNTPOINT           | RESULT  |
++----------+--------------------------------+---------+
+| dingofs  | dingofs-103:9009:/mnt/dingofs  | success |
++----------+--------------------------------+---------+
 ```
 
 NOTE: 

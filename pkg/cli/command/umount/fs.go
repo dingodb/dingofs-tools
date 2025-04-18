@@ -66,7 +66,7 @@ func (ufRp *UmountFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 const (
-	fsExample = `$ dingofs umount fs -fsname fsname -mountpoint hostname:port:path`
+	fsExample = `$ dingofs umount fs --fsname dingofs --mountpoint dingofs-103:9009:/mnt/dingofs`
 )
 
 func NewFsCommand() *cobra.Command {
