@@ -70,6 +70,7 @@ const (
 	ROW_METASERVER_ADDR = "metaserverAddr"
 	ROW_MOUNT_NUM       = "mountNum"
 	ROW_MOUNTPOINT      = "mountpoint"
+	ROW_UUID            = "uuid"
 	ROW_NAME            = "name"
 	ROW_NLINK           = "nlink"
 	ROW_NUM             = "num"

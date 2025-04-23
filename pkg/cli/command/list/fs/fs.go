@@ -104,7 +104,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	fCmd.Rpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListClusterFsInfo")
 	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
 
-	header := []string{cobrautil.ROW_ID, cobrautil.ROW_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_FS_TYPE, cobrautil.ROW_SUM_IN_DIR, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM}
+	header := []string{cobrautil.ROW_ID, cobrautil.ROW_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_FS_TYPE, cobrautil.ROW_SUM_IN_DIR, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
 	fCmd.SetHeader(header)
 	index_owner := slices.Index(header, cobrautil.ROW_OWNER)
 	index_type := slices.Index(header, cobrautil.ROW_FS_TYPE)
@@ -147,6 +147,7 @@ func (fCmd *FsCommand) updateTable() {
 		row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
 		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
 		row[cobrautil.ROW_MOUNT_NUM] = fmt.Sprintf("%d", fsInfo.GetMountNum())
+		row[cobrautil.ROW_UUID] = fsInfo.GetUuid()
 		rows = append(rows, row)
 	}
 	list := cobrautil.ListMap2ListSortByKeys(rows, fCmd.Header, []string{cobrautil.ROW_OWNER, cobrautil.ROW_FS_TYPE, cobrautil.ROW_ID})
