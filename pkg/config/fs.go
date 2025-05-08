@@ -133,31 +133,6 @@ const (
 	DINGOFS_S3_CHUNKSIZE          = "s3.chunksize"
 	VIPER_DINGOFS_S3CHUNKSIZE     = "dingofs.s3.chunksize"
 	DINGOFS_DEFAULT_S3_CHUNKSIZE  = "64 MiB"
-	// Volume
-	DINGOFS_VOLUME_SIZE                   = "volume.size"
-	VIPER_DINGOFS_VOLUME_SIZE             = "dingofs.volume.size"
-	DINGOFS_DEFAULT_VOLUME_SIZE           = "1 MiB"
-	DINGOFS_VOLUME_BLOCKGROUPSIZE         = "volume.blockgroupsize"
-	VIPER_DINGOFS_VOLUME_BLOCKGROUPSIZE   = "dingofs.volume.blockgroupsize"
-	DINGOFS_DEFAULT_VOLUME_BLOCKGROUPSIZE = "128 MiB"
-	DINGOFS_VOLUME_BLOCKSIZE              = "volume.blocksize"
-	VIPER_DINGOFS_VOLUME_BLOCKSIZE        = "dingofs.volume.blocksize"
-	DINGOFS_DEFAULT_VOLUME_BLOCKSIZE      = "4 KiB"
-	DINGOFS_VOLUME_NAME                   = "volume.name"
-	VIPER_DINGOFS_VOLUME_NAME             = "dingofs.volume.name"
-	DINGOFS_DEFAULT_VOLUME_NAME           = "volume"
-	DINGOFS_VOLUME_USER                   = "volume.user"
-	VIPER_DINGOFS_VOLUME_USER             = "dingofs.volume.user"
-	DINGOFS_DEFAULT_VOLUME_USER           = "user"
-	DINGOFS_VOLUME_PASSWORD               = "volume.password"
-	VIPER_DINGOFS_VOLUME_PASSWORD         = "dingofs.volume.password"
-	DINGOFS_DEFAULT_VOLUME_PASSWORD       = "password"
-	DINGOFS_VOLUME_BITMAPLOCATION         = "volume.bitmaplocation"
-	VIPER_DINGOFS_VOLUME_BITMAPLOCATION   = "dingofs.volume.bitmaplocation"
-	DINGOFS_DEFAULT_VOLUME_BITMAPLOCATION = "AtStart"
-	DINGOFS_VOLUME_SLICESIZE              = "volume.slicesize"
-	VIPER_DINGOFS_VOLUME_SLICESIZE        = "dingofs.volume.slicesize"
-	DINGOFS_DEFAULT_VOLUME_SLICESIZE      = "1 GiB"
 	// gateway
 	GATEWAY_LISTEN_ADDRESS          = "listen-address"
 	VIPER_GATEWAY_LISTEN_ADDRESS    = "gateway.listen-address"
@@ -212,16 +187,6 @@ var (
 		DINGOFS_S3_BLOCKSIZE:  VIPER_DINGOFS_S3_BLOCKSIZE,
 		DINGOFS_S3_CHUNKSIZE:  VIPER_DINGOFS_S3CHUNKSIZE,
 
-		// Volume
-		DINGOFS_VOLUME_SIZE:           VIPER_DINGOFS_VOLUME_SIZE,
-		DINGOFS_VOLUME_BLOCKGROUPSIZE: VIPER_DINGOFS_VOLUME_BLOCKGROUPSIZE,
-		DINGOFS_VOLUME_BLOCKSIZE:      VIPER_DINGOFS_VOLUME_BLOCKSIZE,
-		DINGOFS_VOLUME_NAME:           VIPER_DINGOFS_VOLUME_NAME,
-		DINGOFS_VOLUME_USER:           VIPER_DINGOFS_VOLUME_USER,
-		DINGOFS_VOLUME_PASSWORD:       VIPER_DINGOFS_VOLUME_PASSWORD,
-		DINGOFS_VOLUME_BITMAPLOCATION: VIPER_DINGOFS_VOLUME_BITMAPLOCATION,
-		DINGOFS_VOLUME_SLICESIZE:      VIPER_DINGOFS_VOLUME_SLICESIZE,
-
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  VIPER_GATEWAY_LISTEN_ADDRESS,
 		GATEWAY_CONSOLE_ADDRESS: VIPER_GATEWAY_CONSOLE_ADDRESS,
@@ -251,16 +216,6 @@ var (
 		DINGOFS_S3_BUCKETNAME: DINGOFS_DEFAULT_S3_BUCKETNAME,
 		DINGOFS_S3_BLOCKSIZE:  DINGOFS_DEFAULT_S3_BLOCKSIZE,
 		DINGOFS_S3_CHUNKSIZE:  DINGOFS_DEFAULT_S3_CHUNKSIZE,
-
-		// Volume
-		DINGOFS_VOLUME_SIZE:           DINGOFS_DEFAULT_VOLUME_SIZE,
-		DINGOFS_VOLUME_BLOCKGROUPSIZE: DINGOFS_DEFAULT_VOLUME_BLOCKGROUPSIZE,
-		DINGOFS_VOLUME_BLOCKSIZE:      DINGOFS_DEFAULT_VOLUME_BLOCKSIZE,
-		DINGOFS_VOLUME_NAME:           DINGOFS_DEFAULT_VOLUME_NAME,
-		DINGOFS_VOLUME_USER:           DINGOFS_DEFAULT_VOLUME_USER,
-		DINGOFS_VOLUME_PASSWORD:       DINGOFS_DEFAULT_VOLUME_PASSWORD,
-		DINGOFS_VOLUME_BITMAPLOCATION: DINGOFS_DEFAULT_VOLUME_BITMAPLOCATION,
-		DINGOFS_VOLUME_SLICESIZE:      DINGOFS_DEFAULT_VOLUME_SLICESIZE,
 
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  GATEWAY_DEFAULT_LISTEN_ADDRESS,
@@ -751,47 +706,6 @@ func AddS3ChunksizeOptionFlag(cmd *cobra.Command) {
 	AddStringOptionFlag(cmd, DINGOFS_S3_CHUNKSIZE, "s3 chunksize")
 }
 
-// volume.size [option]
-func AddVolumeSizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_SIZE, "volume size")
-}
-
-// volume.blockgroupsize [option]
-func AddVolumeBlockgroupsizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_BLOCKGROUPSIZE, "volume block group size")
-}
-
-// volume.blocksize [option]
-func AddVolumeBlocksizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_BLOCKSIZE, "volume blocksize")
-}
-
-// volume.name [option]
-func AddVolumeNameOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_NAME, "volume name")
-}
-
-// volume.user [option]
-func AddVolumeUserOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_USER, "volume user")
-}
-
-// volume.password [option]
-func AddVolumePasswordOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_PASSWORD, "volume password")
-}
-
-// volume.bitmaplocation [option]
-func AddVolumeBitmaplocationOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_BITMAPLOCATION, "volume space bitmap location, support |AtStart| and |AtEnd|")
-}
-
-// volume.slicesize [option]
-func AddVolumeSlicesizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_VOLUME_SLICESIZE, "volume extents slice size")
-}
-
-// volume.slicesize [option]
 func AddDetailOptionFlag(cmd *cobra.Command) {
 	AddBoolOptionFlag(cmd, DINGOFS_DETAIL, "show more infomation")
 }

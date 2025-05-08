@@ -39,10 +39,8 @@ import (
 )
 
 const (
-	fsExample = `$ dingo create fs --fsname test1
-$ dingo create fs --fsname test1 --fstype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname test1 --s3.blocksize 4MiB --s3.chunksize 4MiB
-$ dingo create fs --fsname test1 --fstype volume --volume.bitmaplocation AtStart --volume.blockgroupsize 128MiB --volume.blocksize 4KiB --volume.name volume --volume.password password --volume.size 1MiB --volume.slicesize 1MiB --volume.user user
-$ dingo create fs --fsname test1 --fstype hybrid  --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname test1 --s3.blocksize 4MiB --s3.chunksize 4MiB  --volume.bitmaplocation AtStart --volume.blockgroupsize 128MiB --volume.blocksize 4KiB --volume.name volume --volume.password password --volume.size 1MiB --volume.slicesize 1MiB --volume.user user`
+	fsExample = `$ dingo create fs --fsname dingofs
+$ dingo create fs --fsname dingofs --fstype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket --s3.blocksize 4MiB --s3.chunksize 4MiB`
 )
 
 type CreateFsRpc struct {
@@ -99,15 +97,6 @@ func (fCmd *FsCommand) AddFlags() {
 	config.AddS3BucknameOptionFlag(fCmd.Cmd)
 	config.AddS3BlocksizeOptionFlag(fCmd.Cmd)
 	config.AddS3ChunksizeOptionFlag(fCmd.Cmd)
-	// volume
-	config.AddVolumeSizeOptionFlag(fCmd.Cmd)
-	config.AddVolumeBlockgroupsizeOptionFlag(fCmd.Cmd)
-	config.AddVolumeBlocksizeOptionFlag(fCmd.Cmd)
-	config.AddVolumeNameOptionFlag(fCmd.Cmd)
-	config.AddVolumeUserOptionFlag(fCmd.Cmd)
-	config.AddVolumePasswordOptionFlag(fCmd.Cmd)
-	config.AddVolumeBitmaplocationOptionFlag(fCmd.Cmd)
-	config.AddVolumeSlicesizeOptionFlag(fCmd.Cmd)
 }
 
 func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
@@ -142,20 +131,6 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		errS3 := setS3Info(&fsDetail, fCmd.Cmd)
 		if errS3.TypeCode() != cmderror.CODE_SUCCESS {
 			return fmt.Errorf(errS3.Message)
-		}
-	case common.FSType_TYPE_VOLUME:
-		errVolume := setVolumeInfo(&fsDetail, fCmd.Cmd)
-		if errVolume.TypeCode() != cmderror.CODE_SUCCESS {
-			return fmt.Errorf(errVolume.Message)
-		}
-	case common.FSType_TYPE_HYBRID:
-		errS3 := setS3Info(&fsDetail, fCmd.Cmd)
-		if errS3.TypeCode() != cmderror.CODE_SUCCESS {
-			return fmt.Errorf(errS3.Message)
-		}
-		errVolume := setVolumeInfo(&fsDetail, fCmd.Cmd)
-		if errVolume.TypeCode() != cmderror.CODE_SUCCESS {
-			return fmt.Errorf(errVolume.Message)
 		}
 	default:
 		return fmt.Errorf("invalid fs type: %s", fsTypeStr)
@@ -221,79 +196,6 @@ func setS3Info(detail *mds.FsDetail, cmd *cobra.Command) *cmderror.CmdError {
 		ChunkSize:  &chunksize,
 	}
 	detail.S3Info = info
-	return cmderror.ErrSuccess()
-}
-
-func setVolumeInfo(detail *mds.FsDetail, cmd *cobra.Command) *cmderror.CmdError {
-	sizeStr := config.GetFlagString(cmd, config.DINGOFS_VOLUME_SIZE)
-	size, err := humanize.ParseBytes(sizeStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_VOLUME_SIZE, sizeStr)
-	}
-	blocksizeStr := config.GetFlagString(cmd, config.DINGOFS_VOLUME_BLOCKSIZE)
-	blocksize, err := humanize.ParseBytes(blocksizeStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_VOLUME_BLOCKSIZE, blocksizeStr)
-	}
-	name := config.GetFlagString(cmd, config.DINGOFS_VOLUME_NAME)
-	user := config.GetFlagString(cmd, config.DINGOFS_VOLUME_USER)
-	password := config.GetFlagString(cmd, config.DINGOFS_VOLUME_PASSWORD)
-	groupSizeStr := config.GetFlagString(cmd, config.DINGOFS_VOLUME_BLOCKGROUPSIZE)
-	groupSize, err := humanize.ParseBytes(groupSizeStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_VOLUME_BLOCKGROUPSIZE, groupSizeStr)
-	}
-	bitmapLocationStr := config.GetFlagString(cmd, config.DINGOFS_VOLUME_BITMAPLOCATION)
-	bitmapLocation, errTrans := cobrautil.TranslateBitmapLocation(bitmapLocationStr)
-	if errTrans.TypeCode() != cmderror.CODE_SUCCESS {
-		return errTrans
-	}
-	sliceStr := config.GetFlagString(cmd, config.DINGOFS_VOLUME_SLICESIZE)
-	slicesize, err := humanize.ParseBytes(sliceStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_VOLUME_SLICESIZE, sliceStr)
-	}
-
-	if !cobrautil.IsAligned(blocksize, 4096) {
-		alignErr := cmderror.ErrAligned()
-		alignErr.Format(config.DINGOFS_VOLUME_BLOCKSIZE, "4 kib")
-		return alignErr
-	}
-
-	if !cobrautil.IsAligned(groupSize, blocksize) {
-		alignErr := cmderror.ErrAligned()
-		alignErr.Format(config.DINGOFS_VOLUME_BLOCKGROUPSIZE, config.DINGOFS_VOLUME_BLOCKSIZE)
-		return alignErr
-	}
-
-	align128MiB, _ := humanize.ParseBytes("128 MiB")
-	if !cobrautil.IsAligned(groupSize, align128MiB) {
-		alignErr := cmderror.ErrAligned()
-		alignErr.Format(config.DINGOFS_VOLUME_BLOCKGROUPSIZE, "128 MiB")
-		return alignErr
-	}
-
-	if !cobrautil.IsAligned(size, groupSize) {
-		alignErr := cmderror.ErrAligned()
-		alignErr.Format(config.DINGOFS_VOLUME_SIZE, config.DINGOFS_VOLUME_BLOCKGROUPSIZE)
-		return alignErr
-	}
-
-	info := &common.Volume{
-		VolumeSize:     &size,
-		BlockSize:      &blocksize,
-		VolumeName:     &name,
-		User:           &user,
-		Password:       &password,
-		BlockGroupSize: &groupSize,
-		BitmapLocation: &bitmapLocation,
-		SliceSize:      &slicesize,
-	}
-	detail.Volume = info
 	return cmderror.ErrSuccess()
 }
 
