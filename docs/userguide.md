@@ -15,6 +15,7 @@ A tool for DingoFS
       - [create topology](#create-topology)
     - [delete](#delete)
       - [delete fs](#delete-fs)
+      - [delete metaserver](#delete-metaserver)
     - [list](#list)
       - [list copyset](#list-copyset)
       - [list fs](#list-fs)
@@ -239,6 +240,28 @@ Output:
 +--------+-------------------------------------+
 | dingofs| delete fs failed!, error is FS_BUSY |
 +--------+-------------------------------------+
+```
+
+#### delete metaserver
+
+delete metaserver from topology
+
+Usage:
+
+```shell
+dingo delete metaserver --metaserverid 1
+WARNING:Are you sure to delete metaserver 1?
+please input [yes] to confirm: yes
+```
+
+Output:
+
+```shell
++---------+
+| RESULT  |
++---------+
+| success |
++---------+
 ```
 
 ### list

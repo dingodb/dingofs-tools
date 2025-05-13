@@ -527,6 +527,16 @@ func AddMetaserverIdOptionFlag(cmd *cobra.Command) {
 	}
 }
 
+// metaserver id required
+func AddMetaserverIdFlag(cmd *cobra.Command) {
+	cmd.Flags().Uint32(DINGOFS_METASERVERID, 0, "metaserver Id, should be like 1 or 2 or 3")
+	cmd.MarkFlagRequired(DINGOFS_METASERVERID)
+	err := viper.BindPFlag(VIPER_DINGOFS_METASERVERID, cmd.Flags().Lookup(DINGOFS_METASERVERID))
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
 // fs id [required]
 func AddFsIdFlag(cmd *cobra.Command) {
 	cmd.Flags().StringSlice(DINGOFS_FSID, nil, "fs Id, should be like 1,2,3 "+color.Red.Sprint("[required]"))

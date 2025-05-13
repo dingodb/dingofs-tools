@@ -158,9 +158,10 @@ const (
 
 // topology type
 const (
-	TYPE_POOL    = "pool"
-	TYPE_SERVER  = "server"
-	TYPE_ZONE    = "zone"
-	TYPE_PHYPOOL = "physicalpool"
-	TYPE_LGPOOL  = "logicalpool"
+	TYPE_POOL       = "pool"
+	TYPE_SERVER     = "server"
+	TYPE_METASERVER = "metaserver"
+	TYPE_ZONE       = "zone"
+	TYPE_PHYPOOL    = "physicalpool"
+	TYPE_LGPOOL     = "logicalpool"
 )
