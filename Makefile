@@ -1,7 +1,7 @@
 # Copyright (C) 2022 Jingli Chen (Wine93), NetEase Inc.
 .PHONY: build debug init proto clean install_grpc_protobuf
 
-version=2.0.1
+version=4.1
 GITHUB_PROXY="https://ghproxy.com/"
 PROTOC_VERSION= 21.8
 PROTOC_GEN_GO_VERSION= "v1.28"

@@ -39,8 +39,13 @@ import (
 )
 
 const (
-	fsExample = `$ dingo create fs --fsname dingofs
-$ dingo create fs --fsname dingofs --fstype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket --s3.blocksize 4MiB --s3.chunksize 4MiB`
+	fsExample = `
+# store in s3
+$ dingo create fs --fsname dingofs --storagetype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket
+
+# store in rados
+$ dingo create fs --fsname dingofs --storagetype rados --rados.username admin --rados.key AQDg3Y2h --rados.mon 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300 --rados.poolname pool1 --rados.clustername ceph
+`
 )
 
 type CreateFsRpc struct {
@@ -86,17 +91,21 @@ func (fCmd *FsCommand) AddFlags() {
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
 	config.AddFsNameRequiredFlag(fCmd.Cmd)
 	config.AddUserOptionFlag(fCmd.Cmd)
-	config.AddCapacityOptionFlag(fCmd.Cmd)
 	config.AddBlockSizeOptionFlag(fCmd.Cmd)
-	config.AddSumInDIrOptionFlag(fCmd.Cmd)
-	config.AddFsTypeOptionFlag(fCmd.Cmd)
+	config.AddChunksizeOptionFlag(fCmd.Cmd)
+	config.AddStorageTypeOptionFlag(fCmd.Cmd)
+	config.AddCapacityOptionFlag(fCmd.Cmd)
 	// s3
 	config.AddS3AkOptionFlag(fCmd.Cmd)
 	config.AddS3SkOptionFlag(fCmd.Cmd)
 	config.AddS3EndpointOptionFlag(fCmd.Cmd)
 	config.AddS3BucknameOptionFlag(fCmd.Cmd)
-	config.AddS3BlocksizeOptionFlag(fCmd.Cmd)
-	config.AddS3ChunksizeOptionFlag(fCmd.Cmd)
+	// rados
+	config.AddRadosUsernameOptionFlag(fCmd.Cmd)
+	config.AddRadosKeyOptionFlag(fCmd.Cmd)
+	config.AddRadosMonOptionFlag(fCmd.Cmd)
+	config.AddRadosPoolNameOptionFlag(fCmd.Cmd)
+	config.AddRadosClusterNameOptionFlag(fCmd.Cmd)
 }
 
 func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
@@ -116,44 +125,50 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	blocksizeStr := config.GetFlagString(cmd, config.DINGOFS_BLOCKSIZE)
 	blocksize, err := humanize.ParseBytes(blocksizeStr)
 	if err != nil {
-		return fmt.Errorf(fmt.Sprintf("invalid blocksize: %s", blocksizeStr))
+		return fmt.Errorf("invalid blocksize: %s", blocksizeStr)
+	}
+	chunksizeStr := config.GetFlagString(cmd, config.DINGOFS_CHUNKSIZE)
+	chunksize, err := humanize.ParseBytes(chunksizeStr)
+	if err != nil {
+		return fmt.Errorf("invalid chunksize: %s", chunksizeStr)
 	}
 
-	fsTypeStr := config.GetFlagString(cmd, config.DINGOFS_FSTYPE)
-	fsType, errFstype := cobrautil.TranslateFsType(fsTypeStr)
-	if errFstype.TypeCode() != cmderror.CODE_SUCCESS {
-		return errFstype.ToError()
+	storageTypeStr := config.GetFlagString(cmd, config.DINGOFS_STORAGETYPE)
+	storageType, errStoragetype := cobrautil.TranslateStorageType(storageTypeStr)
+	if errStoragetype.TypeCode() != cmderror.CODE_SUCCESS {
+		return errStoragetype.ToError()
 	}
 
-	var fsDetail mds.FsDetail
-	switch fsType {
-	case common.FSType_TYPE_S3:
-		errS3 := setS3Info(&fsDetail, fCmd.Cmd)
-		if errS3.TypeCode() != cmderror.CODE_SUCCESS {
-			return fmt.Errorf(errS3.Message)
+	var storageInfo common.StorageInfo
+	switch storageType {
+	case common.StorageType_TYPE_S3:
+		err := SetS3Info(&storageInfo, fCmd.Cmd)
+		if err != nil {
+			return err
+		}
+	case common.StorageType_TYPE_RADOS:
+		err := SetRadosInfo(&storageInfo, fCmd.Cmd)
+		if err != nil {
+			return err
 		}
 	default:
-		return fmt.Errorf("invalid fs type: %s", fsTypeStr)
+		return fmt.Errorf("invalid storage type: %s", storageTypeStr)
 	}
 
-	sumInDir := config.GetFlagBool(cmd, config.DINGOFS_SUMINDIR)
-
 	owner := config.GetFlagString(cmd, config.DINGOFS_USER)
-
 	capStr := config.GetFlagString(cmd, config.DINGOFS_CAPACITY)
 	capability, err := humanize.ParseBytes(capStr)
 	if err != nil {
-		return fmt.Errorf(fmt.Sprintf("invalid capability: %s", capStr))
+		return fmt.Errorf("invalid capability: %s", capStr)
 	}
 
 	request := &mds.CreateFsRequest{
-		FsName:         &fsName,
-		BlockSize:      &blocksize,
-		FsType:         &fsType,
-		FsDetail:       &fsDetail,
-		EnableSumInDir: &sumInDir,
-		Owner:          &owner,
-		Capacity:       &capability,
+		FsName:      &fsName,
+		BlockSize:   &blocksize,
+		ChunkSize:   &chunksize,
+		StorageInfo: &storageInfo,
+		Owner:       &owner,
+		Capacity:    &capability,
 	}
 	fCmd.Rpc = &CreateFsRpc{
 		Request: request,
@@ -167,36 +182,56 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func setS3Info(detail *mds.FsDetail, cmd *cobra.Command) *cmderror.CmdError {
+func SetS3Info(storageInfo *common.StorageInfo, cmd *cobra.Command) error {
 	ak := config.GetFlagString(cmd, config.DINGOFS_S3_AK)
 	sk := config.GetFlagString(cmd, config.DINGOFS_S3_SK)
 	endpoint := config.GetFlagString(cmd, config.DINGOFS_S3_ENDPOINT)
 	bucketname := config.GetFlagString(cmd, config.DINGOFS_S3_BUCKETNAME)
-	blocksizeStr := config.GetFlagString(cmd, config.DINGOFS_S3_BLOCKSIZE)
-	blocksize, err := humanize.ParseBytes(blocksizeStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_S3_BLOCKSIZE, blocksizeStr)
-		return errParse
-	}
-	chunksizeStr := config.GetFlagString(cmd, config.DINGOFS_S3_CHUNKSIZE)
-	chunksize, err := humanize.ParseBytes(chunksizeStr)
-	if err != nil {
-		errParse := cmderror.ErrParse()
-		errParse.Format(config.DINGOFS_S3_CHUNKSIZE, chunksizeStr)
-		return errParse
+
+	if len(ak) == 0 || len(sk) == 0 || len(endpoint) == 0 || len(bucketname) == 0 {
+		return fmt.Errorf("s3 info is incomplete, please check s3.ak, s3.sk, s3.endpoint, s3.bucketname")
 	}
 
-	info := &common.S3Info{
-		Ak:         &ak,
-		Sk:         &sk,
-		Endpoint:   &endpoint,
-		Bucketname: &bucketname,
-		BlockSize:  &blocksize,
-		ChunkSize:  &chunksize,
+	storage_s3info := &common.StorageInfo_S3Info{
+		S3Info: &common.S3Info{
+			Ak:         &ak,
+			Sk:         &sk,
+			Endpoint:   &endpoint,
+			Bucketname: &bucketname,
+		},
 	}
-	detail.S3Info = info
-	return cmderror.ErrSuccess()
+	storageInfo.Type = new(common.StorageType)
+	*storageInfo.Type = common.StorageType_TYPE_S3
+	storageInfo.StorageInfo = storage_s3info
+
+	return nil
+}
+
+func SetRadosInfo(storageInfo *common.StorageInfo, cmd *cobra.Command) error {
+	userName := config.GetFlagString(cmd, config.DINGOFS_RADOS_USERNAME)
+	secretKey := config.GetFlagString(cmd, config.DINGOFS_RADOS_KEY)
+	monitor := config.GetFlagString(cmd, config.DINGOFS_RADOS_MON)
+	poolName := config.GetFlagString(cmd, config.DINGOFS_RADOS_POOLNAME)
+	clusterName := config.GetFlagString(cmd, config.DINGOFS_RADOS_CLUSTERNAME)
+
+	if len(userName) == 0 || len(secretKey) == 0 || len(monitor) == 0 || len(poolName) == 0 {
+		return fmt.Errorf("rados info is incomplete, please check rados.username, rados.key, rados.mon, rados.poolname")
+	}
+
+	storage_radosinfo := &common.StorageInfo_RadosInfo{
+		RadosInfo: &common.RadosInfo{
+			UserName:    &userName,
+			Key:         &secretKey,
+			MonHost:     &monitor,
+			PoolName:    &poolName,
+			ClusterName: &clusterName,
+		},
+	}
+	storageInfo.Type = new(common.StorageType)
+	*storageInfo.Type = common.StorageType_TYPE_RADOS
+	storageInfo.StorageInfo = storage_radosinfo
+
+	return nil
 }
 
 func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
@@ -217,8 +252,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
 		row[cobrautil.ROW_CAPACITY] = fmt.Sprintf("%d", fsInfo.GetCapacity())
 		row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
-		row[cobrautil.ROW_FS_TYPE] = fsInfo.GetFsType().String()
-		row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
+		row[cobrautil.ROW_STORAGE_TYPE] = fsInfo.GetStorageInfo().GetType().String()
 		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
 	}
 

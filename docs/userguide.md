@@ -181,7 +181,11 @@ create a fs in dingofs
 Usage:
 
 ```shell
-dingo  create fs --fsname dingofs  --fstype s3 --s3.ak 1CzODWr3xuiIOTl80CGc --s3.sk NR3Tk3hLK6GjehsawFeLPzHRweqwdMAGVMQ8ik1S --s3.endpoint https://172.20.61.102:19000 --s3.bucketname yansp-bucket --s3.blocksize 4MiB --s3.chunksize 4MiB --mdsaddr 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
+# store in s3
+$ dingo create fs --fsname dingofs --storagetype s3 --s3.ak 1CzODWr3xuiIOTl80CGc --s3.sk NR3Tk3hLK6GjehsawFeLPzHRweqwdMAGVMQ8ik1S --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket --mdsaddr 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
+
+# store in rados
+$ dingo create fs --fsname dingofs --storagetype rados --rados.username admin --rados.key AQDg3Y2h --rados.mon 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300 --rados.poolname pool1 --rados.clustername ceph --mdsaddr 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
 ```
 
 Output:

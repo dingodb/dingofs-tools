@@ -112,10 +112,10 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("fsname or fsid is required")
 	}
 
-	header := []string{cobrautil.ROW_ID, cobrautil.ROW_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_FS_TYPE, cobrautil.ROW_SUM_IN_DIR, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
+	header := []string{cobrautil.ROW_ID, cobrautil.ROW_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
 	fCmd.SetHeader(header)
 	fCmd.TableNew.SetAutoMergeCellsByColumnIndex(
-		cobrautil.GetIndexSlice(header, []string{cobrautil.ROW_FS_TYPE}),
+		cobrautil.GetIndexSlice(header, []string{cobrautil.ROW_STORAGE_TYPE}),
 	)
 
 	fCmd.Rows = make([]map[string]string, 0)
@@ -197,8 +197,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		row[cobrautil.ROW_NAME] = fsInfo.GetFsName()
 		row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
 		row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
-		row[cobrautil.ROW_FS_TYPE] = fsInfo.GetFsType().String()
-		row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
+		row[cobrautil.ROW_STORAGE_TYPE] = fsInfo.GetStorageInfo().GetType().String()
 		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
 		row[cobrautil.ROW_MOUNT_NUM] = fmt.Sprintf("%d", fsInfo.GetMountNum())
 		row[cobrautil.ROW_UUID] = fsInfo.GetUuid()
@@ -206,7 +205,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	list := cobrautil.ListMap2ListSortByKeys(fCmd.Rows, fCmd.Header, []string{
-		cobrautil.ROW_FS_TYPE, cobrautil.ROW_ID,
+		cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_ID,
 	})
 	fCmd.TableNew.AppendBulk(list)
 	fCmd.Result = resList

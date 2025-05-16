@@ -104,7 +104,7 @@ func (iCmd *InodeNumCommand) Init(cmd *cobra.Command, args []string) error {
 		filetype2Metric["inode_num"] = metric
 		iCmd.FsId2Filetype2Metric[fsId] = filetype2Metric
 	}
-	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_TYPE, cobrautil.ROW_NUM}
+	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_NUM}
 	iCmd.SetHeader(header)
 	iCmd.TableNew.SetAutoMergeCellsByColumnIndex(cobrautil.GetIndexSlice(header, []string{cobrautil.ROW_FS_ID}))
 
@@ -161,7 +161,7 @@ func (iCmd *InodeNumCommand) RunCommand(cmd *cobra.Command, args []string) error
 					if errNum == nil && errId == nil {
 						row := make(map[string]string)
 						row[cobrautil.ROW_FS_ID] = strconv.FormatUint(uint64(id), 10)
-						row[cobrautil.ROW_FS_TYPE] = filetype
+						row[cobrautil.ROW_STORAGE_TYPE] = filetype
 						row[cobrautil.ROW_NUM] = strconv.FormatInt(num, 10)
 						rows = append(rows, row)
 					} else {

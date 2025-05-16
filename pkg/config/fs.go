@@ -60,12 +60,12 @@ const (
 	DINGOFS_DEFAULT_CAPACITY     = "100 GiB"
 	DINGOFS_BLOCKSIZE            = "blocksize"
 	VIPER_DINGOFS_BLOCKSIZE      = "dingofs.blocksize"
-	DINGOFS_DEFAULT_BLOCKSIZE    = "1 MiB"
-	DINGOFS_SUMINDIR             = "sumindir"
-	VIPER_DINGOFS_SUMINDIR       = "dingofs.sumindir"
-	DINGOFS_DEFAULT_SUMINDIR     = false
-	DINGOFS_FSTYPE               = "fstype"
-	VIPER_DINGOFS_FSTYPE         = "dingofs.fstype"
+	DINGOFS_DEFAULT_BLOCKSIZE    = "4 MiB"
+	DINGOFS_CHUNKSIZE            = "chunksize"
+	VIPER_DINGOFS_CHUNKSIZE      = "dingofs.chunksize"
+	DINGOFS_DEFAULT_CHUNKSIZE    = "64 MiB"
+	DINGOFS_STORAGETYPE          = "storagetype"
+	VIPER_DINGOFS_STORAGETYPE    = "dingofs.storagetype"
 	DINGOFS_COPYSETID            = "copysetid"
 	VIPER_DINGOFS_COPYSETID      = "dingofs.copysetid"
 	DINGOFS_POOLID               = "poolid"
@@ -117,22 +117,34 @@ const (
 	// S3
 	DINGOFS_S3_AK                 = "s3.ak"
 	VIPER_DINGOFS_S3_AK           = "dingofs.s3.ak"
-	DINGOFS_DEFAULT_S3_AK         = "ak"
+	DINGOFS_DEFAULT_S3_AK         = ""
 	DINGOFS_S3_SK                 = "s3.sk"
 	VIPER_DINGOFS_S3_SK           = "dingofs.s3.sk"
-	DINGOFS_DEFAULT_S3_SK         = "sk"
+	DINGOFS_DEFAULT_S3_SK         = ""
 	DINGOFS_S3_ENDPOINT           = "s3.endpoint"
 	VIPER_DINGOFS_S3_ENDPOINT     = "dingofs.s3.endpoint"
-	DINGOFS_DEFAULT_ENDPOINT      = "http://localhost:9000"
+	DINGOFS_DEFAULT_ENDPOINT      = ""
 	DINGOFS_S3_BUCKETNAME         = "s3.bucketname"
 	VIPER_DINGOFS_S3_BUCKETNAME   = "dingofs.s3.bucketname"
-	DINGOFS_DEFAULT_S3_BUCKETNAME = "bucketname"
-	DINGOFS_S3_BLOCKSIZE          = "s3.blocksize"
-	VIPER_DINGOFS_S3_BLOCKSIZE    = "dingofs.s3.blocksize"
-	DINGOFS_DEFAULT_S3_BLOCKSIZE  = "4 MiB"
-	DINGOFS_S3_CHUNKSIZE          = "s3.chunksize"
-	VIPER_DINGOFS_S3CHUNKSIZE     = "dingofs.s3.chunksize"
-	DINGOFS_DEFAULT_S3_CHUNKSIZE  = "64 MiB"
+	DINGOFS_DEFAULT_S3_BUCKETNAME = ""
+
+	// rados
+	DINGOFS_RADOS_USERNAME            = "rados.username"
+	VIPER_DINGOFS_RADOS_USERNAME      = "dingofs.rados.username"
+	DINGOFS_DEFAULT_RADOS_USERNAME    = ""
+	DINGOFS_RADOS_KEY                 = "rados.key"
+	VIPER_DINGOFS_RADOS_KEY           = "dingofs.rados.key"
+	DINGOFS_DEFAULT_RADOS_KEY         = ""
+	DINGOFS_RADOS_MON                 = "rados.mon"
+	VIPER_DINGOFS_RADOS_MON           = "dingofs.rados.mon"
+	DINGOFS_DEFAULT_RADOS_MON         = ""
+	DINGOFS_RADOS_POOLNAME            = "rados.poolname"
+	VIPER_DINGOFS_RADOS_POOLNAME      = "dingofs.rados.poolname"
+	DINGOFS_DEFAULT_RADOS_POOLNAME    = ""
+	DINGOFS_RADOS_CLUSTERNAME         = "rados.clustername"
+	VIPER_DINGOFS_RADOS_CLUSTERNAME   = "dingofs.rados.clustername"
+	DINGOFS_DEFAULT_RADOS_CLUSTERNAME = "ceph"
+
 	// gateway
 	GATEWAY_LISTEN_ADDRESS          = "listen-address"
 	VIPER_GATEWAY_LISTEN_ADDRESS    = "gateway.listen-address"
@@ -160,8 +172,8 @@ var (
 		DINGOFS_USER:           VIPER_DINGOFS_USER,
 		DINGOFS_CAPACITY:       VIPER_DINGOFS_CAPACITY,
 		DINGOFS_BLOCKSIZE:      VIPER_DINGOFS_BLOCKSIZE,
-		DINGOFS_SUMINDIR:       VIPER_DINGOFS_SUMINDIR,
-		DINGOFS_FSTYPE:         VIPER_DINGOFS_FSTYPE,
+		DINGOFS_CHUNKSIZE:      VIPER_DINGOFS_CHUNKSIZE,
+		DINGOFS_STORAGETYPE:    VIPER_DINGOFS_STORAGETYPE,
 		DINGOFS_COPYSETID:      VIPER_DINGOFS_COPYSETID,
 		DINGOFS_POOLID:         VIPER_DINGOFS_POOLID,
 		DINGOFS_DETAIL:         VIPER_DINGOFS_DETAIL,
@@ -184,8 +196,13 @@ var (
 		DINGOFS_S3_SK:         VIPER_DINGOFS_S3_SK,
 		DINGOFS_S3_ENDPOINT:   VIPER_DINGOFS_S3_ENDPOINT,
 		DINGOFS_S3_BUCKETNAME: VIPER_DINGOFS_S3_BUCKETNAME,
-		DINGOFS_S3_BLOCKSIZE:  VIPER_DINGOFS_S3_BLOCKSIZE,
-		DINGOFS_S3_CHUNKSIZE:  VIPER_DINGOFS_S3CHUNKSIZE,
+
+		// rados
+		DINGOFS_RADOS_USERNAME:    VIPER_DINGOFS_RADOS_USERNAME,
+		DINGOFS_RADOS_KEY:         VIPER_DINGOFS_RADOS_KEY,
+		DINGOFS_RADOS_MON:         VIPER_DINGOFS_RADOS_MON,
+		DINGOFS_RADOS_POOLNAME:    VIPER_DINGOFS_RADOS_POOLNAME,
+		DINGOFS_RADOS_CLUSTERNAME: VIPER_DINGOFS_RADOS_CLUSTERNAME,
 
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  VIPER_GATEWAY_LISTEN_ADDRESS,
@@ -195,13 +212,14 @@ var (
 		RPCTIMEOUT:           DEFAULT_RPCTIMEOUT,
 		RPCRETRYTIMES:        DEFAULT_RPCRETRYTIMES,
 		VERBOSE:              DEFAULT_VERBOSE,
-		DINGOFS_SUMINDIR:     DINGOFS_DEFAULT_SUMINDIR,
 		DINGOFS_DETAIL:       DINGOFS_DEFAULT_DETAIL,
 		DINGOFS_CLUSTERMAP:   DINGOFS_DEFAULT_CLUSTERMAP,
 		DINGOFS_MARGIN:       DINGOFS_DEFAULT_MARGIN,
 		DINGOFS_SERVERS:      DINGOFS_DEFAULT_SERVERS,
 		DINGOFS_INTERVAL:     DINGOFS_DEFAULT_INTERVAL,
 		DINGOFS_DAEMON:       DINGOFS_DEFAULT_DAEMON,
+		DINGOFS_BLOCKSIZE:    DINGOFS_DEFAULT_BLOCKSIZE,
+		DINGOFS_CHUNKSIZE:    DINGOFS_DEFAULT_CHUNKSIZE,
 		DINGOFS_STORAGE:      DINGOFS_DEFAULT_STORAGE,
 		DINGOFS_STATS_SCHEMA: DINGOFS_STATS_DEFAULT_SCHEMA,
 		DINGOFS_STATS_COUNT:  DINGOFS_STATS_DEFAULT_COUNT,
@@ -214,8 +232,13 @@ var (
 		DINGOFS_S3_SK:         DINGOFS_DEFAULT_S3_SK,
 		DINGOFS_S3_ENDPOINT:   DINGOFS_DEFAULT_ENDPOINT,
 		DINGOFS_S3_BUCKETNAME: DINGOFS_DEFAULT_S3_BUCKETNAME,
-		DINGOFS_S3_BLOCKSIZE:  DINGOFS_DEFAULT_S3_BLOCKSIZE,
-		DINGOFS_S3_CHUNKSIZE:  DINGOFS_DEFAULT_S3_CHUNKSIZE,
+
+		//rados
+		DINGOFS_RADOS_USERNAME:    DINGOFS_DEFAULT_RADOS_USERNAME,
+		DINGOFS_RADOS_KEY:         DINGOFS_DEFAULT_RADOS_KEY,
+		DINGOFS_RADOS_MON:         DINGOFS_DEFAULT_RADOS_MON,
+		DINGOFS_RADOS_POOLNAME:    DINGOFS_DEFAULT_RADOS_POOLNAME,
+		DINGOFS_RADOS_CLUSTERNAME: DINGOFS_DEFAULT_RADOS_CLUSTERNAME,
 
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  GATEWAY_DEFAULT_LISTEN_ADDRESS,
@@ -358,7 +381,7 @@ func AddUint32OptionFlag(cmd *cobra.Command, name string, usage string) {
 // dingofs
 // mds addr
 func AddFsMdsAddrFlag(cmd *cobra.Command) {
-	cmd.Flags().String(DINGOFS_MDSADDR, "", "mds address, should be like 127.0.0.1:6700,127.0.0.1:6701,127.0.0.1:6702")
+	cmd.Flags().String(DINGOFS_MDSADDR, "", "mds address, should be like 10.220.32.1:6700,10.220.32.2:6700,10.220.32.3:6700")
 	err := viper.BindPFlag(VIPER_DINGOFS_MDSADDR, cmd.Flags().Lookup(DINGOFS_MDSADDR))
 	if err != nil {
 		cobra.CheckErr(err)
@@ -668,19 +691,19 @@ func AddBlockSizeOptionFlag(cmd *cobra.Command) {
 	}
 }
 
-// SumInDir [option]
-func AddSumInDIrOptionFlag(cmd *cobra.Command) {
-	cmd.Flags().Bool(DINGOFS_SUMINDIR, false, "statistic info in xattr")
-	err := viper.BindPFlag(VIPER_DINGOFS_SUMINDIR, cmd.Flags().Lookup(DINGOFS_SUMINDIR))
+// Chunksize [option]
+func AddChunksizeOptionFlag(cmd *cobra.Command) {
+	cmd.Flags().String(DINGOFS_CHUNKSIZE, DINGOFS_DEFAULT_CHUNKSIZE, "chunk size")
+	err := viper.BindPFlag(VIPER_DINGOFS_CHUNKSIZE, cmd.Flags().Lookup(DINGOFS_CHUNKSIZE))
 	if err != nil {
 		cobra.CheckErr(err)
 	}
 }
 
-// Fsype [option]
-func AddFsTypeOptionFlag(cmd *cobra.Command) {
-	cmd.Flags().String(DINGOFS_FSTYPE, "s3", "fs type, should be: s3, volume or hybrid")
-	err := viper.BindPFlag(VIPER_DINGOFS_FSTYPE, cmd.Flags().Lookup(DINGOFS_FSTYPE))
+// StorageType [option]
+func AddStorageTypeOptionFlag(cmd *cobra.Command) {
+	cmd.Flags().String(DINGOFS_STORAGETYPE, "s3", "storage type, should be: s3, rados")
+	err := viper.BindPFlag(VIPER_DINGOFS_STORAGETYPE, cmd.Flags().Lookup(DINGOFS_STORAGETYPE))
 	if err != nil {
 		cobra.CheckErr(err)
 	}
@@ -688,32 +711,47 @@ func AddFsTypeOptionFlag(cmd *cobra.Command) {
 
 // S3.Ak [option]
 func AddS3AkOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_AK, "s3 ak")
+	AddStringOptionFlag(cmd, DINGOFS_S3_AK, "s3 access key")
 }
 
 // S3.Sk [option]
 func AddS3SkOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_SK, "s3 sk")
+	AddStringOptionFlag(cmd, DINGOFS_S3_SK, "s3 secret key")
 }
 
 // S3.Endpoint [option]
 func AddS3EndpointOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_ENDPOINT, "s3 endpoint")
+	AddStringOptionFlag(cmd, DINGOFS_S3_ENDPOINT, "s3 endpoint, should be like http://localhost:9000")
 }
 
 // S3.Buckname [option]
 func AddS3BucknameOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_BUCKETNAME, "s3 buckname")
+	AddStringOptionFlag(cmd, DINGOFS_S3_BUCKETNAME, "s3 bucket name")
 }
 
-// S3.Blocksize [option]
-func AddS3BlocksizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_BLOCKSIZE, "s3 blocksize")
+// rados.username [option]
+func AddRadosUsernameOptionFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_RADOS_USERNAME, "rados user name")
 }
 
-// S3.Chunksize [option]
-func AddS3ChunksizeOptionFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_S3_CHUNKSIZE, "s3 chunksize")
+// rados.key [option]
+func AddRadosKeyOptionFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_RADOS_KEY, "ceph user secret key")
+}
+
+// rados.mon [option]
+func AddRadosMonOptionFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_RADOS_MON, "ceph monitor host, should be like 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300")
+}
+
+// rados.pool [option]
+func AddRadosPoolNameOptionFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_RADOS_POOLNAME, "ceph pool name")
+}
+
+// rados.clustername [option]
+func AddRadosClusterNameOptionFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_RADOS_CLUSTERNAME, "ceph cluster name")
 }
 
 func AddDetailOptionFlag(cmd *cobra.Command) {

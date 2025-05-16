@@ -31,25 +31,15 @@ import (
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 )
 
-func TranslateFsType(fsType string) (common.FSType, *cmderror.CmdError) {
-	fs := strings.ToUpper("TYPE_" + fsType)
-	value := common.FSType_value[fs]
+func TranslateStorageType(storageType string) (common.StorageType, *cmderror.CmdError) {
+	storage := strings.ToUpper("TYPE_" + storageType)
+	value := common.StorageType_value[storage]
 	var retErr cmderror.CmdError
 	if value == 0 {
 		retErr = *cmderror.ErrUnknownFsType()
-		retErr.Format(fsType)
+		retErr.Format(storageType)
 	}
-	return common.FSType(value), &retErr
-}
-
-func TranslateBitmapLocation(bitmapLocation string) (common.BitmapLocation, *cmderror.CmdError) {
-	value := common.BitmapLocation_value[bitmapLocation]
-	var retErr cmderror.CmdError
-	if value == 0 {
-		retErr = *cmderror.ErrUnknownBitmapLocation()
-		retErr.Format(bitmapLocation)
-	}
-	return common.BitmapLocation(value), &retErr
+	return common.StorageType(value), &retErr
 }
 
 func PeerAddressToAddr(peer string) (string, *cmderror.CmdError) {
