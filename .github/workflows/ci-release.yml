@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: ${{ !startsWith(github.ref, 'refs/heads/gh-readonly-queue/') }}
     runs-on: ubuntu-latest
     container: dingodatabase/dingo-base:rocky9
 
