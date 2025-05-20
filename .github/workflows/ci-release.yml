@@ -2,7 +2,7 @@ name: Release Artifact
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
     tags:
       - '*'
 
@@ -17,6 +17,9 @@ jobs:
 
       - name: Record event type
         run: |
+          branchName=$(echo "${{ github.ref_name }}")
+          echo "branch name is: $branchName"
+
           echo "hello dingo eureka" > event.txt
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "EVENT_TYPE=PR" >> $GITHUB_ENV
@@ -27,7 +30,7 @@ jobs:
               echo "TAG_NAME=$tagInfo" >> $GITHUB_ENV
             else
               echo "EVENT_TYPE=PUSH" >> $GITHUB_ENV
-              echo "TAG_NAME=latest" >> $GITHUB_ENV
+              echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
             fi
           fi
       
