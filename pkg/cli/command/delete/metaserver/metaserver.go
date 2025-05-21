@@ -25,7 +25,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -109,7 +108,7 @@ func (metaServerCmd *DeleteMetaServerCommand) Print(cmd *cobra.Command, args []s
 
 func (metaServerCmd *DeleteMetaServerCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	metaServerIdStr := fmt.Sprintf("%d", metaServerCmd.Rpc.Request.GetMetaServerID())
-	if !viper.GetBool(config.VIPER_DINGOFS_NOCONFIRM) && !cobrautil.AskConfirmation(fmt.Sprintf("Are you sure to delete metaserver %s?", metaServerIdStr), "yes") {
+	if !config.GetFlagBool(metaServerCmd.Cmd, config.DINGOFS_NOCONFIRM) && !cobrautil.AskConfirmation(fmt.Sprintf("Are you sure to delete metaserver %s?", metaServerIdStr), "yes") {
 		return fmt.Errorf("abort delete metaserver")
 	}
 

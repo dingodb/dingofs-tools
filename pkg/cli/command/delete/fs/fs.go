@@ -33,7 +33,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -118,7 +117,7 @@ func (fCmd *FsCommand) Print(cmd *cobra.Command, args []string) error {
 
 func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	fsName := fCmd.Rpc.Request.GetFsName()
-	if !viper.GetBool(config.VIPER_DINGOFS_NOCONFIRM) && !cobrautil.AskConfirmation(fmt.Sprintf("Are you sure to delete fs %s?", fsName), fsName) {
+	if !config.GetFlagBool(fCmd.Cmd, config.DINGOFS_NOCONFIRM) && !cobrautil.AskConfirmation(fmt.Sprintf("Are you sure to delete fs %s?", fsName), fsName) {
 		return fmt.Errorf("abort delete fs")
 	}
 
