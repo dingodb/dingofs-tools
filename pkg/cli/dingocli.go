@@ -79,6 +79,17 @@ func newDingoCommand() *cobra.Command {
 		Use:     "dingo COMMAND [ARGS...]",
 		Short:   "dingo is a tool for managing dingofs",
 		Version: version.Version,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if cmd.HasParent() {
+				skipCommands := map[string]bool{
+					"help":    true,
+					"version": true,
+				}
+				if !skipCommands[cmd.Name()] {
+					config.InitConfig()
+				}
+			}
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cobratemplate.ShowHelp(os.Stderr)(cmd, args)
@@ -106,7 +117,6 @@ func newDingoCommand() *cobra.Command {
 }
 
 func Execute() {
-	cobra.OnInitialize(config.InitConfig)
 	res := newDingoCommand().Execute()
 	if res != nil {
 		os.Exit(1)

@@ -73,9 +73,10 @@ var (
 func InitConfig() {
 	// configure file priority
 	// command line (--conf dingo.yaml) > environment variables(CONF=/opt/dingo.yaml) > default (~/.dingo/dingo.yaml)
+	if ConfPath == "" {
+		ConfPath = os.Getenv("CONF") //check environment variable
+	}
 	if ConfPath != "" {
-		viper.SetConfigFile(ConfPath)
-	} else if ConfPath = os.Getenv("CONF"); ConfPath != "" {
 		viper.SetConfigFile(ConfPath)
 	} else {
 		// using home directory and /etc/dingo as default configuration file path
