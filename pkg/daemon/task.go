@@ -88,7 +88,7 @@ func GetTasks() []*Task {
 	return tasks
 }
 
-func (task *Task)Write(path string) {
+func (task *Task) Write(path string) {
 	b, err := json.Marshal(task)
 	if err != nil {
 		return

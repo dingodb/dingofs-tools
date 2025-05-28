@@ -26,6 +26,7 @@ import (
 	"fmt"
 
 	fscopyset "github.com/dingodb/dingofs-tools/proto/dingofs/proto/copyset"
+	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
@@ -108,6 +109,18 @@ func NewRpcReultCmdError(code int, message string) *CmdError {
 	}
 	ret := &CmdError{
 		Code:    CODE_RPC_RESULT + code,
+		Message: message,
+	}
+	AllError = append(AllError, ret)
+	return ret
+}
+
+func NewMdsV2RpcReultCmdError(code int, message string) *CmdError {
+	if code == 0 {
+		return NewSucessCmdError()
+	}
+	ret := &CmdError{
+		Code:    code,
 		Message: message,
 	}
 	AllError = append(AllError, ret)
@@ -553,5 +566,17 @@ var (
 			message = fmt.Sprintf("unknown error, error is %s", code.String())
 		}
 		return NewRpcReultCmdError(statusCode, message)
+	}
+
+	MDSV2Error = func(mds_error *pbmdsv2error.Error) *CmdError {
+		var message string
+		code := mds_error.GetErrcode()
+		switch code {
+		case pbmdsv2error.Errno_OK:
+			message = "success"
+		default:
+			message = fmt.Sprintf("error: %s, errmsg: %s", code.String(), mds_error.Errmsg)
+		}
+		return NewMdsV2RpcReultCmdError(int(code), message)
 	}
 )

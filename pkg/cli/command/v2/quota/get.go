@@ -1,0 +1,165 @@
+// Copyright (c) 2025 dingodb.com, Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package quota
+
+import (
+	"fmt"
+
+	cmderror "github.com/dingodb/dingofs-tools/internal/error"
+	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingofs-tools/pkg/base"
+	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	cmdCommon "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/common"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
+	"github.com/dingodb/dingofs-tools/pkg/config"
+	"github.com/dingodb/dingofs-tools/pkg/output"
+	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	"github.com/spf13/cobra"
+)
+
+type GetQuotaCommand struct {
+	basecmd.FinalDingoCmd
+	Rpc     *common.GetDirQuotaRpc
+	fsId    uint32
+	path    string
+	inodeid uint64
+}
+
+var _ basecmd.FinalDingoCmdFunc = (*GetQuotaCommand)(nil) // check interface
+
+func NewGetQuotaDataCommand() *GetQuotaCommand {
+	getQuotaCmd := &GetQuotaCommand{
+		FinalDingoCmd: basecmd.FinalDingoCmd{
+			Use:   "get",
+			Short: "get directory quota by path",
+			Example: `$ dingo quota get --fsid 1 --path /quotadir
+$ dingo quota get --fsname dingofs --path /quotadir`,
+		},
+	}
+	basecmd.NewFinalDingoCli(&getQuotaCmd.FinalDingoCmd, getQuotaCmd)
+	return getQuotaCmd
+}
+
+func NewGetQuotaCommand() *cobra.Command {
+	return NewGetQuotaDataCommand().Cmd
+}
+
+func (getQuotaCmd *GetQuotaCommand) AddFlags() {
+	config.AddRpcRetryTimesFlag(getQuotaCmd.Cmd)
+	config.AddRpcTimeoutFlag(getQuotaCmd.Cmd)
+	config.AddFsMdsAddrFlag(getQuotaCmd.Cmd)
+	config.AddFsIdUint32OptionFlag(getQuotaCmd.Cmd)
+	config.AddFsNameStringOptionFlag(getQuotaCmd.Cmd)
+	config.AddFsPathRequiredFlag(getQuotaCmd.Cmd)
+}
+
+func (getQuotaCmd *GetQuotaCommand) Init(cmd *cobra.Command, args []string) error {
+	// check flags values
+	fsId, fsErr := common.GetFsId(cmd)
+	if fsErr != nil {
+		return fsErr
+	}
+	path := config.GetFlagString(cmd, config.DINGOFS_QUOTA_PATH)
+	if len(path) == 0 {
+		return fmt.Errorf("path is required")
+	}
+	//get inodeid
+	dirInodeId, inodeErr := common.GetDirPathInodeId(cmd, fsId, path)
+	if inodeErr != nil {
+		return inodeErr
+	}
+	getQuotaCmd.fsId = fsId
+	getQuotaCmd.path = path
+	getQuotaCmd.inodeid = dirInodeId
+
+	header := []string{cobrautil.ROW_INODE_ID, cobrautil.ROW_PATH, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
+		cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}
+	getQuotaCmd.SetHeader(header)
+
+	return nil
+}
+
+func (getQuotaCmd *GetQuotaCommand) Print(cmd *cobra.Command, args []string) error {
+	return output.FinalCmdOutput(&getQuotaCmd.FinalDingoCmd, getQuotaCmd)
+}
+
+func (getQuotaCmd *GetQuotaCommand) RunCommand(cmd *cobra.Command, args []string) error {
+	_, response, err := GetDirQuotaData(cmd, getQuotaCmd.fsId, getQuotaCmd.inodeid)
+	if err != nil {
+		return err
+	}
+	dirQuota := response.GetQuota()
+	//fill table
+	quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(dirQuota.GetMaxBytes(), dirQuota.GetUsedBytes(), dirQuota.GetMaxInodes(), dirQuota.GetUsedInodes())
+	row := map[string]string{
+		cobrautil.ROW_INODE_ID:       fmt.Sprintf("%d", getQuotaCmd.inodeid),
+		cobrautil.ROW_PATH:           getQuotaCmd.path,
+		cobrautil.ROW_CAPACITY:       quotaValueSlice[0],
+		cobrautil.ROW_USED:           quotaValueSlice[1],
+		cobrautil.ROW_USED_PERCNET:   quotaValueSlice[2],
+		cobrautil.ROW_INODES:         quotaValueSlice[3],
+		cobrautil.ROW_INODES_IUSED:   quotaValueSlice[4],
+		cobrautil.ROW_INODES_PERCENT: quotaValueSlice[5],
+	}
+	getQuotaCmd.TableNew.Append(cobrautil.Map2List(row, getQuotaCmd.Header))
+
+	//to json
+	res, errTranslate := output.MarshalProtoJson(response)
+	if errTranslate != nil {
+		return errTranslate
+	}
+	mapRes := res.(map[string]interface{})
+	getQuotaCmd.Result = mapRes
+	getQuotaCmd.Error = cmderror.ErrSuccess()
+
+	return nil
+}
+
+func (getQuotaCmd *GetQuotaCommand) ResultPlainOutput() error {
+	return output.FinalCmdOutputPlain(&getQuotaCmd.FinalDingoCmd)
+}
+
+func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64) (*pbmdsv2.GetDirQuotaRequest, *pbmdsv2.GetDirQuotaResponse, error) {
+	// new prc
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "GetDirQuota")
+	if err != nil {
+		return nil, nil, err
+	}
+	// set request info
+	getQuotaRpc := &common.GetDirQuotaRpc{
+		Info: mdsRpc,
+		Request: &pbmdsv2.GetDirQuotaRequest{
+			FsId: fsId,
+			Ino:  dirInodeId,
+		},
+	}
+	// get rpc result
+	response, errCmd := base.GetRpcResponse(getQuotaRpc.Info, getQuotaRpc)
+	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
+		return nil, nil, fmt.Errorf(errCmd.Message)
+	}
+	result := response.(*pbmdsv2.GetDirQuotaResponse)
+
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+		if mdsErr.GetErrcode() == pbmdsv2error.Errno_ENOT_FOUND {
+			return nil, nil, fmt.Errorf("no quota for directory, inodeid: %d", dirInodeId)
+		} else {
+			return nil, nil, cmderror.MDSV2Error(mdsErr).ToError()
+		}
+	}
+
+	return getQuotaRpc.Request, result, nil
+}

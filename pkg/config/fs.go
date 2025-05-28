@@ -66,6 +66,7 @@ const (
 	DINGOFS_DEFAULT_CHUNKSIZE    = "64 MiB"
 	DINGOFS_STORAGETYPE          = "storagetype"
 	VIPER_DINGOFS_STORAGETYPE    = "dingofs.storagetype"
+	DINGOFS_DEFAULT_STORAGETYPE  = "s3"
 	DINGOFS_COPYSETID            = "copysetid"
 	VIPER_DINGOFS_COPYSETID      = "dingofs.copysetid"
 	DINGOFS_POOLID               = "poolid"
@@ -77,47 +78,51 @@ const (
 	VIPER_DINGOFS_INODEID        = "dingofs.inodeid"
 	DINGOFS_DEFAULT_INODEID      = uint64(0)
 
-	DINGOFS_CLUSTERMAP           = "clustermap"
-	VIPER_DINGOFS_CLUSTERMAP     = "dingofs.clustermap"
-	DINGOFS_DEFAULT_CLUSTERMAP   = "topo_example.json"
-	DINGOFS_THREADS              = "threads"
-	VIPER_DINGOFS_THREADS        = "dingofs.threads"
-	DINGOFS_DEFAULT_THREADS      = uint32(1)
-	DINGOFS_MARGIN               = "margin"
-	VIPER_DINGOFS_MARGIN         = "dingofs.margin"
-	DINGOFS_DEFAULT_MARGIN       = uint64(1000)
-	DINGOFS_FILELIST             = "filelist"
-	VIPER_DINGOFS_FILELIST       = "dingofs.filelist"
-	DINGOFS_SERVERS              = "servers"
-	VIPER_DINGOFS_SERVERS        = "dingofs.servers"
-	DINGOFS_DEFAULT_SERVERS      = "127.0.0.1:7001,127.0.0.1:7002"
-	DINGOFS_INTERVAL             = "interval"
-	VIPER_DINGOFS_INTERVAL       = "dingofs.interval"
-	DINGOFS_DEFAULT_INTERVAL     = 1 * time.Second
-	DINGOFS_DAEMON               = "daemon"
-	VIPER_DINGOFS_DAEMON         = "dingofs.daemon"
-	DINGOFS_DEFAULT_DAEMON       = false
-	DINGOFS_STORAGE              = "storage"
-	VIPER_DINGOFS_STORAGE        = "dingofs.storage"
-	DINGOFS_DEFAULT_STORAGE      = "disk"
-	DINGOFS_STATS_SCHEMA         = "schema"
-	VIPER_DINGOFS_STATS_SCHEMA   = "dingofs.schema"
-	DINGOFS_STATS_DEFAULT_SCHEMA = "ufmbo"
-	DINGOFS_STATS_COUNT          = "count"
-	VIPER_DINGOFS_STATS_COUNT    = "dingofs.count"
-	DINGOFS_STATS_DEFAULT_COUNT  = uint32(0)
-	DINGOFS_QUOTA_PATH           = "path"
-	VIPER_DINGOFS_QUOTA_PATH     = "dingofs.quota.path"
-	DINGOFS_QUOTA_DEFAULT_PATH   = ""
-	DINGOFS_QUOTA_CAPACITY       = "capacity"
-	VIPER_DINGOFS_QUOTA_CAPACITY = "dingofs.quota.capacity"
-	DINGOFS_QUOTA_DEF_CAPACITY   = uint64(0)
-	DINGOFS_QUOTA_INODES         = "inodes"
-	VIPER_DINGOFS_QUOTA_INODES   = "dingofs.quota.inodes"
-	DINGOFS_QUOTA_DEFAULT_INODES = uint64(0)
-	DINGOFS_QUOTA_REPAIR         = "repair"
-	VIPER_DINGOFS_QUOTA_REPAIR   = "dingofs.quota.repair"
-	DINGOFS_QUOTA_DEFAULT_REPAIR = false
+	DINGOFS_CLUSTERMAP             = "clustermap"
+	VIPER_DINGOFS_CLUSTERMAP       = "dingofs.clustermap"
+	DINGOFS_DEFAULT_CLUSTERMAP     = "topo_example.json"
+	DINGOFS_THREADS                = "threads"
+	VIPER_DINGOFS_THREADS          = "dingofs.threads"
+	DINGOFS_DEFAULT_THREADS        = uint32(1)
+	DINGOFS_MARGIN                 = "margin"
+	VIPER_DINGOFS_MARGIN           = "dingofs.margin"
+	DINGOFS_DEFAULT_MARGIN         = uint64(1000)
+	DINGOFS_FILELIST               = "filelist"
+	VIPER_DINGOFS_FILELIST         = "dingofs.filelist"
+	DINGOFS_SERVERS                = "servers"
+	VIPER_DINGOFS_SERVERS          = "dingofs.servers"
+	DINGOFS_DEFAULT_SERVERS        = "127.0.0.1:7001,127.0.0.1:7002"
+	DINGOFS_INTERVAL               = "interval"
+	VIPER_DINGOFS_INTERVAL         = "dingofs.interval"
+	DINGOFS_DEFAULT_INTERVAL       = 1 * time.Second
+	DINGOFS_DAEMON                 = "daemon"
+	VIPER_DINGOFS_DAEMON           = "dingofs.daemon"
+	DINGOFS_DEFAULT_DAEMON         = false
+	DINGOFS_STORAGE                = "storage"
+	VIPER_DINGOFS_STORAGE          = "dingofs.storage"
+	DINGOFS_DEFAULT_STORAGE        = "disk"
+	DINGOFS_STATS_SCHEMA           = "schema"
+	VIPER_DINGOFS_STATS_SCHEMA     = "dingofs.schema"
+	DINGOFS_STATS_DEFAULT_SCHEMA   = "ufmbo"
+	DINGOFS_STATS_COUNT            = "count"
+	VIPER_DINGOFS_STATS_COUNT      = "dingofs.count"
+	DINGOFS_STATS_DEFAULT_COUNT    = uint32(0)
+	DINGOFS_QUOTA_PATH             = "path"
+	VIPER_DINGOFS_QUOTA_PATH       = "dingofs.quota.path"
+	DINGOFS_QUOTA_DEFAULT_PATH     = ""
+	DINGOFS_QUOTA_CAPACITY         = "capacity"
+	VIPER_DINGOFS_QUOTA_CAPACITY   = "dingofs.quota.capacity"
+	DINGOFS_QUOTA_DEF_CAPACITY     = uint64(0)
+	DINGOFS_QUOTA_INODES           = "inodes"
+	VIPER_DINGOFS_QUOTA_INODES     = "dingofs.quota.inodes"
+	DINGOFS_QUOTA_DEFAULT_INODES   = uint64(0)
+	DINGOFS_QUOTA_REPAIR           = "repair"
+	VIPER_DINGOFS_QUOTA_REPAIR     = "dingofs.quota.repair"
+	DINGOFS_QUOTA_DEFAULT_REPAIR   = false
+	DINGOFS_CLIENT_ID              = "clientid"
+	DINGOFS_PARTITION_TYPE         = "partitiontype"
+	VIPER_DINGOFS_PARTITION_TYPE   = "dingofs.partitiontype"
+	DINGOFS_DEFAULT_PARTITION_TYPE = "hash"
 
 	// S3
 	DINGOFS_S3_AK                 = "s3.ak"
@@ -196,6 +201,7 @@ var (
 		DINGOFS_QUOTA_PATH:     VIPER_DINGOFS_QUOTA_PATH,
 		DINGOFS_QUOTA_INODES:   VIPER_DINGOFS_QUOTA_INODES,
 		DINGOFS_QUOTA_REPAIR:   VIPER_DINGOFS_QUOTA_REPAIR,
+		DINGOFS_PARTITION_TYPE: VIPER_DINGOFS_PARTITION_TYPE,
 
 		// S3
 		DINGOFS_S3_AK:         VIPER_DINGOFS_S3_AK,
@@ -215,25 +221,26 @@ var (
 		GATEWAY_CONSOLE_ADDRESS: VIPER_GATEWAY_CONSOLE_ADDRESS,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
-		RPCTIMEOUT:           DEFAULT_RPCTIMEOUT,
-		RPCRETRYTIMES:        DEFAULT_RPCRETRYTIMES,
-		VERBOSE:              DEFAULT_VERBOSE,
-		DINGOFS_DETAIL:       DINGOFS_DEFAULT_DETAIL,
-		DINGOFS_CLUSTERMAP:   DINGOFS_DEFAULT_CLUSTERMAP,
-		DINGOFS_MARGIN:       DINGOFS_DEFAULT_MARGIN,
-		DINGOFS_INODEID:      DINGOFS_DEFAULT_INODEID,
-		DINGOFS_THREADS:      DINGOFS_DEFAULT_THREADS,
-		DINGOFS_SERVERS:      DINGOFS_DEFAULT_SERVERS,
-		DINGOFS_INTERVAL:     DINGOFS_DEFAULT_INTERVAL,
-		DINGOFS_DAEMON:       DINGOFS_DEFAULT_DAEMON,
-		DINGOFS_BLOCKSIZE:    DINGOFS_DEFAULT_BLOCKSIZE,
-		DINGOFS_CHUNKSIZE:    DINGOFS_DEFAULT_CHUNKSIZE,
-		DINGOFS_STORAGE:      DINGOFS_DEFAULT_STORAGE,
-		DINGOFS_STATS_SCHEMA: DINGOFS_STATS_DEFAULT_SCHEMA,
-		DINGOFS_STATS_COUNT:  DINGOFS_STATS_DEFAULT_COUNT,
-		DINGOFS_QUOTA_PATH:   DINGOFS_QUOTA_DEFAULT_PATH,
-		DINGOFS_QUOTA_INODES: DINGOFS_QUOTA_DEFAULT_INODES,
-		DINGOFS_QUOTA_REPAIR: DINGOFS_QUOTA_DEFAULT_REPAIR,
+		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
+		RPCRETRYTIMES:          DEFAULT_RPCRETRYTIMES,
+		VERBOSE:                DEFAULT_VERBOSE,
+		DINGOFS_DETAIL:         DINGOFS_DEFAULT_DETAIL,
+		DINGOFS_CLUSTERMAP:     DINGOFS_DEFAULT_CLUSTERMAP,
+		DINGOFS_MARGIN:         DINGOFS_DEFAULT_MARGIN,
+		DINGOFS_INODEID:        DINGOFS_DEFAULT_INODEID,
+		DINGOFS_THREADS:        DINGOFS_DEFAULT_THREADS,
+		DINGOFS_SERVERS:        DINGOFS_DEFAULT_SERVERS,
+		DINGOFS_INTERVAL:       DINGOFS_DEFAULT_INTERVAL,
+		DINGOFS_DAEMON:         DINGOFS_DEFAULT_DAEMON,
+		DINGOFS_BLOCKSIZE:      DINGOFS_DEFAULT_BLOCKSIZE,
+		DINGOFS_CHUNKSIZE:      DINGOFS_DEFAULT_CHUNKSIZE,
+		DINGOFS_STORAGE:        DINGOFS_DEFAULT_STORAGE,
+		DINGOFS_STATS_SCHEMA:   DINGOFS_STATS_DEFAULT_SCHEMA,
+		DINGOFS_STATS_COUNT:    DINGOFS_STATS_DEFAULT_COUNT,
+		DINGOFS_QUOTA_PATH:     DINGOFS_QUOTA_DEFAULT_PATH,
+		DINGOFS_QUOTA_INODES:   DINGOFS_QUOTA_DEFAULT_INODES,
+		DINGOFS_QUOTA_REPAIR:   DINGOFS_QUOTA_DEFAULT_REPAIR,
+		DINGOFS_PARTITION_TYPE: DINGOFS_DEFAULT_PARTITION_TYPE,
 
 		// S3
 		DINGOFS_S3_AK:         DINGOFS_DEFAULT_S3_AK,
@@ -627,7 +634,7 @@ func AddFsNameRequiredFlag(cmd *cobra.Command) {
 
 // fs name
 func AddFsNameSliceOptionFlag(cmd *cobra.Command) {
-	cmd.Flags().StringSlice(DINGOFS_FSNAME, nil, "fs name")
+	cmd.Flags().StringSlice(DINGOFS_FSNAME, nil, "fs name,should be like fs1,fs2,fs3")
 	err := viper.BindPFlag(VIPER_DINGOFS_FSNAME, cmd.Flags().Lookup(DINGOFS_FSNAME))
 	if err != nil {
 		cobra.CheckErr(err)
@@ -710,8 +717,17 @@ func AddChunksizeOptionFlag(cmd *cobra.Command) {
 
 // StorageType [option]
 func AddStorageTypeOptionFlag(cmd *cobra.Command) {
-	cmd.Flags().String(DINGOFS_STORAGETYPE, "s3", "storage type, should be: s3, rados")
+	cmd.Flags().String(DINGOFS_STORAGETYPE, DINGOFS_DEFAULT_STORAGETYPE, "storage type, should be: s3, rados")
 	err := viper.BindPFlag(VIPER_DINGOFS_STORAGETYPE, cmd.Flags().Lookup(DINGOFS_STORAGETYPE))
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
+// PartitionType [option]
+func AddPartitionTypeOptionFlag(cmd *cobra.Command) {
+	cmd.Flags().String(DINGOFS_PARTITION_TYPE, DINGOFS_DEFAULT_PARTITION_TYPE, "partition type, should be: hash, monolithic")
+	err := viper.BindPFlag(VIPER_DINGOFS_PARTITION_TYPE, cmd.Flags().Lookup(DINGOFS_PARTITION_TYPE))
 	if err != nil {
 		cobra.CheckErr(err)
 	}
@@ -929,4 +945,9 @@ func AddFsServersRequiredFlag(cmd *cobra.Command) {
 // path [required]
 func AddFsPathRequiredFlag(cmd *cobra.Command) {
 	AddStringRequiredFlag(cmd, DINGOFS_QUOTA_PATH, "full path of the directory within the volume")
+}
+
+// mdsv2 clientid [required]
+func AddClientIdRequiredFlag(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_CLIENT_ID, "the client id of dingo-fuse")
 }

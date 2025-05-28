@@ -43,16 +43,20 @@ protoc --go_out=proto --proto_path=${PROTO_PATH} \
 protoc --go_out=proto --proto_path=${PROTO_PATH} \
     ${PROTO_PATH}/dingofs/schedule.proto
 
-### dingofs-proto/space.proto
-protoc --go_out=proto --proto_path=${PROTO_PATH} \
-    --go_opt=Mdingofs/common.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/common \
-    ${PROTO_PATH}/dingofs/space.proto
-
 ### dingofs-proto/topology.proto
 protoc --go_out=proto --proto_path=${PROTO_PATH} \
     --go_opt=Mdingofs/common.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/common \
     --go_opt=Mdingofs/heartbeat.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/heartbeat \
     ${PROTO_PATH}/dingofs/topology.proto
+
+### dingofs-proto/error.proto
+protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
+    ${PROTO_PATH}/dingofs/error.proto
+
+### dingofs-proto/mdsv2.proto
+protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
+    --go_opt=Mdingofs/error.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/error \
+    ${PROTO_PATH}/dingofs/mdsv2.proto
 
 # grpc
 ## fs

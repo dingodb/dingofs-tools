@@ -35,6 +35,7 @@ import (
 
 var (
 	ConfPath string // config file path
+	MDSApiV2 bool   // is MDS API v2
 )
 
 const (
@@ -69,6 +70,15 @@ var (
 		SHOWERROR, HTTPTIMEOUT, RPCTIMEOUT, RPCRETRYTIMES, VERBOSE,
 	}
 )
+
+func init() {
+	mds_api := os.Getenv("MDS_API")
+	if mds_api == "2" {
+		MDSApiV2 = true
+	} else {
+		MDSApiV2 = false
+	}
+}
 
 func InitConfig() {
 	// configure file priority

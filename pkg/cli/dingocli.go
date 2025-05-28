@@ -26,47 +26,71 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/check"
-	quotaconfig "github.com/dingodb/dingofs-tools/pkg/cli/command/config"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/create"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/fuse"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/gateway"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/list"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/query"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/quota"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/stats"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/status"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/umount"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/usage"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/warmup"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/gateway"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/version"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/check"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/create"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/query"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/quota"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/stats"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/status"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/umount"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage"
 	"github.com/dingodb/dingofs-tools/pkg/config"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	cobratemplate "github.com/dingodb/dingofs-tools/internal/utils/template"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/version"
+	quotaconfig "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/config"
+	v2Config "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/config"
+	v2Create "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/create"
+	v2Delete "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/delete"
+	v2List "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/list"
+	v2Query "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/query"
+	v2Quota "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/quota"
+	v2Stats "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/stats"
+	v2Status "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/status"
+	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
 )
 
 func addSubCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
-		usage.NewUsageCommand(),
-		list.NewListCommand(),
-		status.NewStatusCommand(),
-		umount.NewUmountCommand(),
-		query.NewQueryCommand(),
-		delete.NewDeleteCommand(),
-		create.NewCreateCommand(),
-		check.NewCheckCommand(),
-		warmup.NewWarmupCommand(),
-		stats.NewStatsCommand(),
-		quota.NewQuotaCommand(),
-		quotaconfig.NewConfigCommand(),
-		gateway.NewGatewayCommand(),
 		version.NewVersionCommand(),
-		fuse.NewFuseCommand(),
+		gateway.NewGatewayCommand(),
+		warmup.NewWarmupCommand(),
 	)
+
+	if config.MDSApiV2 {
+		cmd.AddCommand(
+			v2List.NewListCommand(),
+			v2Create.NewCreateCommand(),
+			v2Delete.NewDeleteCommand(),
+			v2Status.NewStatusCommand(),
+			v2Config.NewConfigCommand(),
+			v2Query.NewQueryCommand(),
+			v2Stats.NewStatsCommand(),
+			v2Umount.NewUmountCommand(),
+			v2Quota.NewQuotaCommand(),
+		)
+	} else {
+		cmd.AddCommand(
+			usage.NewUsageCommand(),
+			list.NewListCommand(),
+			status.NewStatusCommand(),
+			umount.NewUmountCommand(),
+			query.NewQueryCommand(),
+			delete.NewDeleteCommand(),
+			create.NewCreateCommand(),
+			check.NewCheckCommand(),
+			warmup.NewWarmupCommand(),
+			stats.NewStatsCommand(),
+			quota.NewQuotaCommand(),
+			quotaconfig.NewConfigCommand(),
+		)
+	}
 }
 
 func setupRootCommand(cmd *cobra.Command) {
