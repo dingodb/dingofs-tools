@@ -75,9 +75,14 @@ const (
 	DINGOFS_DEFAULT_DETAIL       = false
 	DINGOFS_INODEID              = "inodeid"
 	VIPER_DINGOFS_INODEID        = "dingofs.inodeid"
+	DINGOFS_DEFAULT_INODEID      = uint64(0)
+
 	DINGOFS_CLUSTERMAP           = "clustermap"
 	VIPER_DINGOFS_CLUSTERMAP     = "dingofs.clustermap"
 	DINGOFS_DEFAULT_CLUSTERMAP   = "topo_example.json"
+	DINGOFS_THREADS              = "threads"
+	VIPER_DINGOFS_THREADS        = "dingofs.threads"
+	DINGOFS_DEFAULT_THREADS      = uint32(1)
 	DINGOFS_MARGIN               = "margin"
 	VIPER_DINGOFS_MARGIN         = "dingofs.margin"
 	DINGOFS_DEFAULT_MARGIN       = uint64(1000)
@@ -168,6 +173,7 @@ var (
 		DINGOFS_INODEID:        VIPER_DINGOFS_INODEID,
 		DINGOFS_CLUSTERMAP:     VIPER_DINGOFS_CLUSTERMAP,
 		DINGOFS_MARGIN:         VIPER_DINGOFS_MARGIN,
+		DINGOFS_THREADS:        VIPER_DINGOFS_THREADS,
 		DINGOFS_SERVERS:        VIPER_DINGOFS_SERVERS,
 		DINGOFS_FILELIST:       VIPER_DINGOFS_FILELIST,
 		DINGOFS_INTERVAL:       VIPER_DINGOFS_INTERVAL,
@@ -199,6 +205,8 @@ var (
 		DINGOFS_DETAIL:       DINGOFS_DEFAULT_DETAIL,
 		DINGOFS_CLUSTERMAP:   DINGOFS_DEFAULT_CLUSTERMAP,
 		DINGOFS_MARGIN:       DINGOFS_DEFAULT_MARGIN,
+		DINGOFS_INODEID:      DINGOFS_DEFAULT_INODEID,
+		DINGOFS_THREADS:      DINGOFS_DEFAULT_THREADS,
 		DINGOFS_SERVERS:      DINGOFS_DEFAULT_SERVERS,
 		DINGOFS_INTERVAL:     DINGOFS_DEFAULT_INTERVAL,
 		DINGOFS_DAEMON:       DINGOFS_DEFAULT_DAEMON,
@@ -729,6 +737,14 @@ func GetMarginOptionFlag(cmd *cobra.Command) uint64 {
 	return GetFlagUint64(cmd, DINGOFS_MARGIN)
 }
 
+func AddThreadsOptionFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_THREADS, "the maximum threads")
+}
+
+func GetThreadsOptionFlag(cmd *cobra.Command) uint32 {
+	return GetFlagUint32(cmd, DINGOFS_THREADS)
+}
+
 // filelist [option]
 func AddFileListOptionFlag(cmd *cobra.Command) {
 	AddStringOptionFlag(cmd, DINGOFS_FILELIST,
@@ -819,6 +835,11 @@ func AddInodeIdRequiredFlag(cmd *cobra.Command) {
 	AddUint64RequiredFlag(cmd, DINGOFS_INODEID, "inodeid")
 }
 
+// inodeid [optional]
+func AddInodeIdOptionalFlag(cmd *cobra.Command) {
+	AddUint64OptionFlag(cmd, DINGOFS_INODEID, "inodeid")
+}
+
 // fsid [required]
 func AddFsIdRequiredFlag(cmd *cobra.Command) {
 	AddUint32RequiredFlag(cmd, DINGOFS_FSID, "fsid")
@@ -831,7 +852,6 @@ func AddFsIdOptionalFlag(cmd *cobra.Command) {
 	if err != nil {
 		cobra.CheckErr(err)
 	}
-
 }
 
 // gateway listen address [required]

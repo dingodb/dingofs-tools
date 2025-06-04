@@ -643,3 +643,51 @@ func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64,
 	}
 	return int64(summary.Length), int64(summary.Inodes), nil
 }
+
+// get inode s3 chunks
+func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64) (*metaserver.Inode, error) {
+	partitionInfo, partErr := GetPartitionInfo(cmd, fsId, inodeId)
+	if partErr != nil {
+		return nil, partErr
+	}
+	poolId := partitionInfo.GetPoolId()
+	copyetId := partitionInfo.GetCopysetId()
+	partitionId := partitionInfo.GetPartitionId()
+	supportStream := false
+	inodeRequest := &metaserver.GetInodeRequest{
+		PoolId:           &poolId,
+		CopysetId:        &copyetId,
+		PartitionId:      &partitionId,
+		FsId:             &fsId,
+		InodeId:          &inodeId,
+		SupportStreaming: &supportStream,
+	}
+	getInodeRpc := &GetInodeRpc{
+		Request: inodeRequest,
+	}
+	addrs, addrErr := GetLeaderPeerAddr(cmd, fsId, inodeId)
+	if addrErr != nil {
+		return nil, addrErr
+	}
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
+	getInodeRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "GetInode")
+	getInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	inodeResult, err := basecmd.GetRpcResponse(getInodeRpc.Info, getInodeRpc)
+	if err.TypeCode() != cmderror.CODE_SUCCESS {
+		return nil, fmt.Errorf("get inode failed: %s", err.Message)
+	}
+	getInodeResponse := inodeResult.(*metaserver.GetInodeResponse)
+	if getInodeResponse.GetStatusCode() != metaserver.MetaStatusCode_OK {
+		if getInodeResponse.GetStatusCode() == metaserver.MetaStatusCode_NOT_FOUND {
+			return nil, syscall.ENOENT
+		}
+		return nil, fmt.Errorf("get inode %d failed: %s", inodeId, getInodeResponse.GetStatusCode().String())
+	}
+	inode := getInodeResponse.GetInode()
+	if inode == nil {
+		return nil, fmt.Errorf("GetInode return nil inode,inodeid[%d]", inodeId)
+	}
+	return inode, nil
+}

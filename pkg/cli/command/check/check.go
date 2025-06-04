@@ -24,7 +24,9 @@ package check
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/check/chunk"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/check/copyset"
+
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +39,7 @@ var _ basecmd.MidDingoCmdFunc = (*CheckCommand)(nil) // check interface
 func (checkCmd *CheckCommand) AddSubCommands() {
 	checkCmd.Cmd.AddCommand(
 		copyset.NewCopysetCommand(),
+		chunk.NewChunkCommand(),
 	)
 }
 

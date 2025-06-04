@@ -10,6 +10,7 @@ A tool for DingoFS
     - [version](#version)
     - [check](#check)
       - [check copyset](#check-copyset)
+      - [check chunk](#check-chunk)
     - [create](#create)
       - [create fs](#create-fs)
       - [create topology](#create-topology)
@@ -170,6 +171,26 @@ Output:
 +------------+-----------+--------+--------+---------+
 | 4294967297 |         1 |      1 | ok     |         |
 +------------+-----------+--------+--------+---------+
+```
+
+#### check chunk
+
+check chunk consistency under directory
+
+Usage:
+
+```shell
+dingo check chunk --fsid 1 --threads 8
+```
+
+Output:
+
+```shell
+2025-06-04 21:13:09.937: check all file chunks under dirinode[1]
+- fsid: [600] inodeId: [9486140] name: [no_dismount.txt] duplicate chunkid: [235060843] 
+	chunkIndex:0	chunkId:235060843  compaction:0  offset:0  len:68  size:68  zero:false
+	chunkIndex:0	chunkId:235060843  compaction:0  offset:0  len:68  size:68  zero:false
+2025-06-04 21:13:14.035: check over, dirinode[1], directories[110], files[10002], chunks[20007], errorChunks[2]
 ```
 
 ### create
