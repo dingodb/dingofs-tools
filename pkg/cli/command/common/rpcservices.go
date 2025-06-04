@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
@@ -71,6 +72,12 @@ type GetInodeAttrRpc struct {
 	metaServerClient metaserver.MetaServerServiceClient
 }
 
+type GetInodeRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.GetInodeRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
 type ListDentryRpc struct {
 	Info             *basecmd.Rpc
 	Request          *metaserver.ListDentryRequest
@@ -98,6 +105,7 @@ var _ basecmd.RpcFunc = (*SetQuotaRpc)(nil)      // check interface
 var _ basecmd.RpcFunc = (*QueryCopysetRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*ListPartitionRpc)(nil) // check interface
 var _ basecmd.RpcFunc = (*GetInodeAttrRpc)(nil)  // check interface
+var _ basecmd.RpcFunc = (*GetInodeRpc)(nil)      // check interface
 var _ basecmd.RpcFunc = (*ListDentryRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*GetDentryRpc)(nil)     // check interface
 var _ basecmd.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
@@ -198,6 +206,16 @@ func (getInodeRpc *GetInodeAttrRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (getInodeRpc *GetInodeAttrRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := getInodeRpc.metaServerClient.BatchGetInodeAttr(ctx, getInodeRpc.Request)
 	output.ShowRpcData(getInodeRpc.Request, response, getInodeRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (inodeRpc *GetInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	inodeRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (inodeRpc *GetInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := inodeRpc.metaServerClient.GetInode(ctx, inodeRpc.Request)
+	output.ShowRpcData(inodeRpc.Request, response, inodeRpc.Info.RpcDataShow)
 	return response, err
 }
 
