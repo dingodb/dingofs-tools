@@ -26,9 +26,11 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/cache"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/copyset"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/dentry"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/fs"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/mountpoint"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list/partition"
+
 	topology "github.com/dingodb/dingofs-tools/pkg/cli/command/list/topology"
 	"github.com/spf13/cobra"
 )
@@ -47,6 +49,7 @@ func (listCmd *ListCommand) AddSubCommands() {
 		partition.NewPartitionCommand(),
 		copyset.NewCopysetCommand(),
 		cache.NewCacheCommand(),
+		dentry.NewDentryCommand(),
 	)
 }
 
