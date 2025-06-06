@@ -356,7 +356,7 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]*metaserver.
 }
 
 // get dir path
-func GetInodePath(cmd *cobra.Command, fsId uint32, inodeId uint64) (string, error) {
+func GetInodePath(cmd *cobra.Command, fsId uint32, inodeId uint64) (string, string, error) {
 
 	reverse := func(s []string) {
 		for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
@@ -364,35 +364,40 @@ func GetInodePath(cmd *cobra.Command, fsId uint32, inodeId uint64) (string, erro
 		}
 	}
 	if inodeId == config.ROOTINODEID {
-		return "/", nil
+		return "/", fmt.Sprintf("%d", config.ROOTINODEID), nil
 	}
 	var names []string
+	var inodes []string
 	for inodeId != config.ROOTINODEID {
 		inode, inodeErr := GetInodeAttr(cmd, fsId, inodeId)
 		if inodeErr != nil {
-			return "", inodeErr
+			return "", "", inodeErr
 		}
 		//do list entry rpc
 		parentIds := inode.GetParent()
 		parentId := parentIds[0]
 		entries, entryErr := ListDentry(cmd, fsId, parentId)
 		if entryErr != nil {
-			return "", entryErr
+			return "", "", entryErr
 		}
 		for _, e := range entries {
 			if e.GetInodeId() == inodeId {
 				names = append(names, *e.Name)
+				inodes = append(inodes, fmt.Sprintf("%d", inodeId))
 				break
 			}
 		}
 		inodeId = parentId
 	}
 	if len(names) == 0 { //directory may be deleted
-		return "", nil
+		return "", "", nil
 	}
-	names = append(names, "/") // add root
+	names = append(names, "/")                                     // add root
+	inodes = append(inodes, fmt.Sprintf("%d", config.ROOTINODEID)) // add root
 	reverse(names)
-	return path.Join(names...), nil
+	reverse(inodes)
+
+	return path.Join(names...), path.Join(inodes...), nil
 }
 
 // GetDentry
