@@ -30,6 +30,7 @@ A tool for DingoFS
       - [query inode](#query-inode)
       - [query metaserver](#query-metaserver)
       - [query partition](#query-partition)
+      - [query dirtree](#query-dirtree)
     - [status](#status)
       - [status mds](#status-mds)
       - [status metaserver](#status-metaserver)
@@ -614,6 +615,23 @@ Output:
 +    +        +           +--------+-----------------------+
 |    |        |           | 3      | 172.20.61.103:16800:0 |
 +----+--------+-----------+--------+-----------------------+
+```
+
+#### query dirtree
+
+recursive query parent inode
+
+Usage:
+
+```shell
+dingo query dirtree --fsid 1 --inodeid 7344525
+```
+
+Output:
+
+```shell
+-- name  path:	/workunits/suites/tmp.roZYcz7Ln7/p9/dc/d1a/d1b/d21/d34
+-- inode path:	1/8390147/10487316/9441617/2101392/7344488/6295896/6295898/7344505/7344525
 ```
 
 ### status

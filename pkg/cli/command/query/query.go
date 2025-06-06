@@ -25,6 +25,7 @@ package query
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/query/copyset"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/query/dirtree"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/query/fs"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/query/inode"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/query/metaserver"
@@ -45,6 +46,7 @@ func (queryCmd *QueryCommand) AddSubCommands() {
 		partition.NewPartitionCommand(),
 		copyset.NewCopysetCommand(),
 		inode.NewInodeCommand(),
+		dirtree.NewDirTreeCommand(),
 	)
 }
 
