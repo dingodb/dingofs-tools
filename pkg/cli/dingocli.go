@@ -30,6 +30,7 @@ import (
 	quotaconfig "github.com/dingodb/dingofs-tools/pkg/cli/command/config"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/fuse"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/gateway"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/list"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/query"
@@ -64,6 +65,7 @@ func addSubCommands(cmd *cobra.Command) {
 		quotaconfig.NewConfigCommand(),
 		gateway.NewGatewayCommand(),
 		version.NewVersionCommand(),
+		fuse.NewFuseCommand(),
 	)
 }
 
