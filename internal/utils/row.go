@@ -153,6 +153,10 @@ const (
 	ROW_INODES_IUSED      = "iused"
 	ROW_INODES_PERCENT    = "iuse%"
 	ROW_INODES_REAL_IUSED = "realiused"
+
+	//fuse
+	ROW_FUSE_CONNECTION = "CONNECTION"
+	ROW_FUSE_WAITING    = "WAITING"
 )
 
 // topology type
