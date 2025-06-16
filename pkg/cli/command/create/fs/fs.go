@@ -105,9 +105,6 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(addrErr.Message)
 	}
 
-	header := []string{cobrautil.ROW_FS_NAME, cobrautil.ROW_RESULT}
-	fCmd.SetHeader(header)
-
 	fsName := config.GetFlagString(cmd, config.DINGOFS_FSNAME)
 	if !cobrautil.IsValidFsname(fsName) {
 		return fmt.Errorf("fsname[%s] is not vaild, it should be match regex: %s", fsName, cobrautil.FS_NAME_REGEX)
@@ -212,14 +209,16 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		cobrautil.ROW_RESULT:  errCreate.Message,
 	}
 	if response.GetStatusCode() == mds.FSStatusCode_OK {
+		header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_FS_TYPE, cobrautil.ROW_UUID, cobrautil.ROW_RESULT}
+		fCmd.SetHeader(header)
 		fsInfo := response.GetFsInfo()
-		row[cobrautil.ROW_ID] = fmt.Sprintf("%d", fsInfo.GetFsId())
+		row[cobrautil.ROW_FS_ID] = fmt.Sprintf("%d", fsInfo.GetFsId())
 		row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
-		row[cobrautil.ROW_CAPACITY] = fmt.Sprintf("%d", fsInfo.GetCapacity())
-		row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
 		row[cobrautil.ROW_FS_TYPE] = fsInfo.GetFsType().String()
-		row[cobrautil.ROW_SUM_IN_DIR] = fmt.Sprintf("%t", fsInfo.GetEnableSumInDir())
-		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
+		row[cobrautil.ROW_UUID] = fsInfo.GetUuid()
+	} else {
+		header := []string{cobrautil.ROW_FS_NAME, cobrautil.ROW_RESULT}
+		fCmd.SetHeader(header)
 	}
 
 	fCmd.TableNew.Append(cobrautil.Map2List(row, fCmd.Header))
