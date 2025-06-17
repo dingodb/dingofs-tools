@@ -131,6 +131,38 @@ $ dingo status mds
 In addition, this tool reads the configuration from `$HOME/.dingo/dingo.yaml` or `/etc/dingo/dingo.yaml` by default,
 and can be specified by `--conf` or `-c`.
 
+### Config file example
+```shell
+Examples:
+
+global:
+  httpTimeout: 50000ms
+  rpcTimeout: 50000ms
+  rpcRetryTimes: 1
+  maxChannelSize: 4
+  showError: false
+
+dingofs:
+  mdsAddr: 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
+  mdsDummyAddr: 172.20.61.102:27700,172.20.61.103:27700,172.20.61.105:27700
+  etcdAddr: 172.20.61.102:22379,172.20.61.103:22379,172.20.61.105:22379
+  storagetype: s3 # s3 or rados
+  s3:
+    ak: UAJ1WIVF3NM5XRIL0OU2
+    sk: X9MxdCZslPmXADljX140iiN6r81aGgCnO61wEA3L 
+    endpoint: http://10.220.68.19:80 
+    bucketname: dingofs-bucket
+    blocksize: 4 mib
+    chunksize: 64 mib
+  rados:
+    username: client.dingofs-rgw
+    key: AQANAExo/ihMLBAAPL8AXgqfxwdraw8uoWyJig==
+    mon: 10.220.69.5:3300,10.220.69.6:3300,10.220.69.8:3300
+    poolname: rados.dingofs.data
+    blocksize: 4 mib
+    chunksize: 64 mib
+```
+
 ## Command
 
 ### version
