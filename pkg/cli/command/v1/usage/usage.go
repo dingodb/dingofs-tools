@@ -24,6 +24,7 @@ package usage
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	fsUsage "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage/fs"
 	inode "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage/inode"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage/metadata"
 	"github.com/spf13/cobra"
@@ -39,6 +40,7 @@ func (usageCmd *UsageCommand) AddSubCommands() {
 	usageCmd.Cmd.AddCommand(
 		inode.NewInodeNumCommand(),
 		metadata.NewMetadataCommand(),
+		fsUsage.NewFsUsageCommand(),
 	)
 }
 

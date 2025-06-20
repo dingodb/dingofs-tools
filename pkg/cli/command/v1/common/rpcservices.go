@@ -95,6 +95,12 @@ type GetFsStatsRpc struct {
 	mdsClient mds.MdsServiceClient
 }
 
+type ListClusterFsRpc struct {
+	Info      *base.Rpc
+	Request   *mds.ListClusterFsInfoRequest
+	mdsClient mds.MdsServiceClient
+}
+
 var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)    // check interface
 var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)    // check interface
 var _ base.RpcFunc = (*CheckQuotaRpc)(nil)    // check interface
@@ -109,6 +115,7 @@ var _ base.RpcFunc = (*GetInodeRpc)(nil)      // check interface
 var _ base.RpcFunc = (*ListDentryRpc)(nil)    // check interface
 var _ base.RpcFunc = (*GetDentryRpc)(nil)     // check interface
 var _ base.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
+var _ base.RpcFunc = (*ListClusterFsRpc)(nil) // check interface
 
 func (getFsQuotaRpc *GetFsQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	getFsQuotaRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
@@ -246,5 +253,15 @@ func (getFsStatsRpc *GetFsStatsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (getFsStatsRpc *GetFsStatsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := getFsStatsRpc.mdsClient.GetFsStats(ctx, getFsStatsRpc.Request)
 	output.ShowRpcData(getFsStatsRpc.Request, response, getFsStatsRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (listFsRpc *ListClusterFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	listFsRpc.mdsClient = mds.NewMdsServiceClient(cc)
+}
+
+func (listFsRpc *ListClusterFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := listFsRpc.mdsClient.ListClusterFsInfo(ctx, listFsRpc.Request)
+	output.ShowRpcData(listFsRpc.Request, response, listFsRpc.Info.RpcDataShow)
 	return response, err
 }

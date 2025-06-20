@@ -112,24 +112,31 @@ type CheckDirQuotaRpc struct {
 	mdsClient pbmdsv2.MDSServiceClient
 }
 
+type ListFsInfoRpc struct {
+	Info      *base.Rpc
+	Request   *pbmdsv2.ListFsInfoRequest
+	mdsClient pbmdsv2.MDSServiceClient
+}
+
 // check interface
-var _ base.RpcFunc = (*CreateFsRpc)(nil)     // check interface
-var _ base.RpcFunc = (*DeleteFsRpc)(nil)     // check interface
-var _ base.RpcFunc = (*ListFsRpc)(nil)       // check interface
-var _ base.RpcFunc = (*GetFsRpc)(nil)        // check interface
-var _ base.RpcFunc = (*GetMdsRpc)(nil)       // check interface
-var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)   // check interface
-var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)   // check interface
-var _ base.RpcFunc = (*GetInodeRpc)(nil)     // check interface
-var _ base.RpcFunc = (*GetDentryRpc)(nil)    // check interface
-var _ base.RpcFunc = (*ListDentryRpc)(nil)   // check interface
-var _ base.RpcFunc = (*GetFsStatsRpc)(nil)   // check interface
-var _ base.RpcFunc = (*UmountFsRpc)(nil)     // check interface
-var _ base.RpcFunc = (*SetDirQuotaRpc)(nil)  // check interface
-var _ base.RpcFunc = (*GetDirQuotaRpc)(nil)  // check interface
-var _ base.RpcFunc = (*ListDirQuotaRpc)(nil) // check interface
-var _ base.RpcFunc = (*DeleteDirQuotaRpc)(nil)
-var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil) // check interface
+var _ base.RpcFunc = (*CreateFsRpc)(nil)       // check interface
+var _ base.RpcFunc = (*DeleteFsRpc)(nil)       // check interface
+var _ base.RpcFunc = (*ListFsRpc)(nil)         // check interface
+var _ base.RpcFunc = (*GetFsRpc)(nil)          // check interface
+var _ base.RpcFunc = (*GetMdsRpc)(nil)         // check interface
+var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)     // check interface
+var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)     // check interface
+var _ base.RpcFunc = (*GetInodeRpc)(nil)       // check interface
+var _ base.RpcFunc = (*GetDentryRpc)(nil)      // check interface
+var _ base.RpcFunc = (*ListDentryRpc)(nil)     // check interface
+var _ base.RpcFunc = (*GetFsStatsRpc)(nil)     // check interface
+var _ base.RpcFunc = (*UmountFsRpc)(nil)       // check interface
+var _ base.RpcFunc = (*SetDirQuotaRpc)(nil)    // check interface
+var _ base.RpcFunc = (*GetDirQuotaRpc)(nil)    // check interface
+var _ base.RpcFunc = (*ListDirQuotaRpc)(nil)   // check interface
+var _ base.RpcFunc = (*DeleteDirQuotaRpc)(nil) // check interface
+var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
+var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
 
 func (createFs *CreateFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	createFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
@@ -298,5 +305,15 @@ func (checkDirQuota *CheckDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface)
 func (checkDirQuota *CheckDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := checkDirQuota.mdsClient.SetDirQuota(ctx, checkDirQuota.Request)
 	output.ShowRpcData(checkDirQuota.Request, response, checkDirQuota.Info.RpcDataShow)
+	return response, err
+}
+
+func (listFsInfo *ListFsInfoRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	listFsInfo.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+}
+
+func (listFsInfo *ListFsInfoRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := listFsInfo.mdsClient.ListFsInfo(ctx, listFsInfo.Request)
+	output.ShowRpcData(listFsInfo.Request, response, listFsInfo.Info.RpcDataShow)
 	return response, err
 }

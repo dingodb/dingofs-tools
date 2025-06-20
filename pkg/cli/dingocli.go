@@ -54,6 +54,7 @@ import (
 	v2Stats "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/stats"
 	v2Status "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/status"
 	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
+	v2Usage "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/usage"
 )
 
 func addSubCommands(cmd *cobra.Command) {
@@ -74,6 +75,7 @@ func addSubCommands(cmd *cobra.Command) {
 			v2Stats.NewStatsCommand(),
 			v2Umount.NewUmountCommand(),
 			v2Quota.NewQuotaCommand(),
+			v2Usage.NewUsageCommand(),
 		)
 	} else {
 		cmd.AddCommand(

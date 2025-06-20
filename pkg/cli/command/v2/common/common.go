@@ -116,6 +116,28 @@ func GetFsName(cmd *cobra.Command) (string, error) {
 	return fsName, nil
 }
 
+// list filesystem info
+func ListFsInfo(cmd *cobra.Command) ([]*pbmdsv2.FsInfo, error) {
+	// new prc
+	mdsRpc, err := CreateNewMdsRpc(cmd, "ListFsInfo")
+	if err != nil {
+		return nil, err
+	}
+	// set request info
+	listFsRpc := &ListFsInfoRpc{Info: mdsRpc, Request: &pbmdsv2.ListFsInfoRequest{}}
+	// get rpc result
+	response, errCmd := base.GetRpcResponse(listFsRpc.Info, listFsRpc)
+	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
+		return nil, fmt.Errorf(errCmd.Message)
+	}
+	result := response.(*pbmdsv2.ListFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+		return nil, cmderror.MDSV2Error(mdsErr).ToError()
+	}
+
+	return result.GetFsInfos(), nil
+}
+
 // GetDentry
 func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string) (*pbmdsv2.Dentry, error) {
 	// new prc

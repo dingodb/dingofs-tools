@@ -123,6 +123,9 @@ const (
 	DINGOFS_PARTITION_TYPE         = "partitiontype"
 	VIPER_DINGOFS_PARTITION_TYPE   = "dingofs.partitiontype"
 	DINGOFS_DEFAULT_PARTITION_TYPE = "hash"
+	DINGOFS_HUMANIZE               = "humanize"
+	VIPER_DINGOFS_HUMANIZE         = "dingofs.humanize"
+	DINGOFS_DEFAULT_HUMANIZE       = false
 
 	// S3
 	DINGOFS_S3_AK                 = "s3.ak"
@@ -202,6 +205,7 @@ var (
 		DINGOFS_QUOTA_INODES:   VIPER_DINGOFS_QUOTA_INODES,
 		DINGOFS_QUOTA_REPAIR:   VIPER_DINGOFS_QUOTA_REPAIR,
 		DINGOFS_PARTITION_TYPE: VIPER_DINGOFS_PARTITION_TYPE,
+		DINGOFS_HUMANIZE:       VIPER_DINGOFS_HUMANIZE,
 
 		// S3
 		DINGOFS_S3_AK:         VIPER_DINGOFS_S3_AK,
@@ -241,6 +245,7 @@ var (
 		DINGOFS_QUOTA_INODES:   DINGOFS_QUOTA_DEFAULT_INODES,
 		DINGOFS_QUOTA_REPAIR:   DINGOFS_QUOTA_DEFAULT_REPAIR,
 		DINGOFS_PARTITION_TYPE: DINGOFS_DEFAULT_PARTITION_TYPE,
+		DINGOFS_HUMANIZE:       DINGOFS_DEFAULT_HUMANIZE,
 
 		// S3
 		DINGOFS_S3_AK:         DINGOFS_DEFAULT_S3_AK,
@@ -870,6 +875,11 @@ func AddFsCapacityOptionalFlag(cmd *cobra.Command) {
 // inodes [option]
 func AddFsInodesOptionalFlag(cmd *cobra.Command) {
 	AddUint64OptionFlag(cmd, DINGOFS_QUOTA_INODES, `hard quota for inodes (default: 0)`)
+}
+
+// humanize [option]
+func AddHumanizeOptionFlag(cmd *cobra.Command) {
+	AddBoolOptionFlag(cmd, DINGOFS_HUMANIZE, "humanize display")
 }
 
 /* required */
