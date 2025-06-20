@@ -23,38 +23,20 @@
 package process
 
 import (
+	"io"
 	"log"
 	"os"
 )
 
-type Cache struct {
-	// bufs []*bytes.Buffer
-	// mtx  *sync.RWMutex
-}
-
-func (c *Cache) Write(p []byte) (n int, err error) {
-	// c.mtx.Lock()
-	// defer c.mtx.Unlock()
-	// c.bufs = append(c.bufs, bytes.NewBuffer(p))
-	return len(p), nil
-}
-
-var C *Cache
-
 func init() {
 	log.SetFlags(log.Ldate | log.Lshortfile | log.Lmicroseconds)
-	C = &Cache{
-		// bufs: make([]*bytes.Buffer, 0),
-		// mtx:  &sync.RWMutex{},
-	}
-	log.SetOutput(C)
+	log.SetOutput(io.Discard)
 }
 
 func SetShow(show bool) {
 	if show {
 		log.SetOutput(os.Stdout)
 	} else {
-		C = &Cache{}
-		log.SetOutput(C)
+		log.SetOutput(io.Discard)
 	}
 }
