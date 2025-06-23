@@ -118,6 +118,9 @@ const (
 	DINGOFS_QUOTA_REPAIR         = "repair"
 	VIPER_DINGOFS_QUOTA_REPAIR   = "dingofs.quota.repair"
 	DINGOFS_QUOTA_DEFAULT_REPAIR = false
+	DINGOFS_HUMANIZE             = "humanize"
+	VIPER_DINGOFS_HUMANIZE       = "dingofs.humanize"
+	DINGOFS_DEFAULT_HUMANIZE     = false
 
 	// S3
 	DINGOFS_S3_AK                 = "s3.ak"
@@ -184,6 +187,7 @@ var (
 		DINGOFS_QUOTA_PATH:     VIPER_DINGOFS_QUOTA_PATH,
 		DINGOFS_QUOTA_INODES:   VIPER_DINGOFS_QUOTA_INODES,
 		DINGOFS_QUOTA_REPAIR:   VIPER_DINGOFS_QUOTA_REPAIR,
+		DINGOFS_HUMANIZE:       VIPER_DINGOFS_HUMANIZE,
 
 		// S3
 		DINGOFS_S3_AK:         VIPER_DINGOFS_S3_AK,
@@ -216,6 +220,7 @@ var (
 		DINGOFS_QUOTA_PATH:   DINGOFS_QUOTA_DEFAULT_PATH,
 		DINGOFS_QUOTA_INODES: DINGOFS_QUOTA_DEFAULT_INODES,
 		DINGOFS_QUOTA_REPAIR: DINGOFS_QUOTA_DEFAULT_REPAIR,
+		DINGOFS_HUMANIZE:     DINGOFS_DEFAULT_HUMANIZE,
 
 		// S3
 		DINGOFS_S3_AK:         DINGOFS_DEFAULT_S3_AK,
@@ -775,6 +780,11 @@ func AddDaemonOptionPFlag(cmd *cobra.Command) {
 
 func GetDaemonFlag(cmd *cobra.Command) bool {
 	return GetFlagBool(cmd, DINGOFS_DAEMON)
+}
+
+// humanize [option]
+func AddHumanizeOptionFlag(cmd *cobra.Command) {
+	AddBoolOptionFlag(cmd, DINGOFS_HUMANIZE, "humanize display")
 }
 
 // storage [option]

@@ -32,6 +32,7 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/heartbeat"
+	mds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 	"github.com/dustin/go-humanize"
@@ -231,6 +232,31 @@ func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartb
 		err := cmderror.ErrGetCopysetsInfo(int(copysetValue.GetStatusCode()))
 		return nil, err.ToError()
 	}
+}
+
+// ListAllFsInfo
+func ListAllFsInfo(cmd *cobra.Command) ([]*mds.FsInfo, error) {
+	addrs, addrErr := config.GetFsMdsAddrSlice(cmd)
+	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
+		return nil, fmt.Errorf(addrErr.Message)
+	}
+
+	listFsRpc := &ListClusterFsRpc{
+		Request: &mds.ListClusterFsInfoRequest{},
+	}
+
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
+	listFsRpc.Info = basecmd.NewRpc(addrs, timeout, retrytimes, "ListClusterFsInfo")
+	listFsRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	listFsResult, err := basecmd.GetRpcResponse(listFsRpc.Info, listFsRpc)
+	if err.TypeCode() != cmderror.CODE_SUCCESS {
+		return nil, fmt.Errorf("list cluster fs failed: %s", err.Message)
+	}
+	listFsResponse := listFsResult.(*mds.ListClusterFsInfoResponse)
+
+	return listFsResponse.GetFsInfo(), nil
 }
 
 // get leader address
