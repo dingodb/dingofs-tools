@@ -32,9 +32,9 @@ DAEMON_OUTPUT := sbin/daemon
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_DIRTY=$(shell test -n "`git status -s | grep -v third-party`" && echo "+CHANGES" || true)
 BUILD_DATE=$(shell date '+%Y-%m-%dT%H:%M:%SZ')
-VERSION_FLAG := -X github.com/dingodb/dingofs-tools/pkg/cli/command/version.Version=$(version)
-VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY}
-VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/version.BuildDate=${BUILD_DATE} 
+VERSION_FLAG := -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.Version=$(version)
+VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY}
+VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.BuildDate=${BUILD_DATE}
 
 # build flags
 CGO_BUILD_LDFLAGS := -s -w -linkmode external
