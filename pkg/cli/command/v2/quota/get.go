@@ -59,6 +59,7 @@ func NewGetQuotaCommand() *cobra.Command {
 
 func (getQuotaCmd *GetQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(getQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(getQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(getQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(getQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(getQuotaCmd.Cmd)

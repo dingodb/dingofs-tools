@@ -60,6 +60,7 @@ $ dingo stats cluster --fsid 1 --interval 4s`,
 
 func (clusterCmd *ClusterCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(clusterCmd.Cmd)
+	config.AddRpcRetryDelayFlag(clusterCmd.Cmd)
 	config.AddRpcTimeoutFlag(clusterCmd.Cmd)
 	config.AddFsMdsAddrFlag(clusterCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(clusterCmd.Cmd)

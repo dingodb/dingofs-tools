@@ -94,7 +94,7 @@ func (tCmd *TopologyCommand) listPoolZone(poolId uint32) (*topology.ListPoolZone
 	tCmd.listPoolZoneRpc = &ListPoolZoneRpc{
 		Request: request,
 	}
-	tCmd.listPoolZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "ListPoolZone")
+	tCmd.listPoolZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "ListPoolZone")
 	result, err := base.GetRpcResponse(tCmd.listPoolZoneRpc.Info, tCmd.listPoolZoneRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, err
@@ -168,7 +168,7 @@ func (tCmd *TopologyCommand) scanZones() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) removeZones() *cmderror.CmdError {
 	tCmd.deleteZoneRpc = &DeleteZoneRpc{}
-	tCmd.deleteZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "DeleteZone")
+	tCmd.deleteZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "DeleteZone")
 	for _, delReuest := range tCmd.deleteZone {
 		tCmd.deleteZoneRpc.Request = delReuest
 		result, err := base.GetRpcResponse(tCmd.deleteZoneRpc.Info, tCmd.deleteZoneRpc)
@@ -185,7 +185,7 @@ func (tCmd *TopologyCommand) removeZones() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) createZones() *cmderror.CmdError {
 	tCmd.createZoneRpc = &CreateZoneRpc{}
-	tCmd.createZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "CreateZone")
+	tCmd.createZoneRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "CreateZone")
 	for _, crtReuest := range tCmd.createZone {
 		tCmd.createZoneRpc.Request = crtReuest
 		result, err := base.GetRpcResponse(tCmd.createZoneRpc.Info, tCmd.createZoneRpc)

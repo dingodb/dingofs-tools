@@ -54,7 +54,10 @@ type TopologyCommand struct {
 	topology   Topology
 	timeout    time.Duration
 	retryTimes int32
-	addrs      []string
+	retryDelay time.Duration
+	verbose    bool
+
+	addrs []string
 	// pool
 	clusterPoolsInfo []*topology.PoolInfo
 	createPoolRpc    *CreatePoolRpc
@@ -96,6 +99,7 @@ func NewTopologyCommand() *cobra.Command {
 
 func (tCmd *TopologyCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(tCmd.Cmd)
+	config.AddRpcRetryDelayFlag(tCmd.Cmd)
 	config.AddRpcTimeoutFlag(tCmd.Cmd)
 	config.AddFsMdsAddrFlag(tCmd.Cmd)
 	config.AddClusterMapRequiredFlag(tCmd.Cmd)
@@ -108,8 +112,10 @@ func (tCmd *TopologyCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(addrErr.Message)
 	}
 	tCmd.addrs = addrs
-	tCmd.timeout = config.GetFlagDuration(tCmd.Cmd, config.RPCTIMEOUT)
-	tCmd.retryTimes = config.GetFlagInt32(tCmd.Cmd, config.RPCRETRYTIMES)
+	tCmd.timeout = config.GetRpcTimeout(cmd)
+	tCmd.retryTimes = config.GetRpcRetryTimes(cmd)
+	tCmd.retryDelay = config.GetRpcRetryDelay(cmd)
+	tCmd.verbose = config.GetFlagBool(cmd, config.VERBOSE)
 
 	filePath := config.GetFlagString(tCmd.Cmd, config.DINGOFS_CLUSTERMAP)
 	jsonFile, err := os.Open(filePath)

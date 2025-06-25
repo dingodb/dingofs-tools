@@ -84,6 +84,7 @@ func NewInodeCommand() *cobra.Command {
 
 func (iCmd *InodeCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(iCmd.Cmd)
+	config.AddRpcRetryDelayFlag(iCmd.Cmd)
 	config.AddRpcTimeoutFlag(iCmd.Cmd)
 	config.AddFsMdsAddrFlag(iCmd.Cmd)
 	config.AddFsIdRequiredFlag(iCmd.Cmd)
@@ -163,8 +164,10 @@ func (iCmd *InodeCommand) Prepare() error {
 
 	timeout := config.GetRpcTimeout(iCmd.Cmd)
 	retrytimes := config.GetRpcRetryTimes(iCmd.Cmd)
-	iCmd.QIRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetInode")
-	iCmd.QIRpc.Info.RpcDataShow = config.GetFlagBool(iCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(iCmd.Cmd)
+	verbose := config.GetFlagBool(iCmd.Cmd, config.VERBOSE)
+	iCmd.QIRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetInode")
+
 	return nil
 }
 

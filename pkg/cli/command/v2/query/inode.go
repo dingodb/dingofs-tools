@@ -57,6 +57,7 @@ func NewGetInodeCommand() *cobra.Command {
 
 func (inodeCmd *InodeCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(inodeCmd.Cmd)
+	config.AddRpcRetryDelayFlag(inodeCmd.Cmd)
 	config.AddRpcTimeoutFlag(inodeCmd.Cmd)
 	config.AddFsMdsAddrFlag(inodeCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(inodeCmd.Cmd)

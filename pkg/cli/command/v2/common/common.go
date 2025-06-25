@@ -45,8 +45,9 @@ func CreateNewMdsRpc(cmd *cobra.Command, serviceName string) (*base.Rpc, error) 
 	// new rpc
 	timeout := config.GetRpcTimeout(cmd)
 	retryTimes := config.GetRpcRetryTimes(cmd)
-	mdsRpc := base.NewRpc(addrs, timeout, retryTimes, serviceName)
-	mdsRpc.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	mdsRpc := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, serviceName)
 
 	return mdsRpc, nil
 }

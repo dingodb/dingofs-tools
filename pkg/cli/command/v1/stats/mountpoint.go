@@ -146,7 +146,7 @@ USAGE:
 func (mountpointCmd *MountpointCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	mountPoint := args[0]
 	schemaValue := config.GetStatsSchemaFlagOptionFlag(cmd)
-	verbose := config.GetFlagBool(cmd, "verbose")
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
 	duration := config.GetIntervalFlag(cmd)
 	count := config.GetStatsCountFlagOptionFlag(cmd)
 	if duration < 1*time.Second {

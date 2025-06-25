@@ -61,6 +61,7 @@ func NewListFsCommand() *FsCommand {
 
 func (fCmd *FsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fCmd.Cmd)
 	config.AddRpcTimeoutFlag(fCmd.Cmd)
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
 }

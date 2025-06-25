@@ -50,6 +50,7 @@ $ dingo quota delete --fsname dingofs --path /quotadir`,
 
 func (deleteQuotaCmd *DeleteQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(deleteQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(deleteQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(deleteQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(deleteQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(deleteQuotaCmd.Cmd)

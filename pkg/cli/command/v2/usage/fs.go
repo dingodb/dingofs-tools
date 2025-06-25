@@ -61,6 +61,7 @@ func NewFsUsageCommand() *cobra.Command {
 
 func (fsUsageCmd *FsUageCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fsUsageCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fsUsageCmd.Cmd)
 	config.AddRpcTimeoutFlag(fsUsageCmd.Cmd)
 	config.AddFsMdsAddrFlag(fsUsageCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsUsageCmd.Cmd)

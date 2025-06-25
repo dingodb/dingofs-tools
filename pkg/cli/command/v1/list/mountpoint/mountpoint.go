@@ -61,6 +61,7 @@ func NewMountpointCommand() *cobra.Command {
 
 func (mpCmd *MountpointCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(mpCmd.Cmd)
+	config.AddRpcRetryDelayFlag(mpCmd.Cmd)
 	config.AddRpcTimeoutFlag(mpCmd.Cmd)
 	config.AddFsMdsAddrFlag(mpCmd.Cmd)
 }

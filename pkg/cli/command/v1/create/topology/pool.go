@@ -28,7 +28,6 @@ import (
 	"fmt"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
-	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
@@ -109,8 +108,7 @@ func (lpRpc *ListPoolRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 func (tCmd *TopologyCommand) listPool() (*topology.ListPoolResponse, *cmderror.CmdError) {
 	tCmd.listPoolRpc = &ListPoolRpc{}
 	tCmd.listPoolRpc.Request = &topology.ListPoolRequest{}
-	tCmd.listPoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "ListPool")
-	tCmd.listPoolRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.listPoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "ListPool")
 	result, err := base.GetRpcResponse(tCmd.listPoolRpc.Info, tCmd.listPoolRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, err
@@ -185,8 +183,7 @@ func (tCmd *TopologyCommand) scanPools() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) removePools() *cmderror.CmdError {
 	tCmd.deletePoolRpc = &DeletePoolRpc{}
-	tCmd.deletePoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "DeleteServer")
-	tCmd.deletePoolRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.deletePoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "DeleteServer")
 	for _, delReuest := range tCmd.deletePool {
 		tCmd.deletePoolRpc.Request = delReuest
 		result, err := base.GetRpcResponse(tCmd.deletePoolRpc.Info, tCmd.deletePoolRpc)
@@ -203,8 +200,7 @@ func (tCmd *TopologyCommand) removePools() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) createPools() *cmderror.CmdError {
 	tCmd.createPoolRpc = &CreatePoolRpc{}
-	tCmd.createPoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "CreatePool")
-	tCmd.createPoolRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.createPoolRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "CreatePool")
 	for _, crtReuest := range tCmd.createPool {
 		tCmd.createPoolRpc.Request = crtReuest
 		result, err := base.GetRpcResponse(tCmd.createPoolRpc.Info, tCmd.createPoolRpc)

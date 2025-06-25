@@ -52,6 +52,9 @@ const (
 	RPCRETRYTIMES                  = "rpcretrytimes"
 	VIPER_GLOBALE_RPCRETRYTIMES    = "global.rpcRetryTimes"
 	DEFAULT_RPCRETRYTIMES          = int32(5)
+	RPCRETRYDElAY                  = "rpcretrydelay"
+	VIPER_GLOBALE_RPCRETRYDELAY    = "global.rpcRetryDelay"
+	DEFAULT_RPCRETRYDELAY          = 200 * time.Millisecond
 	VERBOSE                        = "verbose"
 	VIPER_GLOBALE_VERBOSE          = "global.verbose"
 	DEFAULT_VERBOSE                = false
@@ -141,6 +144,11 @@ func AddRpcTimeoutFlag(cmd *cobra.Command) {
 // rpc retry times
 func AddRpcRetryTimesFlag(cmd *cobra.Command) {
 	AddInt32OptionFlag(cmd, RPCRETRYTIMES, "rpc retry times")
+}
+
+// rpc retry delay
+func AddRpcRetryDelayFlag(cmd *cobra.Command) {
+	AddDurationOptionFlag(cmd, RPCRETRYDElAY, "rpc retry delay")
 }
 
 // channel size

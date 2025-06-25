@@ -72,6 +72,7 @@ func NewDeleteMetaServerCommand() *cobra.Command {
 
 func (metaServerCmd *DeleteMetaServerCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(metaServerCmd.Cmd)
+	config.AddRpcRetryDelayFlag(metaServerCmd.Cmd)
 	config.AddRpcTimeoutFlag(metaServerCmd.Cmd)
 	config.AddFsMdsAddrFlag(metaServerCmd.Cmd)
 	config.AddMetaserverIdFlag(metaServerCmd.Cmd)
@@ -95,10 +96,12 @@ func (metaServerCmd *DeleteMetaServerCommand) Init(cmd *cobra.Command, args []st
 	metaServerCmd.Rpc = &DeleteMetaServerRpc{
 		Request: request,
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	metaServerCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "DeleteMetaServer")
-	metaServerCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(metaServerCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	metaServerCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "DeleteMetaServer")
 
 	return nil
 }

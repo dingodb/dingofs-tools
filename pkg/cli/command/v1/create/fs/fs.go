@@ -88,6 +88,7 @@ func NewFsCommand() *cobra.Command {
 
 func (fCmd *FsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fCmd.Cmd)
 	config.AddRpcTimeoutFlag(fCmd.Cmd)
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
 	config.AddFsNameRequiredFlag(fCmd.Cmd)
@@ -174,8 +175,9 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	fCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "CreateFs")
-	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	fCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "CreateFs")
 
 	return nil
 }

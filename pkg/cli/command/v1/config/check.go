@@ -51,6 +51,7 @@ func NewCheckQuotaCommand() *cobra.Command {
 
 func (checkQuotaCmd *CheckQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(checkQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(checkQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(checkQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(checkQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(checkQuotaCmd.Cmd)
@@ -110,10 +111,12 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		if addrErr != nil {
 			return addrErr
 		}
+
 		timeout := config.GetRpcTimeout(cmd)
 		retrytimes := config.GetRpcRetryTimes(cmd)
-		checkQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "SetFsQuota")
-		checkQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(checkQuotaCmd.Cmd, config.VERBOSE)
+		retryDelay := config.GetRpcRetryDelay(cmd)
+		verbose := config.GetFlagBool(cmd, config.VERBOSE)
+		checkQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "SetFsQuota")
 
 		result, err := base.GetRpcResponse(checkQuotaCmd.Rpc.Info, checkQuotaCmd.Rpc)
 		if err.TypeCode() != cmderror.CODE_SUCCESS {

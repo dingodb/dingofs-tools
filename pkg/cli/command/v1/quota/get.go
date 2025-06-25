@@ -56,6 +56,7 @@ func NewGetQuotaCommand() *cobra.Command {
 
 func (getQuotaCmd *GetQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(getQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(getQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(getQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(getQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(getQuotaCmd.Cmd)
@@ -106,10 +107,12 @@ func (getQuotaCmd *GetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	if addrErr != nil {
 		return addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	getQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetDirQuota")
-	getQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(getQuotaCmd.Cmd, config.VERBOSE)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	getQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetDirQuota")
 
 	header := []string{cobrautil.ROW_ID, cobrautil.ROW_PATH, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
 		cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}

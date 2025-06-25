@@ -95,6 +95,7 @@ func NewQueryCopysetCommand() *CopysetCommand {
 
 func (cCmd *CopysetCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(cCmd.Cmd)
+	config.AddRpcRetryDelayFlag(cCmd.Cmd)
 	config.AddRpcTimeoutFlag(cCmd.Cmd)
 	config.AddFsMdsAddrFlag(cCmd.Cmd)
 	config.AddCopysetidSliceRequiredFlag(cCmd.Cmd)
@@ -130,8 +131,7 @@ func (cCmd *CopysetCommand) Init(cmd *cobra.Command, args []string) error {
 	cCmd.Header = []string{cobrautil.ROW_COPYSET_KEY, cobrautil.ROW_COPYSET_ID, cobrautil.ROW_POOL_ID, cobrautil.ROW_LEADER_PEER, cobrautil.ROW_EPOCH}
 
 	cCmd.Rows = make([]map[string]string, 0)
-	timeout := config.GetRpcTimeout(cmd)
-	retrytimes := config.GetRpcRetryTimes(cmd)
+
 	getRequest := &topology.GetCopysetsInfoRequest{}
 	cCmd.key2Copyset = make(map[uint64]*cobrautil.CopysetInfoStatus)
 	for i := range poolids {
@@ -157,8 +157,12 @@ func (cCmd *CopysetCommand) Init(cmd *cobra.Command, args []string) error {
 	cCmd.Rpc = &QueryCopysetRpc{
 		Request: getRequest,
 	}
-	cCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetCopysetsInfo")
-	cCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(cCmd.Cmd, "verbose")
+
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	cCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetCopysetsInfo")
 
 	return nil
 }
@@ -297,9 +301,12 @@ func (cCmd *CopysetCommand) UpdateCopysetsStatus(values []*topology.CopysetValue
 	// update row & copysetInfoStatus
 	timeout := config.GetRpcTimeout(cCmd.Cmd)
 	retrytimes := config.GetRpcRetryTimes(cCmd.Cmd)
+	retryDelay := config.GetRpcRetryDelay(cCmd.Cmd)
+	verbose := config.GetFlagBool(cCmd.Cmd, config.VERBOSE)
+
 	var results []*StatusResult
 	if len(addr2Request) != 0 {
-		results = GetCopysetsStatus(&addr2Request, timeout, retrytimes)
+		results = GetCopysetsStatus(&addr2Request, timeout, retrytimes, retryDelay, verbose)
 		for _, result := range results {
 			ret = append(ret, result.Error)
 			copysets := result.Request.GetCopysets()

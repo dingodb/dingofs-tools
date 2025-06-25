@@ -83,6 +83,7 @@ func NewMetadataCommand() *cobra.Command {
 
 func (mCmd *MetadataCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(mCmd.Cmd)
+	config.AddRpcRetryDelayFlag(mCmd.Cmd)
 	config.AddRpcTimeoutFlag(mCmd.Cmd)
 	config.AddFsMdsAddrFlag(mCmd.Cmd)
 }
@@ -98,8 +99,9 @@ func (mCmd *MetadataCommand) Init(cmd *cobra.Command, args []string) error {
 	mCmd.Rpc.Request = &topology.StatMetadataUsageRequest{}
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	mCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "StatMetadataUsage")
-	mCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(mCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	mCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "StatMetadataUsage")
 
 	header := []string{cobrautil.ROW_METASERVER_ADDR, cobrautil.ROW_TOTAL, cobrautil.ROW_USED, cobrautil.ROW_LEFT}
 	mCmd.SetHeader(header)

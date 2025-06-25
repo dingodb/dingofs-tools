@@ -32,18 +32,20 @@ type Rpc struct {
 	Addrs         []string
 	RpcTimeout    time.Duration
 	RpcRetryTimes int32
+	RpcRetryDelay time.Duration
 	RpcFuncName   string
 	RpcDataShow   bool
 }
 
 // TODO field RpcDataShow may be pass by parameter
-func NewRpc(addrs []string, timeout time.Duration, retryTimes int32, funcName string) *Rpc {
+func NewRpc(addrs []string, timeout time.Duration, retryTimes int32, retryDelay time.Duration, dataShow bool, funcName string) *Rpc {
 	return &Rpc{
 		Addrs:         addrs,
 		RpcTimeout:    timeout,
 		RpcRetryTimes: retryTimes,
+		RpcRetryDelay: retryDelay,
 		RpcFuncName:   funcName,
-		RpcDataShow:   false,
+		RpcDataShow:   dataShow,
 	}
 }
 
@@ -73,35 +75,50 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *cmderror.CmdError)
 			errDial := cmderror.ErrRpcDial()
 			errDial.Format(address, err.Error())
 			results = append(results, Result{address, errDial, nil})
-		} else {
-			rpcFunc.NewRpcClient(conn)
-			retryTimes := rpc.RpcRetryTimes
-			for {
-				log.Printf("%s: start to rpc [%s],timeout[%v],retrytimes[%d]", address, rpc.RpcFuncName, rpc.RpcTimeout, retryTimes)
-				ctx, _ := context.WithTimeout(context.Background(), rpc.RpcTimeout)
-				res, err := rpcFunc.Stub_Func(ctx)
-				retryTimes = retryTimes - 1
-				if err != nil {
-					if retryTimes > 0 {
-						log.Printf("%s: fail to get rpc [%s] response,retrying...", address, rpc.RpcFuncName)
-						continue
-					} else {
-						errRpc := cmderror.ErrRpcCall()
-						errRpc.Format(rpc.RpcFuncName, err.Error())
-						results = append(results, Result{address, errRpc, nil})
-						log.Printf("%s: fail to get rpc [%s] response", address, rpc.RpcFuncName)
-						break
-					}
+
+			continue
+		}
+
+		rpcFunc.NewRpcClient(conn)
+		retryTimes := rpc.RpcRetryTimes
+
+		log.Printf("%s: start to rpc [%s],timeout[%v],retrytimes[%d]", address, rpc.RpcFuncName, rpc.RpcTimeout, retryTimes)
+		for {
+			ctx, _ := context.WithTimeout(context.Background(), rpc.RpcTimeout)
+			res, err := rpcFunc.Stub_Func(ctx)
+			if err != nil {
+				if retryTimes > 0 { // rpc failed, retrying
+					log.Printf("%s: fail to get rpc [%s] response, retrytimes[%d], retrying...", address, rpc.RpcFuncName, retryTimes)
+					time.Sleep(rpc.RpcRetryDelay)
+					retryTimes = retryTimes - 1
+					continue
 				} else {
-					results = append(results, Result{address, cmderror.ErrSuccess(), res})
-					log.Printf("%s: get rpc [%s] response successfully", address, rpc.RpcFuncName)
+					errRpc := cmderror.ErrRpcCall()
+					errRpc.Format(rpc.RpcFuncName, err.Error())
+					results = append(results, Result{address, errRpc, nil})
+					log.Printf("%s: fail to get rpc [%s] response", address, rpc.RpcFuncName)
 					break
 				}
 			}
-			pool.PutConnection(address, conn)
-			if config.MDSApiV2 { // mdsv2 just choose one available mds
-				break
+
+			// rpc ok, but return status != ok
+			if CheckRpcNeedRetry(res) && retryTimes > 0 {
+				log.Printf("%s: rpc [%s] return error, retrytimes[%d], retrying...", address, rpc.RpcFuncName, retryTimes)
+				time.Sleep(rpc.RpcRetryDelay)
+				retryTimes = retryTimes - 1
+				continue
 			}
+			// rpc success
+			results = append(results, Result{address, cmderror.ErrSuccess(), res})
+			log.Printf("%s: get rpc [%s] response successfully", address, rpc.RpcFuncName)
+			break
+		}
+
+		// Return Connect to Pool
+		pool.PutConnection(address, conn)
+		// for mdsv2
+		if config.MDSApiV2 { // mdsv2 just choose one available mds
+			break
 		}
 	}
 	// get the rpc response result

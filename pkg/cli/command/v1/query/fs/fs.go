@@ -84,6 +84,7 @@ func NewFsCommand() *cobra.Command {
 
 func (fCmd *FsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fCmd.Cmd)
 	config.AddRpcTimeoutFlag(fCmd.Cmd)
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
 	config.AddFsNameSliceOptionFlag(fCmd.Cmd)
@@ -122,6 +123,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	fCmd.Rows = make([]map[string]string, 0)
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
 	for i := range fsNames {
 		request := &mds.GetFsInfoRequest{
 			FsName: &fsNames[i],
@@ -129,8 +132,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc := &QueryFsRpc{
 			Request: request,
 		}
-		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetFsInfo")
-		rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
+		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetFsInfo")
+
 		fCmd.Rpc = append(fCmd.Rpc, rpc)
 	}
 
@@ -146,8 +149,8 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc := &QueryFsRpc{
 			Request: request,
 		}
-		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetFsInfo")
-		rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
+		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetFsInfo")
+		rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, config.VERBOSE)
 		fCmd.Rpc = append(fCmd.Rpc, rpc)
 	}
 

@@ -51,6 +51,7 @@ func NewDentryCommand() *cobra.Command {
 
 func (dentryCommand *DentryCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(dentryCommand.Cmd)
+	config.AddRpcRetryDelayFlag(dentryCommand.Cmd)
 	config.AddRpcTimeoutFlag(dentryCommand.Cmd)
 	config.AddFsMdsAddrFlag(dentryCommand.Cmd)
 	config.AddFsIdUint32OptionFlag(dentryCommand.Cmd)

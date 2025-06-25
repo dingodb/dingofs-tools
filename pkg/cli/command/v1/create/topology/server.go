@@ -27,7 +27,6 @@ import (
 	"fmt"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
-	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
@@ -108,8 +107,7 @@ func (tCmd *TopologyCommand) listZoneServer(zoneId uint32) (*topology.ListZoneSe
 	tCmd.listZoneServerRpc = &ListZoneServerRpc{
 		Request: request,
 	}
-	tCmd.listZoneServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "ListPoolZone")
-	tCmd.listZoneServerRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.listZoneServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "ListPoolZone")
 	result, err := base.GetRpcResponse(tCmd.listZoneServerRpc.Info, tCmd.listZoneServerRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, err
@@ -186,8 +184,7 @@ func (tCmd *TopologyCommand) scanServers() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) removeServers() *cmderror.CmdError {
 	tCmd.deleteServerRpc = &DeleteServerRpc{}
-	tCmd.deleteServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "DeleteServer")
-	tCmd.deleteServerRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.deleteServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "DeleteServer")
 	for _, delReuest := range tCmd.deleteServer {
 		tCmd.deleteServerRpc.Request = delReuest
 		result, err := base.GetRpcResponse(tCmd.deleteServerRpc.Info, tCmd.deleteServerRpc)
@@ -204,8 +201,7 @@ func (tCmd *TopologyCommand) removeServers() *cmderror.CmdError {
 
 func (tCmd *TopologyCommand) createServers() *cmderror.CmdError {
 	tCmd.createServerRpc = &CreateServerRpc{}
-	tCmd.createServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, "RegisterServer")
-	tCmd.createServerRpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	tCmd.createServerRpc.Info = base.NewRpc(tCmd.addrs, tCmd.timeout, tCmd.retryTimes, tCmd.retryDelay, tCmd.verbose, "RegisterServer")
 	for _, crtReuest := range tCmd.createServer {
 		tCmd.createServerRpc.Request = crtReuest
 		result, err := base.GetRpcResponse(tCmd.createServerRpc.Info, tCmd.createServerRpc)

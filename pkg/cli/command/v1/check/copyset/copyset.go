@@ -93,6 +93,7 @@ func GetCopysetsStatus(caller *cobra.Command, copysetIds string, poolIds string)
 
 func (cCmd *CopysetCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(cCmd.Cmd)
+	config.AddRpcRetryDelayFlag(cCmd.Cmd)
 	config.AddRpcTimeoutFlag(cCmd.Cmd)
 	config.AddFsMdsAddrFlag(cCmd.Cmd)
 	config.AddCopysetidSliceRequiredFlag(cCmd.Cmd)
