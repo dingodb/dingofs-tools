@@ -147,10 +147,13 @@ func GetPartitionList(cmd *cobra.Command, fsId uint32) ([]*common.PartitionInfo,
 	listPartitionRpc := &ListPartitionRpc{
 		Request: request,
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	listPartitionRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListPartition")
-	listPartitionRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	listPartitionRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListPartition")
+
 	result, err := base.GetRpcResponse(listPartitionRpc.Info, listPartitionRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, err.ToError()
@@ -198,8 +201,6 @@ func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartb
 	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(addrErr.Message)
 	}
-	timeout := config.GetRpcTimeout(cmd)
-	retrytimes := config.GetRpcRetryTimes(cmd)
 	copysetKey := topology.CopysetKey{
 		PoolId:    &poolId,
 		CopysetId: &copyetId,
@@ -210,8 +211,13 @@ func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartb
 	rpc := &QueryCopysetRpc{
 		Request: request,
 	}
-	rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetCopysetsInfo")
-	rpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	timeout := config.GetRpcTimeout(cmd)
+	retrytimes := config.GetRpcRetryTimes(cmd)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetCopysetsInfo")
+
 	result, err := base.GetRpcResponse(rpc.Info, rpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, err.ToError()
@@ -247,8 +253,9 @@ func ListAllFsInfo(cmd *cobra.Command) ([]*mds.FsInfo, error) {
 
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	listFsRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListClusterFsInfo")
-	listFsRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	listFsRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListClusterFsInfo")
 
 	listFsResult, err := base.GetRpcResponse(listFsRpc.Info, listFsRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -315,10 +322,12 @@ func GetInodeAttr(cmd *cobra.Command, fsId uint32, inodeId uint64) (*metaserver.
 	if addrErr != nil {
 		return nil, addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	getInodeRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetInodeAttr")
-	getInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	getInodeRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetInodeAttr")
 
 	inodeResult, err := base.GetRpcResponse(getInodeRpc.Info, getInodeRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -364,10 +373,12 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]*metaserver.
 	if addrErr != nil {
 		return nil, addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	listDentryRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListDentry")
-	listDentryRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	listDentryRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListDentry")
 
 	listDentryResult, err := base.GetRpcResponse(listDentryRpc.Info, listDentryRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -452,10 +463,12 @@ func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string) (*
 	if addrErr != nil {
 		return nil, addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	getDentryRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetDentry")
-	getDentryRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	getDentryRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetDentry")
 
 	inodeResult, err := base.GetRpcResponse(getDentryRpc.Info, getDentryRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {
@@ -700,10 +713,12 @@ func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64) (*metaserver.Inod
 	if addrErr != nil {
 		return nil, addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	getInodeRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetInode")
-	getInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	getInodeRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetInode")
 
 	inodeResult, err := base.GetRpcResponse(getInodeRpc.Info, getInodeRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {

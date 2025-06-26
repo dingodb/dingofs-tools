@@ -59,6 +59,7 @@ func NewQueryFsCommand() *cobra.Command {
 
 func (queryFSCmd *QueryFsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(queryFSCmd.Cmd)
+	config.AddRpcRetryDelayFlag(queryFSCmd.Cmd)
 	config.AddRpcTimeoutFlag(queryFSCmd.Cmd)
 	config.AddFsMdsAddrFlag(queryFSCmd.Cmd)
 	config.AddFsNameSliceOptionFlag(queryFSCmd.Cmd)

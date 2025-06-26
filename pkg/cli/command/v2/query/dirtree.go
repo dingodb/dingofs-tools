@@ -50,6 +50,7 @@ func NewDirTreeCommand() *cobra.Command {
 
 func (dirTreeCommand *DirTreeCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(dirTreeCommand.Cmd)
+	config.AddRpcRetryDelayFlag(dirTreeCommand.Cmd)
 	config.AddRpcTimeoutFlag(dirTreeCommand.Cmd)
 	config.AddFsMdsAddrFlag(dirTreeCommand.Cmd)
 	config.AddFsIdUint32OptionFlag(dirTreeCommand.Cmd)

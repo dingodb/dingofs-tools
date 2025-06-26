@@ -88,6 +88,7 @@ func NewListFsCommand() *FsCommand {
 
 func (fCmd *FsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fCmd.Cmd)
 	config.AddRpcTimeoutFlag(fCmd.Cmd)
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
 }
@@ -100,10 +101,12 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	}
 	fCmd.Rpc = &ListFsRpc{}
 	fCmd.Rpc.Request = &mds.ListClusterFsInfoRequest{}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	fCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListClusterFsInfo")
-	fCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	fCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListClusterFsInfo")
 
 	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
 	fCmd.SetHeader(header)

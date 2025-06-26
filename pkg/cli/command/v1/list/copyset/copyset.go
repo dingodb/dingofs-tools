@@ -89,6 +89,7 @@ func NewListCopysetCommand() *CopysetCommand {
 
 func (cCmd *CopysetCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(cCmd.Cmd)
+	config.AddRpcRetryDelayFlag(cCmd.Cmd)
 	config.AddRpcTimeoutFlag(cCmd.Cmd)
 	config.AddFsMdsAddrFlag(cCmd.Cmd)
 }
@@ -101,10 +102,12 @@ func (cCmd *CopysetCommand) Init(cmd *cobra.Command, args []string) error {
 	}
 	cCmd.Rpc = &ListCopysetRpc{}
 	cCmd.Rpc.Request = &topology.ListCopysetInfoRequest{}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	cCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListCopysetInfo")
-	cCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(cCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	cCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListCopysetInfo")
 
 	header := []string{cobrautil.ROW_KEY, cobrautil.ROW_COPYSET_ID, cobrautil.ROW_POOL_ID, cobrautil.ROW_EPOCH, cobrautil.ROW_LEADER_PEER, cobrautil.ROW_FOLLOWER_PEER, cobrautil.ROW_PEER_NUMBER}
 	cCmd.SetHeader(header)

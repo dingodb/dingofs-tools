@@ -54,6 +54,7 @@ $ dingo config fs --fsname dingofs --capacity 10 --inodes 1000
 
 func (fsQuotaCmd *SetFsQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fsQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fsQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(fsQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(fsQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsQuotaCmd.Cmd)

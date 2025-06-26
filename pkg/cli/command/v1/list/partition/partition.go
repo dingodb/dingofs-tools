@@ -86,6 +86,7 @@ func NewPartitionCommand() *cobra.Command {
 
 func (pCmd *PartitionCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(pCmd.Cmd)
+	config.AddRpcRetryDelayFlag(pCmd.Cmd)
 	config.AddRpcTimeoutFlag(pCmd.Cmd)
 	config.AddFsMdsAddrFlag(pCmd.Cmd)
 	config.AddFsIdOptionDefaultAllFlag(pCmd.Cmd)
@@ -117,8 +118,7 @@ func (pCmd *PartitionCommand) Init(cmd *cobra.Command, args []string) error {
 
 	pCmd.fsId2Rows = make(map[uint32][]map[string]string)
 	pCmd.fsId2PartitionList = make(map[uint32][]*common.PartitionInfo)
-	timeout := config.GetRpcTimeout(cmd)
-	retrytimes := config.GetRpcRetryTimes(cmd)
+
 	for _, fsId := range fsIds {
 		id, err := strconv.ParseUint(fsId, 10, 32)
 		if err != nil {
@@ -130,8 +130,13 @@ func (pCmd *PartitionCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc := &ListPartitionRpc{
 			Request: request,
 		}
-		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListPartition")
-		rpc.Info.RpcDataShow = config.GetFlagBool(pCmd.Cmd, "verbose")
+
+		timeout := config.GetRpcTimeout(cmd)
+		retrytimes := config.GetRpcRetryTimes(cmd)
+		retryDelay := config.GetRpcRetryDelay(cmd)
+		verbose := config.GetFlagBool(cmd, config.VERBOSE)
+		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListPartition")
+
 		pCmd.Rpc = append(pCmd.Rpc, rpc)
 		pCmd.fsId2Rows[id32] = make([]map[string]string, 1)
 		pCmd.fsId2Rows[id32][0] = make(map[string]string)

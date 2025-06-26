@@ -86,6 +86,7 @@ func NewMetaserverCommand() *cobra.Command {
 
 func (mCmd *MetaserverCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(mCmd.Cmd)
+	config.AddRpcRetryDelayFlag(mCmd.Cmd)
 	config.AddRpcTimeoutFlag(mCmd.Cmd)
 	config.AddFsMdsAddrFlag(mCmd.Cmd)
 	config.AddMetaserverAddrOptionFlag(mCmd.Cmd)
@@ -118,6 +119,8 @@ func (mCmd *MetaserverCommand) Init(cmd *cobra.Command, args []string) error {
 	mCmd.Rows = make([]map[string]string, 0)
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
 	for i := range metaserverAddrs {
 		addr := strings.Split(metaserverAddrs[i], ":")
 		if len(addr) != 2 {
@@ -135,8 +138,7 @@ func (mCmd *MetaserverCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc := &QueryMetaserverRpc{
 			Request: request,
 		}
-		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetMetaServerInfo")
-		rpc.Info.RpcDataShow = config.GetFlagBool(mCmd.Cmd, "verbose")
+		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetMetaServerInfo")
 		mCmd.Rpc = append(mCmd.Rpc, rpc)
 		row := make(map[string]string)
 		row[cobrautil.ROW_ID] = cobrautil.ROW_VALUE_DNE
@@ -159,8 +161,8 @@ func (mCmd *MetaserverCommand) Init(cmd *cobra.Command, args []string) error {
 		rpc := &QueryMetaserverRpc{
 			Request: request,
 		}
-		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetMetaServerInfo")
-		rpc.Info.RpcDataShow = config.GetFlagBool(mCmd.Cmd, "verbose")
+		rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetMetaServerInfo")
+		rpc.Info.RpcDataShow = config.GetFlagBool(mCmd.Cmd, config.VERBOSE)
 		mCmd.Rpc = append(mCmd.Rpc, rpc)
 		row := make(map[string]string)
 		row[cobrautil.ROW_ID] = metaserverIds[i]

@@ -82,6 +82,7 @@ func NewPartitionCommand() *cobra.Command {
 
 func (pCmd *PartitionCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(pCmd.Cmd)
+	config.AddRpcRetryDelayFlag(pCmd.Cmd)
 	config.AddRpcTimeoutFlag(pCmd.Cmd)
 	config.AddFsMdsAddrFlag(pCmd.Cmd)
 	config.AddPartitionIdRequiredFlag(pCmd.Cmd)
@@ -119,10 +120,12 @@ func (pCmd *PartitionCommand) Init(cmd *cobra.Command, args []string) error {
 	pCmd.Rpc = &QueryPartitionRpc{
 		Request: request,
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	pCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetCopysetOfPartition")
-	pCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(pCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	pCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetCopysetOfPartition")
 
 	return nil
 }

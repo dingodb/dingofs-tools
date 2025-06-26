@@ -51,6 +51,7 @@ $ dingo quota list --fsname dingofs`,
 
 func (listQuotaCmd *ListQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(listQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(listQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(listQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(listQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(listQuotaCmd.Cmd)
@@ -88,10 +89,12 @@ func (listQuotaCmd *ListQuotaCommand) Init(cmd *cobra.Command, args []string) er
 	if addrErr != nil {
 		return addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	listQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "LoadDirQuotas")
-	listQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(listQuotaCmd.Cmd, config.VERBOSE)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	listQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "LoadDirQuotas")
 
 	header := []string{cobrautil.ROW_ID, cobrautil.ROW_PATH, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
 		cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}

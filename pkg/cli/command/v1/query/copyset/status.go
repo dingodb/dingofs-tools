@@ -56,7 +56,7 @@ func (scRpc *StatusCopysetRpc) Stub_Func(ctx context.Context) (interface{}, erro
 	return scRpc.copysetClient.GetCopysetsStatus(ctx, scRpc.Request)
 }
 
-func GetCopysetsStatus(addr2Request *map[string]*copyset.CopysetsStatusRequest, timeout time.Duration, retrytimes int32) []*StatusResult {
+func GetCopysetsStatus(addr2Request *map[string]*copyset.CopysetsStatusRequest, timeout time.Duration, retrytimes int32, retryDelay time.Duration, verbose bool) []*StatusResult {
 	chanSize := len(*addr2Request)
 	if chanSize > config.MaxChannelSize() {
 		chanSize = config.MaxChannelSize()
@@ -68,7 +68,7 @@ func GetCopysetsStatus(addr2Request *map[string]*copyset.CopysetsStatusRequest, 
 		rpc := &StatusCopysetRpc{
 			Request: v,
 		}
-		rpc.Info = base.NewRpc([]string{k}, timeout, retrytimes, "GetCopysetsStatus")
+		rpc.Info = base.NewRpc([]string{k}, timeout, retrytimes, retryDelay, verbose, "GetCopysetsStatus")
 		go func(rpc *StatusCopysetRpc, addr string) {
 			result, err := base.GetRpcResponse(rpc.Info, rpc)
 			var response *copyset.CopysetsStatusResponse

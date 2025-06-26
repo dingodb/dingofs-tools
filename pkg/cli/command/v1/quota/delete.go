@@ -49,6 +49,7 @@ func NewDeleteQuotaCommand() *cobra.Command {
 
 func (deleteQuotaCmd *DeleteQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(deleteQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(deleteQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(deleteQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(deleteQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(deleteQuotaCmd.Cmd)
@@ -98,10 +99,12 @@ func (deleteQuotaCmd *DeleteQuotaCommand) Init(cmd *cobra.Command, args []string
 	if addrErr != nil {
 		return addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	deleteQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "DeleteDirQuota")
-	deleteQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(deleteQuotaCmd.Cmd, config.VERBOSE)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	deleteQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "DeleteDirQuota")
 
 	header := []string{cobrautil.ROW_RESULT}
 	deleteQuotaCmd.SetHeader(header)

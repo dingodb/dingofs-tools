@@ -57,6 +57,7 @@ $ dingo stats cluster --fsid 1 --interval 4s`,
 
 func (clusterCmd *ClusterCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(clusterCmd.Cmd)
+	config.AddRpcRetryDelayFlag(clusterCmd.Cmd)
 	config.AddRpcTimeoutFlag(clusterCmd.Cmd)
 	config.AddFsMdsAddrFlag(clusterCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(clusterCmd.Cmd)
@@ -83,10 +84,12 @@ func (clusterCmd *ClusterCommand) Init(cmd *cobra.Command, args []string) error 
 	clusterCmd.Rpc = &cmdCommon.GetFsStatsRpc{
 		Request: request,
 	}
+	
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	clusterCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "GetFsStats")
-	clusterCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(clusterCmd.Cmd, config.VERBOSE)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	clusterCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "GetFsStats")
 
 	return nil
 }

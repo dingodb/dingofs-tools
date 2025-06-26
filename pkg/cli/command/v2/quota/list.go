@@ -54,6 +54,7 @@ $ dingo quota list --fsname dingofs`,
 
 func (listQuotaCmd *ListQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(listQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(listQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(listQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(listQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(listQuotaCmd.Cmd)

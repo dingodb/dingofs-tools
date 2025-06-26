@@ -53,6 +53,7 @@ $ dingo config fs --fsname dingofs
 
 func (fsQuotaCmd *GetFsQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fsQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fsQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(fsQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(fsQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsQuotaCmd.Cmd)
@@ -138,10 +139,12 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*metaserver.GetFsQuotaRequ
 	if addrErr != nil {
 		return nil, nil, addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	requestRpc.Info = base.NewRpc(addrs, timeout, retrytimes, "getFsQuota")
-	requestRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	requestRpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "getFsQuota")
 
 	result, err := base.GetRpcResponse(requestRpc.Info, requestRpc)
 	if err.TypeCode() != cmderror.CODE_SUCCESS {

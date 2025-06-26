@@ -117,6 +117,7 @@ func NewListTopologyCommand() *TopologyCommand {
 
 func (tCmd *TopologyCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(tCmd.Cmd)
+	config.AddRpcRetryDelayFlag(tCmd.Cmd)
 	config.AddRpcTimeoutFlag(tCmd.Cmd)
 	config.AddFsMdsAddrFlag(tCmd.Cmd)
 }
@@ -128,10 +129,12 @@ func (tCmd *TopologyCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(addrErr.Message)
 	}
 	tCmd.Rpc.Request = &topology.ListTopologyRequest{}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	tCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "ListTopology")
-	tCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(tCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	tCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "ListTopology")
 
 	// header := []string{cobrautil.ROW_ID, cobrautil.ROW_TYPE, cobrautil.ROW_NAME, cobrautil.ROW_CHILD_TYPE, cobrautil.ROW_CHILD_LIST}
 	header := []string{cobrautil.ROW_POOL, cobrautil.ROW_ZONE, cobrautil.ROW_SERVERID, cobrautil.ROW_SERVER, cobrautil.ROW_METASERVERID, cobrautil.ROW_METASERVER}

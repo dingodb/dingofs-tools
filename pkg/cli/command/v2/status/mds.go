@@ -48,6 +48,7 @@ func NewMdsCommand() *cobra.Command {
 
 func (mdsCmd *MdsCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(mdsCmd.Cmd)
+	config.AddRpcRetryDelayFlag(mdsCmd.Cmd)
 	config.AddRpcTimeoutFlag(mdsCmd.Cmd)
 	config.AddFsMdsAddrFlag(mdsCmd.Cmd)
 }

@@ -49,6 +49,7 @@ func NewSetQuotaCommand() *cobra.Command {
 
 func (setQuotaCmd *SetQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(setQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(setQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(setQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(setQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(setQuotaCmd.Cmd)
@@ -116,10 +117,12 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	if addrErr != nil {
 		return addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	setQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "SetDirQuota")
-	setQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(setQuotaCmd.Cmd, config.VERBOSE)
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	setQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "SetDirQuota")
 
 	header := []string{cobrautil.ROW_RESULT}
 	setQuotaCmd.SetHeader(header)

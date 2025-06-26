@@ -52,6 +52,7 @@ $ dingo config fs --fsname dingofs --capacity 10 --inodes 1000
 
 func (fsQuotaCmd *ConfigFsQuotaCommand) AddFlags() {
 	config.AddRpcRetryTimesFlag(fsQuotaCmd.Cmd)
+	config.AddRpcRetryDelayFlag(fsQuotaCmd.Cmd)
 	config.AddRpcTimeoutFlag(fsQuotaCmd.Cmd)
 	config.AddFsMdsAddrFlag(fsQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsQuotaCmd.Cmd)
@@ -98,10 +99,12 @@ func (fsQuotaCmd *ConfigFsQuotaCommand) Init(cmd *cobra.Command, args []string) 
 	if addrErr != nil {
 		return addrErr
 	}
+
 	timeout := config.GetRpcTimeout(cmd)
 	retrytimes := config.GetRpcRetryTimes(cmd)
-	fsQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, "setFsQuota")
-	fsQuotaCmd.Rpc.Info.RpcDataShow = config.GetFlagBool(fsQuotaCmd.Cmd, "verbose")
+	retryDelay := config.GetRpcRetryDelay(cmd)
+	verbose := config.GetFlagBool(cmd, config.VERBOSE)
+	fsQuotaCmd.Rpc.Info = base.NewRpc(addrs, timeout, retrytimes, retryDelay, verbose, "setFsQuota")
 
 	header := []string{cobrautil.ROW_RESULT}
 	fsQuotaCmd.SetHeader(header)

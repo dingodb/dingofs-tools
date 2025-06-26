@@ -171,6 +171,7 @@ var (
 	FLAG2VIPER = map[string]string{
 		RPCTIMEOUT:             VIPER_GLOBALE_RPCTIMEOUT,
 		RPCRETRYTIMES:          VIPER_GLOBALE_RPCRETRYTIMES,
+		RPCRETRYDElAY:          VIPER_GLOBALE_RPCRETRYDELAY,
 		VERBOSE:                VIPER_GLOBALE_VERBOSE,
 		DINGOFS_MDSADDR:        VIPER_DINGOFS_MDSADDR,
 		DINGOFS_MDSDUMMYADDR:   VIPER_DINGOFS_MDSDUMMYADDR,
@@ -227,6 +228,7 @@ var (
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
 		RPCRETRYTIMES:          DEFAULT_RPCRETRYTIMES,
+		RPCRETRYDElAY:          DEFAULT_RPCRETRYDELAY,
 		VERBOSE:                DEFAULT_VERBOSE,
 		DINGOFS_DETAIL:         DINGOFS_DEFAULT_DETAIL,
 		DINGOFS_CLUSTERMAP:     DINGOFS_DEFAULT_CLUSTERMAP,
@@ -524,6 +526,10 @@ func GetHttpTimeout(cmd *cobra.Command) time.Duration {
 
 func GetRpcRetryTimes(cmd *cobra.Command) int32 {
 	return GetFlagInt32(cmd, RPCRETRYTIMES)
+}
+
+func GetRpcRetryDelay(cmd *cobra.Command) time.Duration {
+	return GetFlagDuration(cmd, RPCRETRYDElAY)
 }
 
 // mds dummy addr
