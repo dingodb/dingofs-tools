@@ -60,6 +60,7 @@ const (
 	DEFAULT_VERBOSE                = false
 	VIPER_GLOBALE_MAX_CHANNEL_SIZE = "global.maxChannelSize"
 	DEFAULT_MAX_CHANNEL_SIZE       = int32(4)
+	VIPER_GLOBALE_MDS_API_VERSION  = "global.mds_api_version"
 )
 
 const (
@@ -73,15 +74,6 @@ var (
 		SHOWERROR, HTTPTIMEOUT, RPCTIMEOUT, RPCRETRYTIMES, VERBOSE,
 	}
 )
-
-func init() {
-	mds_api := os.Getenv("MDS_API")
-	if mds_api == "2" {
-		MDSApiV2 = true
-	} else {
-		MDSApiV2 = false
-	}
-}
 
 func InitConfig() {
 	// configure file priority
@@ -107,6 +99,20 @@ func InitConfig() {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			log.Printf("config file name: %v", viper.ConfigFileUsed())
 			cobra.CheckErr(err)
+		}
+	}
+
+	// check mds api version, env MDS_API_VERSION priority > config file
+	MDSApiV2 = false
+	mdsApiVersion := os.Getenv("MDS_API_VERSION")
+	if mdsApiVersion == "2" {
+		MDSApiV2 = true
+		return
+	}
+	if len(mdsApiVersion) == 0 { // env not set, check config file
+		mdsApiVersion = viper.GetString(VIPER_GLOBALE_MDS_API_VERSION)
+		if mdsApiVersion == "2" {
+			MDSApiV2 = true
 		}
 	}
 }
