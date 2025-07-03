@@ -20,6 +20,7 @@ jobs:
         run: |
           branchName=$(echo "${{ github.ref_name }}")
           echo "branch name is: $branchName"
+          echo "BRANCH_NAME=$branchName" >> $GITHUB_ENV
 
           echo "hello dingo eureka" > event.txt
           if [ "${{ github.event_name }}" == "pull_request" ]; then
@@ -54,6 +55,6 @@ jobs:
           files: |
             sbin/dingo
             sbin/daemon
-          name: dingo
+          name: ${{ env.BRANCH_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           token: ${{ secrets.GH_TOKEN }}
