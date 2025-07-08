@@ -87,7 +87,6 @@ func addSubCommands(cmd *cobra.Command) {
 			delete.NewDeleteCommand(),
 			create.NewCreateCommand(),
 			check.NewCheckCommand(),
-			warmup.NewWarmupCommand(),
 			stats.NewStatsCommand(),
 			quota.NewQuotaCommand(),
 			quotaconfig.NewConfigCommand(),

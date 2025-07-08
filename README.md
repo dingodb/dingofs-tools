@@ -48,9 +48,9 @@ make build
 
 ### User Guide 
 
-如果元数据使用mdsv2版本的元数据,需要配置环境变量MDS_API=2:
+如果元数据使用mdsv2版本的元数据,需要配置环境变量MDS_API_VERSION=2:
 ```sh
-export MDS_API=2
+export MDS_API_VERSION=2
 ```
 
 [用户使用指南](./docs/userguide.md)
