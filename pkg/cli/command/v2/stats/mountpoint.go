@@ -194,8 +194,8 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 		case 'f':
 			s.name = "fuse"
 			s.items = append(s.items, &item{"ops", "dingofs_fuse_op_all", metricTime | metricHist})
-			s.items = append(s.items, &item{"read", "dingofs_filesystem_user_read_bps_total_count", metricByte | metricCounter})
-			s.items = append(s.items, &item{"write", "dingofs_filesystem_user_write_bps_total_count", metricByte | metricCounter})
+			s.items = append(s.items, &item{"read", "dingofs_vfs_read_bps_total_count", metricByte | metricCounter})
+			s.items = append(s.items, &item{"write", "dingofs_vfs_write_bps_total_count", metricByte | metricCounter})
 		case 'm':
 			s.name = "metaserver"
 			s.items = append(s.items, &item{"ops", "dingofs_metaserver_client_get_allopt", metricTime | metricHist})
@@ -207,17 +207,17 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			s.items = append(s.items, &item{"ops", "dingofs_mds_client_get_allopt", metricTime | metricHist})
 		case 'b':
 			s.name = "blockcache"
-			s.items = append(s.items, &item{"read", "dingofs_diskcache_read_disk_bps_total_count", metricByte | metricCounter})
-			s.items = append(s.items, &item{"write", "dingofs_diskcache_write_disk_bps_total_count", metricByte | metricCounter})
+			s.items = append(s.items, &item{"read", "dingofs_disk_cache_group_cache_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"write", "dingofs_disk_cache_group_stage_total_bytes", metricByte | metricCounter})
 		case 'o':
 			s.name = "object"
-			s.items = append(s.items, &item{"get", "dingofs_s3_read_s3_bps_total_count", metricByte | metricCounter})
+			s.items = append(s.items, &item{"get", "dingofs_block_read_block_bps_total_count", metricByte | metricCounter})
 			if verbose {
-				s.items = append(s.items, &item{"ops", "dingofs_s3_read_s3", metricTime | metricHist})
+				s.items = append(s.items, &item{"ops", "dingofs_block_read_block", metricTime | metricHist})
 			}
-			s.items = append(s.items, &item{"put", "dingofs_s3_write_s3_bps_total_count", metricByte | metricCounter})
+			s.items = append(s.items, &item{"put", "dingofs_block_write_block_bps_total_count", metricByte | metricCounter})
 			if verbose {
-				s.items = append(s.items, &item{"ops", "dingofs_s3_write_s3", metricTime | metricHist})
+				s.items = append(s.items, &item{"ops", "dingofs_block_write_block", metricTime | metricHist})
 			}
 		default:
 			fmt.Printf("Warning: no item defined for %c\n", r)
