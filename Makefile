@@ -26,7 +26,6 @@ GO := go
 
 # output
 OUTPUT := sbin/dingo
-DAEMON_OUTPUT := sbin/daemon
 
 # version
 GIT_COMMIT=$(shell git rev-parse HEAD)
@@ -62,7 +61,6 @@ DAEMON_PACKAGES := $(PWD)/cmd/daemon/main.go
 
 build: proto
 	$(GOENV) $(GO) build -o $(OUTPUT) $(BUILD_FLAGS) $(PACKAGES)
-	$(GOENV) $(GO) build -o $(DAEMON_OUTPUT) $(BUILD_FLAGS) $(DAEMON_PACKAGES)
 
 debug: proto
 	$(GOENV) $(GO) build -o $(OUTPUT) $(DEBUG_FLAGS) $(PACKAGES)
