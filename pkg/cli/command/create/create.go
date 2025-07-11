@@ -26,6 +26,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create/cache"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create/fs"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/create/subpath"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create/topology"
 	"github.com/spf13/cobra"
 )
@@ -41,6 +42,7 @@ func (createCmd *CreateCommand) AddSubCommands() {
 		fs.NewFsCommand(),
 		topology.NewTopologyCommand(),
 		cache.NewCacheCommand(),
+		subpath.NewSubPathCommand(),
 	)
 }
 

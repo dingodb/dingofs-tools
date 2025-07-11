@@ -72,9 +72,33 @@ type GetInodeAttrRpc struct {
 	metaServerClient metaserver.MetaServerServiceClient
 }
 
+type CreateInodeRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.CreateInodeRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
+type UpdateInodeRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.UpdateInodeRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
+type DeleteInodeRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.DeleteInodeRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
 type GetInodeRpc struct {
 	Info             *basecmd.Rpc
 	Request          *metaserver.GetInodeRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
+type CreateDentryRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.CreateDentryRequest
 	metaServerClient metaserver.MetaServerServiceClient
 }
 
@@ -111,7 +135,11 @@ var _ basecmd.RpcFunc = (*SetQuotaRpc)(nil)      // check interface
 var _ basecmd.RpcFunc = (*QueryCopysetRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*ListPartitionRpc)(nil) // check interface
 var _ basecmd.RpcFunc = (*GetInodeAttrRpc)(nil)  // check interface
+var _ basecmd.RpcFunc = (*CreateInodeRpc)(nil)   // check interface
+var _ basecmd.RpcFunc = (*UpdateInodeRpc)(nil)   // check interface
+var _ basecmd.RpcFunc = (*DeleteInodeRpc)(nil)   // check interface
 var _ basecmd.RpcFunc = (*GetInodeRpc)(nil)      // check interface
+var _ basecmd.RpcFunc = (*CreateDentryRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*ListDentryRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*GetDentryRpc)(nil)     // check interface
 var _ basecmd.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
@@ -216,6 +244,36 @@ func (getInodeRpc *GetInodeAttrRpc) Stub_Func(ctx context.Context) (interface{},
 	return response, err
 }
 
+func (createInodeRpc *CreateInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	createInodeRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (createInodeRpc *CreateInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := createInodeRpc.metaServerClient.CreateInode(ctx, createInodeRpc.Request)
+	output.ShowRpcData(createInodeRpc.Request, response, createInodeRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (updateInodeRpc *UpdateInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	updateInodeRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (updateInodeRpc *UpdateInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := updateInodeRpc.metaServerClient.UpdateInode(ctx, updateInodeRpc.Request)
+	output.ShowRpcData(updateInodeRpc.Request, response, updateInodeRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (deleteInodeRpc *DeleteInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	deleteInodeRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (deleteInodeRpc *DeleteInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := deleteInodeRpc.metaServerClient.DeleteInode(ctx, deleteInodeRpc.Request)
+	output.ShowRpcData(deleteInodeRpc.Request, response, deleteInodeRpc.Info.RpcDataShow)
+	return response, err
+}
+
 func (inodeRpc *GetInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	inodeRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
 }
@@ -223,6 +281,16 @@ func (inodeRpc *GetInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (inodeRpc *GetInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := inodeRpc.metaServerClient.GetInode(ctx, inodeRpc.Request)
 	output.ShowRpcData(inodeRpc.Request, response, inodeRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (createDentryRpc *CreateDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	createDentryRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (createDentryRpc *CreateDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := createDentryRpc.metaServerClient.CreateDentry(ctx, createDentryRpc.Request)
+	output.ShowRpcData(createDentryRpc.Request, response, createDentryRpc.Info.RpcDataShow)
 	return response, err
 }
 
