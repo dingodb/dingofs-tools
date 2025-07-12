@@ -14,6 +14,7 @@ A tool for DingoFS
     - [create](#create)
       - [create fs](#create-fs)
       - [create topology](#create-topology)
+      - [create subpath](#create-subpath)
     - [delete](#delete)
       - [delete fs](#delete-fs)
       - [delete metaserver](#delete-metaserver)
@@ -241,6 +242,26 @@ Output:
 +-------------------+--------+-----------+--------+
 ```
 
+#### create subpath
+
+create sub directory in dingofs 
+
+Usage:
+
+```shell
+ dingo create subpath --fsid 1 --path /path1
+ dingo create subpath --fsname dingofs --path /path1/path2
+```
+
+Output:
+
+```shell
++---------+
+| RESULT  |
++---------+
+| success |
++---------+
+```
 ### delete
 
 #### delete fs

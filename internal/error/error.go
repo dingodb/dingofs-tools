@@ -555,4 +555,15 @@ var (
 		}
 		return NewRpcReultCmdError(statusCode, message)
 	}
+	ErrMetaServerRequest = func(statusCode int) *CmdError {
+		var message string
+		code := metaserver.MetaStatusCode(statusCode)
+		switch code {
+		case metaserver.MetaStatusCode_OK:
+			message = "success"
+		default:
+			message = fmt.Sprintf("metaserver response error, error is %s", code.String())
+		}
+		return NewRpcReultCmdError(statusCode, message)
+	}
 )
