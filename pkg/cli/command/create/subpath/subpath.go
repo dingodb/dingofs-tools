@@ -131,7 +131,22 @@ func (subPathCmd *SubPathCommand) Print(cmd *cobra.Command, args []string) error
 
 func (subPathCmd *SubPathCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	errCreatePath := cmderror.Success()
-	defer func() { subPathCmd.Error = errCreatePath }()
+	defer func() {
+		rows := make([]map[string]string, 0)
+		row := make(map[string]string)
+		row[cobrautil.ROW_RESULT] = errCreatePath.Message
+		rows = append(rows, row)
+		list := cobrautil.ListMap2ListSortByKeys(rows, subPathCmd.Header, []string{cobrautil.ROW_RESULT})
+		subPathCmd.TableNew.AppendBulk(list)
+
+		subPathCmd.Result = rows
+		subPathCmd.Error = errCreatePath
+	}()
+
+	// check subpath is exist
+	if subPathCmd.CheckPathIsExist(cmd) {
+		return nil
+	}
 
 	// get request addr leader
 	addrs, addrErr := cmdCommon.GetLeaderPeerAddr(subPathCmd.Cmd, subPathCmd.fsId, subPathCmd.parentInodeId)
@@ -199,20 +214,25 @@ func (subPathCmd *SubPathCommand) RunCommand(cmd *cobra.Command, args []string) 
 	}
 	// TODO: maybe update fs or dir quota usage here
 
-	rows := make([]map[string]string, 0)
-	row := make(map[string]string)
-	row[cobrautil.ROW_RESULT] = errCreatePath.Message
-	rows = append(rows, row)
-	list := cobrautil.ListMap2ListSortByKeys(rows, subPathCmd.Header, []string{cobrautil.ROW_RESULT})
-	subPathCmd.TableNew.AppendBulk(list)
-
-	subPathCmd.Result = rows
-
 	return nil
 }
 
 func (subPathCmd *SubPathCommand) ResultPlainOutput() error {
 	return output.FinalCmdOutputPlain(&subPathCmd.FinalDingoCmd)
+}
+
+func (subPathCmd *SubPathCommand) CheckPathIsExist(cmd *cobra.Command) bool {
+	entries, entErr := cmdCommon.ListDentry(cmd, subPathCmd.fsId, subPathCmd.parentInodeId)
+	if entErr != nil {
+		return false
+	}
+	for _, entry := range entries {
+		if entry.GetName() == subPathCmd.pathName {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (subPathCmd *SubPathCommand) CreateInode(cmd *cobra.Command, request *RequestInfo) (uint64, *cmderror.CmdError) {
