@@ -30,8 +30,6 @@ import (
 
 const (
 	DirectoryLength = 4096
-	UID             = 0
-	GID             = 0
 	Mode            = 16877 // os.ModeDir | 0755
 )
 
@@ -62,6 +60,8 @@ type SubPathCommand struct {
 	fsId          uint32
 	parentInodeId uint64
 	pathName      string
+	uid           uint32
+	gid           uint32
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*SubPathCommand)(nil) // check interface
@@ -72,7 +72,8 @@ func NewSubPathCommand() *cobra.Command {
 			Use:   "subpath",
 			Short: "create sub directory in dingofs",
 			Example: `$ dingo create subpath --fsid 1 --path /path1
-$ dingo create subpath --fsname dingofs --path /path1/path2`,
+$ dingo create subpath --fsname dingofs --path /path1/path2
+$ dingo create subpath --fsname dingofs --path /path1/path2 --uid 1000 -gid 1000`,
 		},
 	}
 	basecmd.NewFinalDingoCli(&subPathCmd.FinalDingoCmd, subPathCmd)
@@ -86,6 +87,8 @@ func (subPathCmd *SubPathCommand) AddFlags() {
 	config.AddFsIdUint32OptionFlag(subPathCmd.Cmd)
 	config.AddFsNameStringOptionFlag(subPathCmd.Cmd)
 	config.AddFsPathRequiredFlag(subPathCmd.Cmd)
+	config.AddUidOptionalFlag(subPathCmd.Cmd)
+	config.AddGidOptionalFlag(subPathCmd.Cmd)
 }
 
 func (subPathCmd *SubPathCommand) Init(cmd *cobra.Command, args []string) error {
@@ -112,6 +115,8 @@ func (subPathCmd *SubPathCommand) Init(cmd *cobra.Command, args []string) error 
 	subPathCmd.fsId = fsId
 	subPathCmd.parentInodeId = parentInodeId
 	subPathCmd.pathName = subPathName
+	subPathCmd.uid = config.GetFlagUint32(cmd, config.DINGOFS_SUBPATH_UID)
+	subPathCmd.gid = config.GetFlagUint32(cmd, config.DINGOFS_SUBPATH_GID)
 
 	header := []string{cobrautil.ROW_RESULT}
 	subPathCmd.Header = header
@@ -215,8 +220,8 @@ func (subPathCmd *SubPathCommand) CreateInode(cmd *cobra.Command, request *Reque
 		fsId:     request.fsId,
 		parent:   request.parentInodeId,
 		length:   DirectoryLength,
-		uid:      UID,
-		gid:      GID,
+		uid:      subPathCmd.uid,
+		gid:      subPathCmd.gid,
 		mode:     Mode,
 		fileType: metaserver.FsFileType_TYPE_DIRECTORY,
 		rdev:     0,

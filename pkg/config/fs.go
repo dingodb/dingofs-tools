@@ -148,6 +148,14 @@ const (
 	GATEWAY_CONSOLE_ADDRESS         = "console-address"
 	VIPER_GATEWAY_CONSOLE_ADDRESS   = "gateway.console-address"
 	GATEWAY_DEFAULT_CONSOLE_ADDRESS = ":19001"
+
+	// subpath uid,gid
+	DINGOFS_SUBPATH_UID         = "uid"
+	VIPER_DINGOFS_SUBPATH_UID   = "dingofs.subpath.uid"
+	DINGOFS_DEFAULT_SUBPATH_UID = uint32(0)
+	DINGOFS_SUBPATH_GID         = "gid"
+	VIPER_DINGOFS_SUBPATH_GID   = "dingofs.subpath.gid"
+	DINGOFS_DEFAULT_SUBPATH_GID = uint32(0)
 )
 
 var (
@@ -200,6 +208,10 @@ var (
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  VIPER_GATEWAY_LISTEN_ADDRESS,
 		GATEWAY_CONSOLE_ADDRESS: VIPER_GATEWAY_CONSOLE_ADDRESS,
+
+		//subpath
+		DINGOFS_SUBPATH_UID: VIPER_DINGOFS_SUBPATH_UID,
+		DINGOFS_SUBPATH_GID: VIPER_DINGOFS_SUBPATH_GID,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:           DEFAULT_RPCTIMEOUT,
@@ -233,6 +245,10 @@ var (
 		// gateway
 		GATEWAY_LISTEN_ADDRESS:  GATEWAY_DEFAULT_LISTEN_ADDRESS,
 		GATEWAY_CONSOLE_ADDRESS: GATEWAY_DEFAULT_CONSOLE_ADDRESS,
+
+		//subpath
+		DINGOFS_SUBPATH_UID: DINGOFS_DEFAULT_SUBPATH_UID,
+		DINGOFS_SUBPATH_GID: DINGOFS_DEFAULT_SUBPATH_GID,
 	}
 )
 
@@ -901,4 +917,14 @@ func AddFsServersRequiredFlag(cmd *cobra.Command) {
 // path [required]
 func AddFsPathRequiredFlag(cmd *cobra.Command) {
 	AddStringRequiredFlag(cmd, DINGOFS_QUOTA_PATH, "full path of the directory within the volume")
+}
+
+// subpath uid
+func AddUidOptionalFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_SUBPATH_UID, "uid of subpath")
+}
+
+// subpath Gid
+func AddGidOptionalFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_SUBPATH_GID, "gid of subpath")
 }
