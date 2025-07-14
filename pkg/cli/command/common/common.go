@@ -30,7 +30,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	dingofs "github.com/dingodb/dingofs-tools/pkg/cli/command/query/fs"
 	"github.com/dingodb/dingofs-tools/pkg/config"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
+	pbcommon "github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/heartbeat"
 	mds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
@@ -41,26 +41,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-type LeaderInfoMeta struct {
-	LeaderInfoMap map[uint32][]string // partitionid ->leader address
-	mux           sync.RWMutex
-}
-
-type PartitionListMeta struct {
-	PartitionListMap map[uint32][]*common.PartitionInfo // fsid -> partitionListinfo
-	mux              sync.RWMutex
-}
-
-type CopysetInfoMeta struct {
-	CopysetInfoMap map[uint64]*heartbeat.CopySetInfo // copysetkey -> CopySetInfo
-	mux            sync.RWMutex
-}
-
 var (
-	// metadata cache
-	leaderInfoMeta    *LeaderInfoMeta    = &LeaderInfoMeta{make(map[uint32][]string), sync.RWMutex{}}
-	partitionListMeta *PartitionListMeta = &PartitionListMeta{make(map[uint32][]*common.PartitionInfo), sync.RWMutex{}}
-	copysetInfoMeta   *CopysetInfoMeta   = &CopysetInfoMeta{make(map[uint64]*heartbeat.CopySetInfo), sync.RWMutex{}}
+	// partitionid ->leader address
+	leaderInfoMeta *ConcurrentMetaMap[uint32, []string] = NewConcurrentMetaMap[uint32, []string]()
+	// fsid -> partitionListinfo
+	partitionListMeta *ConcurrentMetaMap[uint32, []*pbcommon.PartitionInfo] = NewConcurrentMetaMap[uint32, []*pbcommon.PartitionInfo]()
+	// copysetKeyId -> CopySetInfo
+	copysetInfoMeta *ConcurrentMetaMap[uint64, *heartbeat.CopySetInfo] = NewConcurrentMetaMap[uint64, *heartbeat.CopySetInfo]()
 )
 
 // Summary represents the total length and inodes of directory
@@ -130,10 +117,8 @@ func GetFsName(cmd *cobra.Command) (string, error) {
 }
 
 // get partitionList by fsid
-func GetPartitionList(cmd *cobra.Command, fsId uint32) ([]*common.PartitionInfo, error) {
-	partitionListMeta.mux.RLock()
-	partitionList, ok := partitionListMeta.PartitionListMap[fsId]
-	partitionListMeta.mux.RUnlock()
+func GetPartitionList(cmd *cobra.Command, fsId uint32) ([]*pbcommon.PartitionInfo, error) {
+	partitionList, ok := partitionListMeta.Load(fsId)
 	if ok {
 		return partitionList, nil
 	}
@@ -163,20 +148,19 @@ func GetPartitionList(cmd *cobra.Command, fsId uint32) ([]*common.PartitionInfo,
 	if partitionList == nil {
 		return nil, fmt.Errorf("partition not found in fs[%d]", fsId)
 	}
-	partitionListMeta.mux.Lock()
-	partitionListMeta.PartitionListMap[fsId] = partitionList
-	partitionListMeta.mux.Unlock()
+	partitionListMeta.Store(fsId, partitionList)
+
 	return partitionList, nil
 }
 
 // get partition by inodeid
-func GetPartitionInfo(cmd *cobra.Command, fsId uint32, inodeId uint64) (*common.PartitionInfo, error) {
+func GetPartitionInfo(cmd *cobra.Command, fsId uint32, inodeId uint64) (*pbcommon.PartitionInfo, error) {
 	partitionList, err := GetPartitionList(cmd, fsId)
 	if err != nil {
 		return nil, err
 	}
 	index := slices.IndexFunc(partitionList,
-		func(p *common.PartitionInfo) bool {
+		func(p *pbcommon.PartitionInfo) bool {
 			return p.GetFsId() == fsId && p.GetStart() <= inodeId && p.GetEnd() >= inodeId
 		})
 	if index < 0 {
@@ -188,9 +172,7 @@ func GetPartitionInfo(cmd *cobra.Command, fsId uint32, inodeId uint64) (*common.
 
 func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartbeat.CopySetInfo, error) {
 	copysetKeyId := cobrautil.GetCopysetKey(uint64(poolId), uint64(copyetId))
-	copysetInfoMeta.mux.RLock()
-	copysetInfo, ok := copysetInfoMeta.CopysetInfoMap[copysetKeyId]
-	copysetInfoMeta.mux.RUnlock()
+	copysetInfo, ok := copysetInfoMeta.Load(copysetKeyId)
 	if ok {
 		return copysetInfo, nil
 	}
@@ -224,9 +206,7 @@ func GetCopysetInfo(cmd *cobra.Command, poolId uint32, copyetId uint32) (*heartb
 	copysetValue := copysetValues[0] //only one copyset
 	if copysetValue.GetStatusCode() == topology.TopoStatusCode_TOPO_OK {
 		copysetInfo := copysetValue.GetCopysetInfo()
-		copysetInfoMeta.mux.Lock()
-		copysetInfoMeta.CopysetInfoMap[copysetKeyId] = copysetInfo
-		copysetInfoMeta.mux.Unlock()
+		copysetInfoMeta.Store(copysetKeyId, copysetInfo)
 		return copysetInfo, nil
 	} else {
 		err := cmderror.ErrGetCopysetsInfo(int(copysetValue.GetStatusCode()))
@@ -267,9 +247,7 @@ func GetLeaderPeerAddr(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]strin
 		return nil, partErr
 	}
 	partitionId := partitionInfo.GetPartitionId()
-	leaderInfoMeta.mux.RLock()
-	leadInfo, ok := leaderInfoMeta.LeaderInfoMap[partitionId]
-	leaderInfoMeta.mux.RUnlock()
+	leadInfo, ok := leaderInfoMeta.Load(partitionId)
 	if ok {
 		return leadInfo, nil
 	}
@@ -285,9 +263,8 @@ func GetLeaderPeerAddr(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]strin
 		return nil, fmt.Errorf("pares leader peer[%s] failed: %s", leader, peerErr.Message)
 	}
 	addrs := []string{addr}
-	leaderInfoMeta.mux.Lock()
-	leaderInfoMeta.LeaderInfoMap[partitionId] = addrs
-	leaderInfoMeta.mux.Unlock()
+	leaderInfoMeta.Store(partitionId, addrs)
+
 	return addrs, nil
 }
 
