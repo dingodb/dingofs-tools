@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/fuse"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/gateway"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/version"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup"
@@ -62,6 +63,7 @@ func addSubCommands(cmd *cobra.Command) {
 		version.NewVersionCommand(),
 		gateway.NewGatewayCommand(),
 		warmup.NewWarmupCommand(),
+		fuse.NewFuseCommand(),
 	)
 
 	if config.MDSApiV2 {
