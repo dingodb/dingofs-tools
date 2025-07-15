@@ -34,8 +34,7 @@ import (
 )
 
 var (
-	ConfPath string // config file path
-	MDSApiV2 bool   // is MDS API v2
+	MDSApiV2 bool // is MDS API v2
 )
 
 const (
@@ -75,14 +74,14 @@ var (
 	}
 )
 
-func InitConfig() {
+func InitConfig(confFile string) {
 	// configure file priority
 	// command line (--conf dingo.yaml) > environment variables(CONF=/opt/dingo.yaml) > default (~/.dingo/dingo.yaml)
-	if ConfPath == "" {
-		ConfPath = os.Getenv("CONF") //check environment variable
+	if confFile == "" {
+		confFile = os.Getenv("CONF") //check environment variable
 	}
-	if ConfPath != "" {
-		viper.SetConfigFile(ConfPath)
+	if confFile != "" {
+		viper.SetConfigFile(confFile)
 	} else {
 		// using home directory and /etc/dingo as default configuration file path
 		home, err := os.UserHomeDir()

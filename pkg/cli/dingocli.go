@@ -123,7 +123,7 @@ func newDingoCommand() *cobra.Command {
 
 	rootCmd.Flags().BoolP("version", "", false, "print dingo version")
 	rootCmd.PersistentFlags().BoolP("help", "", false, "print help")
-	rootCmd.PersistentFlags().StringVarP(&config.ConfPath, "conf", "", "", "config file (default is $HOME/.dingo/dingo.yaml or /etc/dingo/dingo.yaml)")
+	rootCmd.PersistentFlags().StringP("conf", "", "", "config file (default is $HOME/.dingo/dingo.yaml or /etc/dingo/dingo.yaml)")
 	config.AddShowErrorPFlag(rootCmd)
 	rootCmd.PersistentFlags().BoolP("verbose", "", false, "show some extra info")
 	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
@@ -135,7 +135,23 @@ func newDingoCommand() *cobra.Command {
 }
 
 func Execute() {
-	config.InitConfig()
+	// for compatibility, dingo support mdsv2 and mdsv1, so we need to load different commands based on the MDS API version.
+	// MDS API version can be set by environment variable MDS_API_VERSION or mds_api_version in config file.
+	// if used mds_api_version parameter in config file with --conf flag,e.g.:
+	// dingo list fs --conf dingo.yaml
+	// we will need to parse cmd flags --conf to determine the MDS API version.
+
+	var confFile string
+	for i := 0; i < len(os.Args); i++ {
+		if os.Args[i] == "--conf" {
+			if i+1 < len(os.Args) {
+				confFile = os.Args[i+1]
+			}
+		}
+	}
+	// initialize config
+	config.InitConfig(confFile)
+
 	res := newDingoCommand().Execute()
 	if res != nil {
 		os.Exit(1)
