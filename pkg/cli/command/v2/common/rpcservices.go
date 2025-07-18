@@ -10,6 +10,12 @@ import (
 )
 
 // rpc services
+type GetMDSRpc struct {
+	Info      *base.Rpc
+	Request   *pbmdsv2.GetMDSListRequest
+	mdsClient pbmdsv2.MDSServiceClient
+}
+
 type CreateFsRpc struct {
 	Info      *base.Rpc
 	Request   *pbmdsv2.CreateFsRequest
@@ -119,6 +125,7 @@ type ListFsInfoRpc struct {
 }
 
 // check interface
+var _ base.RpcFunc = (*GetMdsRpc)(nil)         // check interface
 var _ base.RpcFunc = (*CreateFsRpc)(nil)       // check interface
 var _ base.RpcFunc = (*DeleteFsRpc)(nil)       // check interface
 var _ base.RpcFunc = (*ListFsRpc)(nil)         // check interface
@@ -137,6 +144,16 @@ var _ base.RpcFunc = (*ListDirQuotaRpc)(nil)   // check interface
 var _ base.RpcFunc = (*DeleteDirQuotaRpc)(nil) // check interface
 var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
 var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
+
+func (mdsFs *GetMDSRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	mdsFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+}
+
+func (mdsFs *GetMDSRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := mdsFs.mdsClient.GetMDSList(ctx, mdsFs.Request)
+	output.ShowRpcData(mdsFs.Request, response, mdsFs.Info.RpcDataShow)
+	return response, err
+}
 
 func (createFs *CreateFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	createFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)

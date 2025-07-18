@@ -79,10 +79,16 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 	if fsErr != nil {
 		return fsErr
 	}
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
 	// set request info
 	request := &pbmdsv2.SetFsQuotaRequest{
-		FsId:  fsId,
-		Quota: &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
+		Context: &pbmdsv2.Context{Epoch: epoch},
+		FsId:    fsId,
+		Quota:   &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
 	}
 	fsQuotaCmd.Rpc = &common.SetFsQuotaRpc{
 		Info:    mdsRpc,

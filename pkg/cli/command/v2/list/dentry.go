@@ -77,9 +77,19 @@ func (dentryCommand *DentryCommand) RunCommand(cmd *cobra.Command, args []string
 	if getError != nil {
 		return getError
 	}
-	inodeId := config.GetFlagUint64(cmd, config.DINGOFS_INODEID)
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
 
-	entries, entErr := common.ListDentry(cmd, fsId, inodeId)
+	inodeId := config.GetFlagUint64(cmd, config.DINGOFS_INODEID)
+	entries, entErr := common.ListDentry(cmd, fsId, inodeId, epoch)
 	if entErr != nil {
 		return entErr
 	}

@@ -140,9 +140,15 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmdsv2.GetFsQuotaRequest
 	if err != nil {
 		return nil, nil, err
 	}
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return nil, nil, epochErr
+	}
 	// set request info
 	request := &pbmdsv2.GetFsQuotaRequest{
-		FsId: fsId,
+		Context: &pbmdsv2.Context{Epoch: epoch},
+		FsId:    fsId,
 	}
 	requestRpc := &common.GetFsQuotaRpc{
 		Info:    mdsRpc,

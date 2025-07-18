@@ -35,7 +35,8 @@ type GetQuotaCommand struct {
 	Rpc     *common.GetDirQuotaRpc
 	fsId    uint32
 	path    string
-	inodeid uint64
+	inodeId uint64
+	epoch   uint64
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*GetQuotaCommand)(nil) // check interface
@@ -77,14 +78,28 @@ func (getQuotaCmd *GetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	if len(path) == 0 {
 		return fmt.Errorf("path is required")
 	}
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	//get inodeid
-	dirInodeId, inodeErr := common.GetDirPathInodeId(cmd, fsId, path)
+	dirInodeId, inodeErr := common.GetDirPathInodeId(cmd, fsId, path, epoch)
 	if inodeErr != nil {
 		return inodeErr
 	}
+
 	getQuotaCmd.fsId = fsId
 	getQuotaCmd.path = path
-	getQuotaCmd.inodeid = dirInodeId
+	getQuotaCmd.inodeId = dirInodeId
+	getQuotaCmd.epoch = epoch
 
 	header := []string{cobrautil.ROW_INODE_ID, cobrautil.ROW_PATH, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
 		cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}
@@ -98,7 +113,7 @@ func (getQuotaCmd *GetQuotaCommand) Print(cmd *cobra.Command, args []string) err
 }
 
 func (getQuotaCmd *GetQuotaCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	_, response, err := GetDirQuotaData(cmd, getQuotaCmd.fsId, getQuotaCmd.inodeid)
+	_, response, err := GetDirQuotaData(cmd, getQuotaCmd.fsId, getQuotaCmd.inodeId, getQuotaCmd.epoch)
 	if err != nil {
 		return err
 	}
@@ -106,7 +121,7 @@ func (getQuotaCmd *GetQuotaCommand) RunCommand(cmd *cobra.Command, args []string
 	//fill table
 	quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(dirQuota.GetMaxBytes(), dirQuota.GetUsedBytes(), dirQuota.GetMaxInodes(), dirQuota.GetUsedInodes())
 	row := map[string]string{
-		cobrautil.ROW_INODE_ID:       fmt.Sprintf("%d", getQuotaCmd.inodeid),
+		cobrautil.ROW_INODE_ID:       fmt.Sprintf("%d", getQuotaCmd.inodeId),
 		cobrautil.ROW_PATH:           getQuotaCmd.path,
 		cobrautil.ROW_CAPACITY:       quotaValueSlice[0],
 		cobrautil.ROW_USED:           quotaValueSlice[1],
@@ -133,18 +148,16 @@ func (getQuotaCmd *GetQuotaCommand) ResultPlainOutput() error {
 	return output.FinalCmdOutputPlain(&getQuotaCmd.FinalDingoCmd)
 }
 
-func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64) (*pbmdsv2.GetDirQuotaRequest, *pbmdsv2.GetDirQuotaResponse, error) {
-	// new prc
-	mdsRpc, err := common.CreateNewMdsRpc(cmd, "GetDirQuota")
-	if err != nil {
-		return nil, nil, err
-	}
+func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch uint64) (*pbmdsv2.GetDirQuotaRequest, *pbmdsv2.GetDirQuotaResponse, error) {
+	endpoint := common.GetEndPoint(dirInodeId)
+	mdsRpc := common.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "GetDirQuota")
 	// set request info
 	getQuotaRpc := &common.GetDirQuotaRpc{
 		Info: mdsRpc,
 		Request: &pbmdsv2.GetDirQuotaRequest{
-			FsId: fsId,
-			Ino:  dirInodeId,
+			Context: &pbmdsv2.Context{Epoch: epoch},
+			FsId:    fsId,
+			Ino:     dirInodeId,
 		},
 	}
 	// get rpc result
