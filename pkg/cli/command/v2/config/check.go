@@ -16,13 +16,13 @@ package config
 
 import (
 	"fmt"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	cmdCommon "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/common"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
@@ -31,7 +31,7 @@ import (
 
 type CheckQuotaCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *cmdCommon.SetFsQuotaRpc
+	Rpc *common.SetFsQuotaRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CheckQuotaCommand)(nil) // check interface
@@ -83,6 +83,18 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	if nameErr != nil {
 		return nameErr
 	}
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	// get quota
 	_, fsQuotaData, getErr := GetFsQuotaData(cmd, fsId)
 	if getErr != nil {
@@ -90,7 +102,7 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	}
 	fsQuota := fsQuotaData.GetQuota()
 	// get root director real used space
-	realUsedBytes, realUsedInodes, getErr := common.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, config.ROOTINODEID, true)
+	realUsedBytes, realUsedInodes, getErr := common.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, config.ROOTINODEID, true, epoch)
 	if getErr != nil {
 		return getErr
 	}

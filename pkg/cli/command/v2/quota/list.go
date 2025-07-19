@@ -15,6 +15,7 @@
 package quota
 
 import (
+	"errors"
 	"fmt"
 	"syscall"
 
@@ -33,8 +34,9 @@ import (
 
 type ListQuotaCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc  *common.ListDirQuotaRpc
-	fsId uint32
+	Rpc   *common.ListDirQuotaRpc
+	fsId  uint32
+	epoch uint64
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*ListQuotaCommand)(nil) // check interface
@@ -72,13 +74,28 @@ func (listQuotaCmd *ListQuotaCommand) Init(cmd *cobra.Command, args []string) er
 	if fsErr != nil {
 		return fsErr
 	}
-	listQuotaCmd.fsId = fsId
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	// set request info
 	listQuotaCmd.Rpc = &common.ListDirQuotaRpc{
 		Info: mdsRpc,
 		Request: &pbmdsv2.LoadDirQuotasRequest{
-			FsId: fsId},
+			Context: &pbmdsv2.Context{Epoch: epoch},
+			FsId:    fsId},
 	}
+
+	listQuotaCmd.fsId = fsId
+	listQuotaCmd.epoch = epoch
 
 	header := []string{cobrautil.ROW_INODE_ID, cobrautil.ROW_PATH, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
 		cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}
@@ -112,8 +129,9 @@ func (listQuotaCmd *ListQuotaCommand) RunCommand(cmd *cobra.Command, args []stri
 	for dirInode, quota := range dirQuotas {
 		row := make(map[string]string)
 		quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(quota.GetMaxBytes(), quota.GetUsedBytes(), quota.GetMaxInodes(), quota.GetUsedInodes())
-		dirPath, _, dirErr := common.GetInodePath(listQuotaCmd.Cmd, listQuotaCmd.fsId, dirInode)
-		if dirErr == syscall.ENOENT {
+
+		dirPath, _, dirErr := common.GetInodePath(listQuotaCmd.Cmd, listQuotaCmd.fsId, dirInode, listQuotaCmd.epoch)
+		if errors.Is(dirErr, syscall.ENOENT) {
 			continue
 		}
 		if dirErr != nil {

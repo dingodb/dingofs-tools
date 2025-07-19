@@ -72,9 +72,21 @@ func (dirTreeCommand *DirTreeCommand) RunCommand(cmd *cobra.Command, args []stri
 	if getError != nil {
 		return getError
 	}
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	inodeId := config.GetFlagUint64(cmd, config.DINGOFS_INODEID)
 
-	namePath, inodePath, err := common.GetInodePath(cmd, fsId, inodeId)
+	namePath, inodePath, err := common.GetInodePath(cmd, fsId, inodeId, epoch)
 	if err != nil {
 		return err
 	}

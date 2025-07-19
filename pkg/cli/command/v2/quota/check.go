@@ -78,22 +78,29 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	if len(path) == 0 {
 		return fmt.Errorf("path is required")
 	}
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	//get inodeid
-	dirInodeId, inodeErr := common.GetDirPathInodeId(cmd, fsId, path)
+	dirInodeId, inodeErr := common.GetDirPathInodeId(cmd, fsId, path, epoch)
 	if inodeErr != nil {
 		return inodeErr
 	}
-	_, dirQuotaResponse, err := GetDirQuotaData(cmd, fsId, dirInodeId)
+	_, dirQuotaResponse, err := GetDirQuotaData(cmd, fsId, dirInodeId, epoch)
 	if err != nil {
 		return err
 	}
-	// get inode by path
-	dirInode, dirErr := common.GetDirPathInodeId(cmd, fsId, path)
-	if dirErr != nil {
-		return dirErr
-	}
 	// get real used space
-	realUsedBytes, realUsedInodes, getErr := common.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, dirInode, false)
+	realUsedBytes, realUsedInodes, getErr := common.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, dirInodeId, false, epoch)
 	if getErr != nil {
 		return getErr
 	}

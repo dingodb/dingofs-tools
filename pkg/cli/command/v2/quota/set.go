@@ -62,11 +62,6 @@ func (setQuotaCmd *SetQuotaCommand) AddFlags() {
 }
 
 func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) error {
-	// new prc
-	mdsRpc, err := common.CreateNewMdsRpc(cmd, "SetDirQuota")
-	if err != nil {
-		return err
-	}
 	// check flags values
 	capacity, inodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(setQuotaCmd.Cmd)
 	if quotaErr != nil {
@@ -80,16 +75,31 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	if len(path) == 0 {
 		return fmt.Errorf("path is required")
 	}
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	//get inodeid
-	dirInodeId, inodeErr := common.GetDirPathInodeId(setQuotaCmd.Cmd, fsId, path)
+	dirInodeId, inodeErr := common.GetDirPathInodeId(setQuotaCmd.Cmd, fsId, path, epoch)
 	if inodeErr != nil {
 		return inodeErr
 	}
+	endpoint := common.GetEndPoint(dirInodeId)
+	mdsRpc := common.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "SetDirQuota")
 	// set request info
 	request := &pbmdsv2.SetDirQuotaRequest{
-		FsId:  fsId,
-		Ino:   dirInodeId,
-		Quota: &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
+		Context: &pbmdsv2.Context{Epoch: epoch},
+		FsId:    fsId,
+		Ino:     dirInodeId,
+		Quota:   &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
 	}
 	setQuotaCmd.Rpc = &common.SetDirQuotaRpc{
 		Info:    mdsRpc,

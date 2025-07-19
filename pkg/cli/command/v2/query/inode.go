@@ -18,12 +18,8 @@ import (
 	"fmt"
 	"slices"
 
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
-
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -66,24 +62,6 @@ func (inodeCmd *InodeCommand) AddFlags() {
 }
 
 func (inodeCmd *InodeCommand) Init(cmd *cobra.Command, args []string) error {
-	// new rpc
-	mdsRpc, mdsErr := common.CreateNewMdsRpc(cmd, "GetInode")
-	if mdsErr != nil {
-		return mdsErr
-	}
-	// set request info
-	fsId, getError := common.GetFsId(cmd)
-	if getError != nil {
-		return getError
-	}
-	inodeId := config.GetFlagUint64(cmd, config.DINGOFS_INODEID)
-	inodeCmd.getInodeRpc = &common.GetInodeRpc{
-		Info: mdsRpc,
-		Request: &pbmdsv2.GetInodeRequest{
-			FsId: fsId,
-			Ino:  inodeId,
-		},
-	}
 	// set header
 	header := []string{
 		cobrautil.ROW_FS_ID, cobrautil.ROW_INODE_ID, cobrautil.ROW_LENGTH, cobrautil.ROW_TYPE, cobrautil.ROW_NLINK, cobrautil.ROW_PARENT, cobrautil.ROW_S3CHUNKINFO_CHUNKID, cobrautil.ROW_S3CHUNKINFO_OFFSET, cobrautil.ROW_S3CHUNKINFO_LENGTH, cobrautil.ROW_S3CHUNKINFO_SIZE,
@@ -103,18 +81,28 @@ func (inodeCmd *InodeCommand) Print(cmd *cobra.Command, args []string) error {
 }
 
 func (inodeCmd *InodeCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	// get rpc result
-	response, errCmd := base.GetRpcResponse(inodeCmd.getInodeRpc.Info, inodeCmd.getInodeRpc)
-	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
-		return fmt.Errorf(errCmd.Message)
+	// set request info
+	fsId, getError := common.GetFsId(cmd)
+	if getError != nil {
+		return getError
 	}
-	result := response.(*pbmdsv2.GetInodeResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
-		return fmt.Errorf(cmderror.MDSV2Error(mdsErr).Message)
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+	inodeId := config.GetFlagUint64(cmd, config.DINGOFS_INODEID)
 
+	inode, err := common.GetInode(cmd, fsId, inodeId, 0, epoch)
+	if err != nil {
+		return err
 	}
-	// fill table
-	inode := result.GetInode()
+
 	tableRows := make([]map[string]string, 0)
 	chunks := inode.GetChunks()
 	if len(chunks) == 0 {
@@ -153,7 +141,7 @@ func (inodeCmd *InodeCommand) RunCommand(cmd *cobra.Command, args []string) erro
 
 	list := cobrautil.ListMap2ListSortByKeys(tableRows, inodeCmd.Header, []string{cobrautil.ROW_FS_ID, cobrautil.ROW_INODE_ID, cobrautil.ROW_S3CHUNKINFO_CHUNKID})
 	inodeCmd.TableNew.AppendBulk(list)
-	inodeCmd.Result = result
+	inodeCmd.Result = tableRows
 	inodeCmd.Error = cmderror.ErrSuccess()
 
 	return nil

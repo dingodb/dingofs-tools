@@ -87,7 +87,9 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 
 	fsIds := make([]uint32, 0)
 	fsNames := make([]string, 0)
+	epochs := make([]uint64, 0)
 
+	// all filesystems
 	if !fsUsageCmd.Cmd.Flag(config.DINGOFS_FSID).Changed && !fsUsageCmd.Cmd.Flag(config.DINGOFS_FSNAME).Changed {
 		// get all filesystem info
 		fsInfos, err := common.ListFsInfo(cmd)
@@ -100,9 +102,11 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 		for _, fsInfo := range fsInfos {
 			fsIds = append(fsIds, fsInfo.GetFsId())
 			fsNames = append(fsNames, fsInfo.GetFsName())
+			epochs = append(epochs, common.GetFsEpochByFsInfo(fsInfo))
 		}
 
 	} else {
+		// one filesystem
 		fsId, err := common.GetFsId(fsUsageCmd.Cmd)
 		if err != nil {
 			errGetFsUsage = cmderror.ErrGetFsUsage()
@@ -116,13 +120,21 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 			return nil
 		}
 
+		epoch, err := common.GetFsEpochByFsId(cmd, fsId)
+		if err != nil {
+			errGetFsUsage = cmderror.ErrGetFsUsage()
+			errGetFsUsage.Format(err.Error())
+			return nil
+		}
+
 		fsIds = append(fsIds, fsId)
 		fsNames = append(fsNames, fsName)
+		epochs = append(epochs, epoch)
 	}
 
 	if len(fsIds) == 0 {
 		errGetFsUsage = cmderror.ErrGetFsUsage()
-		errGetFsUsage.Format("no data found")
+		errGetFsUsage.Format("no fsId is set")
 		return nil
 	}
 
@@ -132,9 +144,15 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 	isHumanize := config.GetFlagBool(fsUsageCmd.Cmd, config.DINGOFS_HUMANIZE)
 	rows := make([]map[string]string, 0)
 	for idx, fsId := range fsIds {
+		// create router
+		routerErr := common.InitFsMDSRouter(cmd, fsId)
+		if routerErr != nil {
+			return routerErr
+		}
+
 		row := make(map[string]string)
 		//get real used space
-		realUsedBytes, realUsedInodes, err := common.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true)
+		realUsedBytes, realUsedInodes, err := common.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true, epochs[idx])
 		if err != nil {
 			errGetFsUsage = cmderror.ErrGetFsUsage()
 			errGetFsUsage.Format(err.Error())

@@ -59,11 +59,6 @@ func (deleteQuotaCmd *DeleteQuotaCommand) AddFlags() {
 }
 
 func (deleteQuotaCmd *DeleteQuotaCommand) Init(cmd *cobra.Command, args []string) error {
-	// new prc
-	mdsRpc, err := common.CreateNewMdsRpc(cmd, "DeleteDirQuota")
-	if err != nil {
-		return err
-	}
 	// check flags values
 	fsId, fsErr := common.GetFsId(cmd)
 	if fsErr != nil {
@@ -73,17 +68,33 @@ func (deleteQuotaCmd *DeleteQuotaCommand) Init(cmd *cobra.Command, args []string
 	if len(path) == 0 {
 		return fmt.Errorf("path is required")
 	}
+
+	// get epoch id
+	epoch, epochErr := common.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return epochErr
+	}
+	// create router
+	routerErr := common.InitFsMDSRouter(cmd, fsId)
+	if routerErr != nil {
+		return routerErr
+	}
+
 	//get inodeid
-	dirInodeId, inodeErr := common.GetDirPathInodeId(deleteQuotaCmd.Cmd, fsId, path)
+	dirInodeId, inodeErr := common.GetDirPathInodeId(deleteQuotaCmd.Cmd, fsId, path, epoch)
 	if inodeErr != nil {
 		return inodeErr
 	}
+
 	// set request info
+	endpoint := common.GetEndPoint(dirInodeId)
+	mdsRpc := common.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "DeleteDirQuota")
 	deleteQuotaCmd.Rpc = &common.DeleteDirQuotaRpc{
 		Info: mdsRpc,
 		Request: &pbmdsv2.DeleteDirQuotaRequest{
-			FsId: fsId,
-			Ino:  dirInodeId,
+			Context: &pbmdsv2.Context{Epoch: epoch},
+			FsId:    fsId,
+			Ino:     dirInodeId,
 		},
 	}
 
