@@ -207,8 +207,9 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			s.items = append(s.items, &item{"ops", "dingofs_mds_client_get_allopt", metricTime | metricHist})
 		case 'b':
 			s.name = "blockcache"
-			s.items = append(s.items, &item{"read", "dingofs_disk_cache_group_cache_total_bytes", metricByte | metricCounter})
-			s.items = append(s.items, &item{"write", "dingofs_disk_cache_group_stage_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"load", "dingofs_disk_cache_group_load_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"stage", "dingofs_disk_cache_group_stage_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"cache", "dingofs_disk_cache_group_cache_total_bytes", metricByte | metricCounter})
 		case 'o':
 			s.name = "object"
 			s.items = append(s.items, &item{"get", "dingofs_block_read_block_bps_total_count", metricByte | metricCounter})
