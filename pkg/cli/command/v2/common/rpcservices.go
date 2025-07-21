@@ -64,6 +64,12 @@ type GetInodeRpc struct {
 	mdsClient pbmdsv2.MDSServiceClient
 }
 
+type MkDirRpc struct {
+	Info      *base.Rpc
+	Request   *pbmdsv2.MkDirRequest
+	mdsClient pbmdsv2.MDSServiceClient
+}
+
 type GetDentryRpc struct {
 	Info      *base.Rpc
 	Request   *pbmdsv2.GetDentryRequest
@@ -134,6 +140,7 @@ var _ base.RpcFunc = (*GetMdsRpc)(nil)         // check interface
 var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)     // check interface
 var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)     // check interface
 var _ base.RpcFunc = (*GetInodeRpc)(nil)       // check interface
+var _ base.RpcFunc = (*MkDirRpc)(nil)          // check interface
 var _ base.RpcFunc = (*GetDentryRpc)(nil)      // check interface
 var _ base.RpcFunc = (*ListDentryRpc)(nil)     // check interface
 var _ base.RpcFunc = (*GetFsStatsRpc)(nil)     // check interface
@@ -232,6 +239,16 @@ func (getInode *GetInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (getInode *GetInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := getInode.mdsClient.GetInode(ctx, getInode.Request)
 	output.ShowRpcData(getInode.Request, response, getInode.Info.RpcDataShow)
+	return response, err
+}
+
+func (mkDir *MkDirRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	mkDir.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+}
+
+func (mkDir *MkDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := mkDir.mdsClient.MkDir(ctx, mkDir.Request)
+	output.ShowRpcData(mkDir.Request, response, mkDir.Info.RpcDataShow)
 	return response, err
 }
 
