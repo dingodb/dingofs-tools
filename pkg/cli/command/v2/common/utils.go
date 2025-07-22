@@ -280,10 +280,9 @@ func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, ep
 	getInodeRpc := &GetInodeRpc{
 		Info: mdsRpc,
 		Request: &pbmdsv2.GetInodeRequest{
-			Context:   requestContext,
-			FsId:      fsId,
-			Ino:       inodeId,
-			JustBasic: true,
+			Context: requestContext,
+			FsId:    fsId,
+			Ino:     inodeId,
 		},
 	}
 	// get rpc result

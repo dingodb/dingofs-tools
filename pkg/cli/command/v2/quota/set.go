@@ -99,7 +99,7 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 		Context: &pbmdsv2.Context{Epoch: epoch},
 		FsId:    fsId,
 		Ino:     dirInodeId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
+		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes)},
 	}
 	setQuotaCmd.Rpc = &common.SetDirQuotaRpc{
 		Info:    mdsRpc,

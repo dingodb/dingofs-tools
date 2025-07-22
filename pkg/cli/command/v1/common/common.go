@@ -533,7 +533,7 @@ func ConvertQuotaToHumanizeValue(capacity uint64, usedBytes int64, maxInodes uin
 }
 
 // check quota is consistent
-func CheckQuota(capacity uint64, usedBytes int64, maxInodes uint64, usedInodes int64, realUsedBytes int64, realUsedInodes int64) ([]string, bool) {
+func CheckQuota(capacity int64, usedBytes int64, maxInodes int64, usedInodes int64, realUsedBytes int64, realUsedInodes int64) ([]string, bool) {
 	var capacityStr string
 	var usedStr string
 	var realUsedStr string
@@ -547,7 +547,7 @@ func CheckQuota(capacity uint64, usedBytes int64, maxInodes uint64, usedInodes i
 	if capacity == 0 {
 		capacityStr = "unlimited"
 	} else { //quota is set
-		capacityStr = humanize.Comma(int64(capacity))
+		capacityStr = humanize.Comma(capacity)
 	}
 	usedStr = humanize.Comma(usedBytes)
 	realUsedStr = humanize.Comma(realUsedBytes)

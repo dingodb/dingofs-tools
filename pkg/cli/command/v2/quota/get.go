@@ -119,7 +119,7 @@ func (getQuotaCmd *GetQuotaCommand) RunCommand(cmd *cobra.Command, args []string
 	}
 	dirQuota := response.GetQuota()
 	//fill table
-	quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(dirQuota.GetMaxBytes(), dirQuota.GetUsedBytes(), dirQuota.GetMaxInodes(), dirQuota.GetUsedInodes())
+	quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(uint64(dirQuota.GetMaxBytes()), dirQuota.GetUsedBytes(), uint64(dirQuota.GetMaxInodes()), dirQuota.GetUsedInodes())
 	row := map[string]string{
 		cobrautil.ROW_INODE_ID:       fmt.Sprintf("%d", getQuotaCmd.inodeId),
 		cobrautil.ROW_PATH:           getQuotaCmd.path,

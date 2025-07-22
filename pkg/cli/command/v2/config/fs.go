@@ -88,7 +88,7 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 	request := &pbmdsv2.SetFsQuotaRequest{
 		Context: &pbmdsv2.Context{Epoch: epoch},
 		FsId:    fsId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: capacity, MaxInodes: inodes},
+		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes)},
 	}
 	fsQuotaCmd.Rpc = &common.SetFsQuotaRpc{
 		Info:    mdsRpc,

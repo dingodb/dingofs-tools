@@ -16,6 +16,7 @@ package query
 
 import (
 	"fmt"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
 	"slices"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
@@ -104,7 +105,8 @@ func (inodeCmd *InodeCommand) RunCommand(cmd *cobra.Command, args []string) erro
 	}
 
 	tableRows := make([]map[string]string, 0)
-	chunks := inode.GetChunks()
+	//TODO chunks may be get from readslice
+	var chunks []*mdsv2.Chunk
 	if len(chunks) == 0 {
 		row := make(map[string]string)
 		row[cobrautil.ROW_FS_ID] = fmt.Sprintf("%d", inode.GetFsId())

@@ -91,7 +91,7 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	if getErr != nil {
 		return getErr
 	}
-	checkResult, ok := cmdCommon.CheckQuota(dirQuota.GetMaxBytes(), dirQuota.GetUsedBytes(), dirQuota.GetMaxInodes(), dirQuota.GetUsedInodes(), realUsedBytes, realUsedInodes)
+	checkResult, ok := cmdCommon.CheckQuota(int64(dirQuota.GetMaxBytes()), dirQuota.GetUsedBytes(), int64(dirQuota.GetMaxInodes()), dirQuota.GetUsedInodes(), realUsedBytes, realUsedInodes)
 	repair := config.GetFlagBool(checkQuotaCmd.Cmd, config.DINGOFS_QUOTA_REPAIR)
 	dirInodeId := dirQuotaRequest.GetDirInodeId()
 

@@ -94,7 +94,7 @@ func (fsQuotaCmd *GetFsQuotaCommand) RunCommand(cmd *cobra.Command, args []strin
 		fsQuotaCmd.SetHeader(header)
 
 		fsQuota := result.GetQuota()
-		quotaValueSlice := cmdcommon.ConvertQuotaToHumanizeValue(fsQuota.GetMaxBytes(), fsQuota.GetUsedBytes(), fsQuota.GetMaxInodes(), fsQuota.GetUsedInodes())
+		quotaValueSlice := cmdcommon.ConvertQuotaToHumanizeValue(uint64(fsQuota.GetMaxBytes()), fsQuota.GetUsedBytes(), uint64(fsQuota.GetMaxInodes()), fsQuota.GetUsedInodes())
 		// fill table
 		row = map[string]string{
 			cobrautil.ROW_FS_ID:          fmt.Sprintf("%d", fsId),

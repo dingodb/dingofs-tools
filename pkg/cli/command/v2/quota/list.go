@@ -128,7 +128,7 @@ func (listQuotaCmd *ListQuotaCommand) RunCommand(cmd *cobra.Command, args []stri
 	rows := make([]map[string]string, 0)
 	for dirInode, quota := range dirQuotas {
 		row := make(map[string]string)
-		quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(quota.GetMaxBytes(), quota.GetUsedBytes(), quota.GetMaxInodes(), quota.GetUsedInodes())
+		quotaValueSlice := cmdCommon.ConvertQuotaToHumanizeValue(uint64(quota.GetMaxBytes()), quota.GetUsedBytes(), uint64(quota.GetMaxInodes()), quota.GetUsedInodes())
 
 		dirPath, _, dirErr := common.GetInodePath(listQuotaCmd.Cmd, listQuotaCmd.fsId, dirInode, listQuotaCmd.epoch)
 		if errors.Is(dirErr, syscall.ENOENT) {

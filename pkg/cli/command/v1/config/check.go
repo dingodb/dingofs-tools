@@ -87,7 +87,7 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	if getErr != nil {
 		return getErr
 	}
-	checkResult, ok := cmdCommon.CheckQuota(fsQuota.GetMaxBytes(), fsQuota.GetUsedBytes(), fsQuota.GetMaxInodes(), fsQuota.GetUsedInodes(), realUsedBytes, realUsedInodes)
+	checkResult, ok := cmdCommon.CheckQuota(int64(fsQuota.GetMaxBytes()), fsQuota.GetUsedBytes(), int64(fsQuota.GetMaxInodes()), fsQuota.GetUsedInodes(), realUsedBytes, realUsedInodes)
 	repair := config.GetFlagBool(checkQuotaCmd.Cmd, config.DINGOFS_QUOTA_REPAIR)
 
 	if repair && !ok { // inconsistent and need to repair
