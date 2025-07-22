@@ -103,7 +103,7 @@ const (
 	DINGOFS_DEFAULT_STORAGE        = "disk"
 	DINGOFS_STATS_SCHEMA           = "schema"
 	VIPER_DINGOFS_STATS_SCHEMA     = "dingofs.schema"
-	DINGOFS_STATS_DEFAULT_SCHEMA   = "ufmbo"
+	DINGOFS_STATS_DEFAULT_SCHEMA   = "ufmbor"
 	DINGOFS_STATS_COUNT            = "count"
 	VIPER_DINGOFS_STATS_COUNT      = "dingofs.count"
 	DINGOFS_STATS_DEFAULT_COUNT    = uint32(0)

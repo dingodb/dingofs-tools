@@ -220,6 +220,11 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			if verbose {
 				s.items = append(s.items, &item{"ops", "dingofs_block_write_block", metricTime | metricHist})
 			}
+		case 'r':
+			s.name = "remotecache"
+			s.items = append(s.items, &item{"load", "dingofs_remote_node_group_range_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"stage", "dingofs_remote_node_group_put_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"cache", "dingofs_remote_node_group_cache_total_bytes", metricByte | metricCounter})
 		default:
 			fmt.Printf("Warning: no item defined for %c\n", r)
 			continue
