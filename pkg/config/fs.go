@@ -173,6 +173,11 @@ const (
 	DINGOFS_SUBPATH_GID         = "gid"
 	VIPER_DINGOFS_SUBPATH_GID   = "dingofs.subpath.gid"
 	DINGOFS_DEFAULT_SUBPATH_GID = uint32(0)
+
+	// cache group
+	DINGOFS_CACHE_GROUP    = "group"
+	DINGOFS_CACHE_MEMBERID = "memberid"
+	DINGOFS_CACHE_WEIGHT   = "weight"
 )
 
 var (
@@ -992,4 +997,17 @@ func AddGidOptionalFlag(cmd *cobra.Command) {
 // mdsv2 clientid [required]
 func AddClientIdRequiredFlag(cmd *cobra.Command) {
 	AddStringRequiredFlag(cmd, DINGOFS_CLIENT_ID, "the client id of dingo-fuse")
+}
+
+// cachegroup
+func AddCacheGroup(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_CACHE_GROUP, "cachegroup name")
+}
+
+func AddCacheMemberId(cmd *cobra.Command) {
+	AddUint64RequiredFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+}
+
+func AddCacheMemberWeight(cmd *cobra.Command) {
+	AddUint32RequiredFlag(cmd, DINGOFS_CACHE_WEIGHT, "cachemember weight")
 }

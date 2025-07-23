@@ -27,35 +27,10 @@ import (
 	"strings"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 )
-
-func TranslateStorageType(storageType string) (common.StorageType, *cmderror.CmdError) {
-	storage := strings.ToUpper("TYPE_" + storageType)
-	value := common.StorageType_value[storage]
-	var retErr cmderror.CmdError
-	if value == 0 {
-		retErr = *cmderror.ErrUnknownFsType()
-		retErr.Format(storageType)
-	}
-	return common.StorageType(value), &retErr
-}
-
-func PeerAddressToAddr(peer string) (string, *cmderror.CmdError) {
-	items := strings.Split(peer, ":")
-	if len(items) != 3 {
-		err := cmderror.ErrSplitPeer()
-		err.Format(peer)
-		return "", err
-	}
-	return items[0] + ":" + items[1], cmderror.ErrSuccess()
-}
-
-func PeertoAddr(peer *common.Peer) (string, *cmderror.CmdError) {
-	address := peer.GetAddress()
-	return PeerAddressToAddr(address)
-}
 
 const (
 	CLUSTER_ID = "clusterid"
@@ -182,4 +157,43 @@ func Topology2Map(topo *topology.ListTopologyResponse) (map[string]interface{}, 
 	ret[POOL_LIST] = poolList
 	retErr := cmderror.MergeCmdErrorExceptSuccess(errs)
 	return ret, retErr
+}
+
+func TranslateStorageType(storageType string) (common.StorageType, *cmderror.CmdError) {
+	storage := strings.ToUpper("TYPE_" + storageType)
+	value := common.StorageType_value[storage]
+	var retErr cmderror.CmdError
+	if value == 0 {
+		retErr = *cmderror.ErrUnknownFsType()
+		retErr.Format(storageType)
+	}
+	return common.StorageType(value), &retErr
+}
+
+func PeerAddressToAddr(peer string) (string, *cmderror.CmdError) {
+	items := strings.Split(peer, ":")
+	if len(items) != 3 {
+		err := cmderror.ErrSplitPeer()
+		err.Format(peer)
+		return "", err
+	}
+	return items[0] + ":" + items[1], cmderror.ErrSuccess()
+}
+
+func PeertoAddr(peer *common.Peer) (string, *cmderror.CmdError) {
+	address := peer.GetAddress()
+	return PeerAddressToAddr(address)
+}
+
+func TranslateCacheGroupMemberState(state cachegroup.CacheGroupMemberState) string {
+	switch state {
+	case cachegroup.CacheGroupMemberState_CacheGroupMemberStateOnline:
+		return "online"
+	case cachegroup.CacheGroupMemberState_CacheGroupMemberStateOffline:
+		return "offline"
+	case cachegroup.CacheGroupMemberState_CacheGroupMemberStateUnstable:
+		return "unstable"
+	default:
+		return "unknown"
+	}
 }

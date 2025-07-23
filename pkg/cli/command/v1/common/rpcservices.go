@@ -5,9 +5,11 @@ import (
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
+
 	"google.golang.org/grpc"
 )
 
@@ -125,24 +127,45 @@ type ListClusterFsRpc struct {
 	mdsClient mds.MdsServiceClient
 }
 
-var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)    // check interface
-var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)    // check interface
-var _ base.RpcFunc = (*CheckQuotaRpc)(nil)    // check interface
-var _ base.RpcFunc = (*DeleteQuotaRpc)(nil)   // check interface
-var _ base.RpcFunc = (*GetQuotaRpc)(nil)      // check interface
-var _ base.RpcFunc = (*ListQuotaRpc)(nil)     // check interface
-var _ base.RpcFunc = (*SetQuotaRpc)(nil)      // check interface
-var _ base.RpcFunc = (*QueryCopysetRpc)(nil)  // check interface
-var _ base.RpcFunc = (*ListPartitionRpc)(nil) // check interface
-var _ base.RpcFunc = (*GetInodeAttrRpc)(nil)  // check interface
-var _ base.RpcFunc = (*CreateInodeRpc)(nil)   // check interface
-var _ base.RpcFunc = (*UpdateInodeRpc)(nil)   // check interface
-var _ base.RpcFunc = (*DeleteInodeRpc)(nil)   // check interface
-var _ base.RpcFunc = (*GetInodeRpc)(nil)      // check interface
-var _ base.RpcFunc = (*ListDentryRpc)(nil)    // check interface
-var _ base.RpcFunc = (*GetDentryRpc)(nil)     // check interface
-var _ base.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
-var _ base.RpcFunc = (*ListClusterFsRpc)(nil) // check interface
+type ListCacheGroupRpc struct {
+	Info             *base.Rpc
+	Request          *cachegroup.LoadGroupsRequest
+	cacheGroupClient cachegroup.CacheGroupMemberServiceClient
+}
+
+type ListCacheMemberRpc struct {
+	Info             *base.Rpc
+	Request          *cachegroup.LoadMembersRequest
+	cacheGroupClient cachegroup.CacheGroupMemberServiceClient
+}
+
+type ReweightMemberRpc struct {
+	Info             *base.Rpc
+	Request          *cachegroup.ReweightMemberRequest
+	cacheGroupClient cachegroup.CacheGroupMemberServiceClient
+}
+
+var _ base.RpcFunc = (*GetFsQuotaRpc)(nil)      // check interface
+var _ base.RpcFunc = (*SetFsQuotaRpc)(nil)      // check interface
+var _ base.RpcFunc = (*CheckQuotaRpc)(nil)      // check interface
+var _ base.RpcFunc = (*DeleteQuotaRpc)(nil)     // check interface
+var _ base.RpcFunc = (*GetQuotaRpc)(nil)        // check interface
+var _ base.RpcFunc = (*ListQuotaRpc)(nil)       // check interface
+var _ base.RpcFunc = (*SetQuotaRpc)(nil)        // check interface
+var _ base.RpcFunc = (*QueryCopysetRpc)(nil)    // check interface
+var _ base.RpcFunc = (*ListPartitionRpc)(nil)   // check interface
+var _ base.RpcFunc = (*GetInodeAttrRpc)(nil)    // check interface
+var _ base.RpcFunc = (*CreateInodeRpc)(nil)     // check interface
+var _ base.RpcFunc = (*UpdateInodeRpc)(nil)     // check interface
+var _ base.RpcFunc = (*DeleteInodeRpc)(nil)     // check interface
+var _ base.RpcFunc = (*GetInodeRpc)(nil)        // check interface
+var _ base.RpcFunc = (*ListDentryRpc)(nil)      // check interface
+var _ base.RpcFunc = (*GetDentryRpc)(nil)       // check interface
+var _ base.RpcFunc = (*GetFsStatsRpc)(nil)      // check interface
+var _ base.RpcFunc = (*ListClusterFsRpc)(nil)   // check interface
+var _ base.RpcFunc = (*ListCacheGroupRpc)(nil)  // check interface
+var _ base.RpcFunc = (*ListCacheMemberRpc)(nil) // check interface
+var _ base.RpcFunc = (*ReweightMemberRpc)(nil)  // check interface
 
 func (getFsQuotaRpc *GetFsQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	getFsQuotaRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
@@ -330,5 +353,35 @@ func (listFsRpc *ListClusterFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (listFsRpc *ListClusterFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := listFsRpc.mdsClient.ListClusterFsInfo(ctx, listFsRpc.Request)
 	output.ShowRpcData(listFsRpc.Request, response, listFsRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (listCacheGroup *ListCacheGroupRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	listCacheGroup.cacheGroupClient = cachegroup.NewCacheGroupMemberServiceClient(cc)
+}
+
+func (listCacheGroup *ListCacheGroupRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := listCacheGroup.cacheGroupClient.LoadGroups(ctx, listCacheGroup.Request)
+	output.ShowRpcData(listCacheGroup.Request, response, listCacheGroup.Info.RpcDataShow)
+	return response, err
+}
+
+func (listCacheMember *ListCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	listCacheMember.cacheGroupClient = cachegroup.NewCacheGroupMemberServiceClient(cc)
+}
+
+func (listCacheMember *ListCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := listCacheMember.cacheGroupClient.LoadMembers(ctx, listCacheMember.Request)
+	output.ShowRpcData(listCacheMember.Request, response, listCacheMember.Info.RpcDataShow)
+	return response, err
+}
+
+func (rewightMember *ReweightMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	rewightMember.cacheGroupClient = cachegroup.NewCacheGroupMemberServiceClient(cc)
+}
+
+func (rewightMember *ReweightMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := rewightMember.cacheGroupClient.ReweightMember(ctx, rewightMember.Request)
+	output.ShowRpcData(rewightMember.Request, response, rewightMember.Info.RpcDataShow)
 	return response, err
 }

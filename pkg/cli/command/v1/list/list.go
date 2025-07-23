@@ -24,6 +24,8 @@ package list
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list/cachegroup"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list/cachemember"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list/copyset"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list/dentry"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list/fs"
@@ -48,6 +50,8 @@ func (listCmd *ListCommand) AddSubCommands() {
 		partition.NewPartitionCommand(),
 		copyset.NewCopysetCommand(),
 		dentry.NewDentryCommand(),
+		cachemember.NewCacheMemberCommand(),
+		cachegroup.NewCacheGroupCommand(),
 	)
 }
 

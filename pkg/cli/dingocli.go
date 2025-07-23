@@ -24,6 +24,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/set"
 	"os"
 
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/fuse"
@@ -92,6 +93,7 @@ func addSubCommands(cmd *cobra.Command) {
 			stats.NewStatsCommand(),
 			quota.NewQuotaCommand(),
 			quotaconfig.NewConfigCommand(),
+			set.NewSetCommand(),
 		)
 	}
 }
