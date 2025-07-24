@@ -76,7 +76,7 @@ mv dingo /usr/bin/dingo
 set configure file
 
 ```bash
-wget https://github.com/dingodb/dingofs/blob/main/tools-v2/pkg/config/dingo.yaml
+wget https://raw.githubusercontent.com/dingodb/dingofs-tools/main/pkg/config/dingo.yaml
 ```
 Please modify the `mdsAddr, mdsDummyAddr, etcdAddr` under `dingofs` in the template.yaml file as required
 
@@ -139,9 +139,11 @@ Examples:
 global:
   httpTimeout: 50000ms
   rpcTimeout: 50000ms
-  rpcRetryTimes: 1
+  rpcRetryTimes: 3
+  rpcRetryDelay: 200ms
   maxChannelSize: 4
   showError: false
+  mds_api_version: 1  #mds版本 1: mdsv1 2: mdsv2
 
 dingofs:
   mdsAddr: 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
