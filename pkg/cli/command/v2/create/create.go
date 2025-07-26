@@ -28,6 +28,7 @@ var _ basecmd.MidDingoCmdFunc = (*CreateCommand)(nil) // check interface
 func (createCmd *CreateCommand) AddSubCommands() {
 	createCmd.Cmd.AddCommand(
 		NewCreateFsCommand(),
+		NewSubPathCommand(),
 	)
 }
 
