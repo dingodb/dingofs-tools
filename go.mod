@@ -1,6 +1,8 @@
 module github.com/dingodb/dingofs-tools
 
-go 1.19
+go 1.23.0
+
+toolchain go1.24.3
 
 replace github.com/optiopay/kafka => github.com/cilium/kafka v0.0.0-20180809090225-01ce283b732b
 
@@ -24,12 +26,12 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
 	golang.org/x/exp v0.0.0-20220909182711-5c715a9e8561
-	golang.org/x/sys v0.15.0
+	golang.org/x/sys v0.33.0
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 )
 
-require github.com/stretchr/testify v1.8.4
+require github.com/stretchr/testify v1.10.0
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
@@ -53,6 +55,7 @@ require (
 	github.com/bits-and-blooms/bloom/v3 v3.0.1 // indirect
 	github.com/briandowns/spinner v1.18.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/ceph/go-ceph v0.34.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.10.3 // indirect
 	github.com/charmbracelet/bubbletea v0.20.0 // indirect

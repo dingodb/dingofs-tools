@@ -7,13 +7,17 @@ PROTOC_VERSION= 21.8
 PROTOC_GEN_GO_VERSION= "v1.28"
 PROTOC_GEN_GO_GRPC_VERSION= "v1.2"
 
+ifndef THIRD_PARTY_INSTALL_PATH
+	USER_HOME := $(shell echo $$HOME)
+	THIRD_PARTY_INSTALL_PATH := $(USER_HOME)/.local/dingo-eureka
+endif
+
 # go env
 # GOPROXY     :=https://goproxy.cn,direct
 GOPROXY     := "https://proxy.golang.org,direct"
 GOOS        := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 GOARCH      := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
-CGO_LDFLAGS := "-static"
-CC          := musl-gcc
+CC          := gcc
 
 GOENV := GO111MODULE=on
 GOENV += GOPROXY=$(GOPROXY)
@@ -35,9 +39,19 @@ VERSION_FLAG := -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/versi
 VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.GitCommit=${GIT_COMMIT}${GIT_DIRTY}
 VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.BuildDate=${BUILD_DATE}
 
+# for rados
+CGO_CFLAGS 		 :=-I$(THIRD_PARTY_INSTALL_PATH)/include
+BUILD_LDFLAGS	 :=-L$(THIRD_PARTY_INSTALL_PATH)/lib
+BUILD_LDFLAGS +=  -l:librados.a  #rados
+BUILD_LDFLAGS +=  -l:librdmacm.a -l:libibverbs.a #rdma
+BUILD_LDFLAGS +=  -l:libcrypto.a -l:libssl.a #openssl
+BUILD_LDFLAGS +=  -l:libboost_thread.a -l:libboost_iostreams.a #boost
+BUILD_LDFLAGS +=  -l:libz.a  #libz
+BUILD_LDFLAGS +=  -lstdc++ -lm -ldl -lpthread -Wl,--allow-multiple-definition
+
 # build flags
 CGO_BUILD_LDFLAGS := -s -w -linkmode external
-CGO_BUILD_LDFLAGS += -extldflags "-static -fpic"
+CGO_BUILD_LDFLAGS += -extldflags "$(BUILD_LDFLAGS)"
 CGO_BUILD_FLAG += -ldflags '$(CGO_BUILD_LDFLAGS) $(VERSION_FLAG)'
 
 BUILD_FLAGS := -a
@@ -49,7 +63,6 @@ BUILD_FLAGS += $(EXTRA_FLAGS)
 GCFLAGS := "all=-N -l"
 
 CGO_DEBUG_LDFLAGS := -linkmode external
-CGO_DEBUG_LDFLAGS += -extldflags "-static -fpic"
 CGO_DEBUG_FLAG += -ldflags '$(CGO_DEBUG_LDFLAGS) $(VERSION_FLAG)'
 
 DEBUG_FLAGS := -gcflags=$(GCFLAGS)
@@ -57,15 +70,11 @@ DEBUG_FLAGS += $(CGO_DEBUG_FLAG)
 
 # packages
 PACKAGES := $(PWD)/cmd/dingo/main.go
-DAEMON_PACKAGES := $(PWD)/cmd/daemon/main.go
 
 build: proto
 	$(GOENV) $(GO) build -o $(OUTPUT) $(BUILD_FLAGS) $(PACKAGES)
-
 debug: proto
 	$(GOENV) $(GO) build -o $(OUTPUT) $(DEBUG_FLAGS) $(PACKAGES)
-	$(GOENV) $(GO) build -o $(DAEMON_OUTPUT) $(DEBUG_FLAGS) $(DAEMON_PACKAGES)
-
 init: proto
 	go mod init github.com/dingodb/dingofs-tools
 	go mod tidy

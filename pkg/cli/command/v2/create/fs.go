@@ -15,6 +15,7 @@
 package create
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -171,9 +172,21 @@ func SetS3Info(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
 	sk := config.GetFlagString(cmd, config.DINGOFS_S3_SK)
 	endpoint := config.GetFlagString(cmd, config.DINGOFS_S3_ENDPOINT)
 	bucketName := config.GetFlagString(cmd, config.DINGOFS_S3_BUCKETNAME)
+	timeout := config.GetRpcTimeout(cmd)
 	if len(ak) == 0 || len(sk) == 0 || len(endpoint) == 0 || len(bucketName) == 0 {
 		return fmt.Errorf("s3 info is incomplete, please check s3.ak, s3.sk, s3.endpoint, s3.bucketname")
 	}
+
+	// check s3 health
+	s3Checker, err := cobrautil.NewS3Checker(endpoint, ak, sk, bucketName, timeout)
+	if err != nil {
+		return err
+	}
+	ok, checkErr := s3Checker.Check(context.Background())
+	if !ok {
+		return fmt.Errorf("%s,%w", s3Checker.Name(), checkErr)
+	}
+
 	s3Info := &pbmdsv2.S3Info{
 		Ak:         ak,
 		Sk:         sk,
@@ -191,9 +204,25 @@ func SetRadosInfo(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
 	monitor := config.GetFlagString(cmd, config.DINGOFS_RADOS_MON)
 	poolName := config.GetFlagString(cmd, config.DINGOFS_RADOS_POOLNAME)
 	clusterName := config.GetFlagString(cmd, config.DINGOFS_RADOS_CLUSTERNAME)
+	timeout := config.GetRpcTimeout(cmd)
+
 	if len(userName) == 0 || len(secretKey) == 0 || len(monitor) == 0 || len(poolName) == 0 {
 		return fmt.Errorf("rados info is incomplete, please check rados.username, rados.key, rados.mon, rados.poolname")
 	}
+	if len(clusterName) == 0 {
+		clusterName = "ceph"
+	}
+
+	// check rados health
+	radosChecker, err := cobrautil.NewRadosChecker(monitor, userName, secretKey, poolName, clusterName, timeout)
+	if err != nil {
+		return err
+	}
+	ok, checkErr := radosChecker.Check(context.Background())
+	if !ok {
+		return fmt.Errorf("%s,%w", radosChecker.Name(), checkErr)
+	}
+
 	radosInfo := &pbmdsv2.RadosInfo{
 		UserName:    userName,
 		Key:         secretKey,
