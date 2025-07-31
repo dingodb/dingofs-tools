@@ -16,6 +16,8 @@ package subpath
 
 import (
 	"fmt"
+	"path/filepath"
+
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
@@ -24,8 +26,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/metaserver"
 	"github.com/spf13/cobra"
-	"path/filepath"
-	"time"
 )
 
 const (
@@ -151,7 +151,7 @@ func (subPathCmd *SubPathCommand) RunCommand(cmd *cobra.Command, args []string) 
 	// get request addr leader
 	addrs, addrErr := cmdCommon.GetLeaderPeerAddr(subPathCmd.Cmd, subPathCmd.fsId, subPathCmd.parentInodeId)
 	if addrErr != nil {
-		errCreatePath = cmderror.ErrQueryCopyset()
+		errCreatePath = cmderror.ErrGetAddr()
 		errCreatePath.Format(addrErr.Error())
 		return nil
 	}
@@ -205,9 +205,7 @@ func (subPathCmd *SubPathCommand) RunCommand(cmd *cobra.Command, args []string) 
 	}
 
 	// update parent inode mtime,ctime
-	request.rpcInfo.RpcFuncName = "UpdateInode"
-	request.parentInodeId = subPathCmd.parentInodeId
-	updateInodeErr := subPathCmd.UpdateInodeAttr(cmd, request)
+	updateInodeErr := cmdCommon.UpdateInodeAttr(cmd, subPathCmd.fsId, subPathCmd.parentInodeId)
 	if updateInodeErr != nil {
 		errCreatePath = updateInodeErr
 		return nil
@@ -278,29 +276,6 @@ func (subPathCmd *SubPathCommand) CreateInode(cmd *cobra.Command, request *Reque
 	return newInode.GetInodeId(), nil
 }
 
-func (subPathCmd *SubPathCommand) DeleteInode(cmd *cobra.Command, request *RequestInfo) *cmderror.CmdError {
-	deleteInodeRpc := &cmdCommon.DeleteInodeRpc{
-		Info: request.rpcInfo,
-		Request: &metaserver.DeleteInodeRequest{
-			PoolId:      &request.poolId,
-			CopysetId:   &request.copysetId,
-			PartitionId: &request.partitionId,
-			FsId:        &request.fsId,
-			InodeId:     &request.inodeId, // new created inodeId
-		},
-	}
-	deleteInodeResult, rpcErr := basecmd.GetRpcResponse(deleteInodeRpc.Info, deleteInodeRpc)
-	if rpcErr.TypeCode() != cmderror.CODE_SUCCESS {
-		return rpcErr
-	}
-	deleteInodeResponse := deleteInodeResult.(*metaserver.DeleteInodeResponse)
-	if statusCode := deleteInodeResponse.GetStatusCode(); statusCode != metaserver.MetaStatusCode_OK {
-		return cmderror.ErrMetaServerRequest(int(statusCode))
-	}
-
-	return nil
-}
-
 func (subPathCmd *SubPathCommand) CreateDentry(cmd *cobra.Command, request *RequestInfo) *cmderror.CmdError {
 	fileType := metaserver.FsFileType_TYPE_DIRECTORY
 	dentry := metaserver.Dentry{
@@ -332,7 +307,7 @@ func (subPathCmd *SubPathCommand) CreateDentry(cmd *cobra.Command, request *Requ
 		createDentryErr := cmderror.ErrMetaServerRequest(int(statusCode))
 
 		request.rpcInfo.RpcFuncName = "DeleteInode"
-		deleteInodeErr := subPathCmd.DeleteInode(cmd, request)
+		deleteInodeErr := cmdCommon.DeleteInode(cmd, request.fsId, request.inodeId)
 		if deleteInodeErr != nil {
 			//  multiple errors
 			var vecErrs []*cmderror.CmdError
@@ -345,40 +320,6 @@ func (subPathCmd *SubPathCommand) CreateDentry(cmd *cobra.Command, request *Requ
 
 		// return create dentry error
 		return createDentryErr
-	}
-
-	return nil
-}
-
-func (subPathCmd *SubPathCommand) UpdateInodeAttr(cmd *cobra.Command, request *RequestInfo) *cmderror.CmdError {
-	now := time.Now()
-	tv_sec := uint64(now.Unix())
-	tv_nsec := uint32(now.Nanosecond())
-
-	updateInodeRpc := &cmdCommon.UpdateInodeRpc{
-		Info: request.rpcInfo,
-		Request: &metaserver.UpdateInodeRequest{
-			PoolId:      &request.poolId,
-			CopysetId:   &request.copysetId,
-			PartitionId: &request.partitionId,
-			FsId:        &request.fsId,
-			InodeId:     &request.parentInodeId,
-			Ctime:       &tv_sec,
-			CtimeNs:     &tv_nsec,
-			Mtime:       &tv_sec,
-			MtimeNs:     &tv_nsec,
-		},
-	}
-
-	// create dentry rpc request
-	updateInodeResult, rpcErr := basecmd.GetRpcResponse(updateInodeRpc.Info, updateInodeRpc)
-	if rpcErr.TypeCode() != cmderror.CODE_SUCCESS {
-		return rpcErr
-	}
-
-	updateInodeResponse := updateInodeResult.(*metaserver.UpdateInodeResponse)
-	if statusCode := updateInodeResponse.GetStatusCode(); statusCode != metaserver.MetaStatusCode_OK {
-		return cmderror.ErrMetaServerRequest(int(statusCode))
 	}
 
 	return nil

@@ -379,13 +379,16 @@ var (
 		return NewInternalCmdError(41, "the response type is not as expected, should be: %s")
 	}
 	ErrGetPeer = func() *CmdError {
-		return NewInternalCmdError(42, "invalid peer args, err: %s")
+		return NewInternalCmdError(42, "get peer failed, err: %s")
 	}
 	ErrQueryWarmup = func() *CmdError {
 		return NewInternalCmdError(43, "query warmup progress fail, err: %s")
 	}
 	ErrGetFsUsage = func() *CmdError {
 		return NewInternalCmdError(44, "get the usage of the file system fail, err: %s")
+	}
+	ErrDeleteSubPath = func() *CmdError {
+		return NewInternalCmdError(45, "delete sub path fail, err: %s")
 	}
 
 	// http error

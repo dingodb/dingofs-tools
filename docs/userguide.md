@@ -18,6 +18,7 @@ A tool for DingoFS
     - [delete](#delete)
       - [delete fs](#delete-fs)
       - [delete metaserver](#delete-metaserver)
+      - [delete subpath](#delete-subpath)
     - [list](#list)
       - [list copyset](#list-copyset)
       - [list fs](#list-fs)
@@ -306,6 +307,28 @@ Output:
 +---------+
 | success |
 +---------+
+```
+
+#### delete subpath
+
+delete sub directory in dingofs
+
+Usage:
+
+```shell
+dingo delete subpath --fsid 1 --path /path1
+dingo delete subpath --fsname dingofs --path /path1/path2
+dingo delete subpath --fsid 1 --path /path1 --threads 8
+```
+
+Output:
+
+```shell
++---------+--------+
+| RESULT  | INODES |
++---------+--------+
+| success | 5      |
++---------+--------+
 ```
 
 ### list

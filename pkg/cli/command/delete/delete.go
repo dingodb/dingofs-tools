@@ -26,6 +26,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete/fs"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete/metaserver"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete/subpath"
 	"github.com/spf13/cobra"
 )
 
@@ -39,6 +40,7 @@ func (deleteCmd *DeleteCommand) AddSubCommands() {
 	deleteCmd.Cmd.AddCommand(
 		fs.NewFsCommand(),
 		metaserver.NewDeleteMetaServerCommand(),
+		subpath.NewSubPathCommand(),
 	)
 }
 

@@ -113,6 +113,12 @@ type GetDentryRpc struct {
 	metaServerClient metaserver.MetaServerServiceClient
 }
 
+type DeleteDentryRpc struct {
+	Info             *basecmd.Rpc
+	Request          *metaserver.DeleteDentryRequest
+	metaServerClient metaserver.MetaServerServiceClient
+}
+
 type GetFsStatsRpc struct {
 	Info      *basecmd.Rpc
 	Request   *mds.GetFsStatsRequest
@@ -141,6 +147,7 @@ var _ basecmd.RpcFunc = (*DeleteInodeRpc)(nil)   // check interface
 var _ basecmd.RpcFunc = (*GetInodeRpc)(nil)      // check interface
 var _ basecmd.RpcFunc = (*CreateDentryRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*ListDentryRpc)(nil)    // check interface
+var _ basecmd.RpcFunc = (*DeleteDentryRpc)(nil)  // check interface
 var _ basecmd.RpcFunc = (*GetDentryRpc)(nil)     // check interface
 var _ basecmd.RpcFunc = (*GetFsStatsRpc)(nil)    // check interface
 var _ basecmd.RpcFunc = (*ListClusterFsRpc)(nil) // check interface
@@ -311,6 +318,16 @@ func (getDentryRpc *GetDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (getDentryRpc *GetDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := getDentryRpc.metaServerClient.GetDentry(ctx, getDentryRpc.Request)
 	output.ShowRpcData(getDentryRpc.Request, response, getDentryRpc.Info.RpcDataShow)
+	return response, err
+}
+
+func (deleteDentryRpc *DeleteDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	deleteDentryRpc.metaServerClient = metaserver.NewMetaServerServiceClient(cc)
+}
+
+func (deleteDentryRpc *DeleteDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := deleteDentryRpc.metaServerClient.DeleteDentry(ctx, deleteDentryRpc.Request)
+	output.ShowRpcData(deleteDentryRpc.Request, response, deleteDentryRpc.Info.RpcDataShow)
 	return response, err
 }
 

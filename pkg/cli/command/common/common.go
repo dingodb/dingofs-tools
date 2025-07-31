@@ -24,6 +24,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -52,8 +53,8 @@ var (
 
 // Summary represents the total length and inodes of directory
 type Summary struct {
-	Length uint64
-	Inodes uint64
+	TotalSize   uint64
+	TotalInodes uint64
 }
 
 //public functions
@@ -358,6 +359,162 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64) ([]*metaserver.
 	return listDentryResponse.GetDentrys(), nil
 }
 
+// deleteDentry
+func DeleteDentry(cmd *cobra.Command, fsId uint32, parentInodeId uint64, name string, fileType metaserver.FsFileType) *cmderror.CmdError {
+	partitionInfo, err := GetPartitionInfo(cmd, fsId, parentInodeId)
+	if err != nil {
+		cmdErr := cmderror.ErrGetFsPartition()
+		cmdErr.Format(err.Error())
+		return cmdErr
+	}
+	poolId := partitionInfo.GetPoolId()
+	copysetId := partitionInfo.GetCopysetId()
+	partitionId := partitionInfo.GetPartitionId()
+	txId := partitionInfo.GetTxId()
+	deleteRequest := &metaserver.DeleteDentryRequest{
+		PoolId:        &poolId,
+		CopysetId:     &copysetId,
+		PartitionId:   &partitionId,
+		FsId:          &fsId,
+		ParentInodeId: &parentInodeId,
+		TxId:          &txId,
+		Name:          &name,
+		Type:          &fileType,
+	}
+	deleteDentryRpc := &DeleteDentryRpc{
+		Request: deleteRequest,
+	}
+
+	addrs, addrErr := GetLeaderPeerAddr(cmd, fsId, parentInodeId)
+	if addrErr != nil {
+		cmdErr := cmderror.ErrGetPeer()
+		cmdErr.Format(addrErr.Error())
+		return cmdErr
+	}
+
+	timeout := config.GetRpcTimeout(cmd)
+	retryTimes := config.GetRpcRetryTimes(cmd)
+	deleteDentryRpc.Info = basecmd.NewRpc(addrs, timeout, retryTimes, "DeleteDentry")
+	deleteDentryRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	reponse, cmdErr := basecmd.GetRpcResponse(deleteDentryRpc.Info, deleteDentryRpc)
+	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
+		return cmdErr
+	}
+	deleteDentryReponse := reponse.(*metaserver.DeleteDentryResponse)
+
+	if statusCode := deleteDentryReponse.GetStatusCode(); statusCode != metaserver.MetaStatusCode_OK {
+		return cmderror.ErrMetaServerRequest(int(statusCode))
+	}
+
+	return nil
+}
+
+// deleteInode
+func DeleteInode(cmd *cobra.Command, fsId uint32, inodeId uint64) *cmderror.CmdError {
+	partitionInfo, err := GetPartitionInfo(cmd, fsId, inodeId)
+	if err != nil {
+		cmdErr := cmderror.ErrGetFsPartition()
+		cmdErr.Format(err.Error())
+		return cmdErr
+	}
+	poolId := partitionInfo.GetPoolId()
+	copysetId := partitionInfo.GetCopysetId()
+	partitionId := partitionInfo.GetPartitionId()
+	deleteRequest := &metaserver.DeleteInodeRequest{
+		PoolId:      &poolId,
+		CopysetId:   &copysetId,
+		PartitionId: &partitionId,
+		FsId:        &fsId,
+		InodeId:     &inodeId,
+	}
+	deleteInodeRpc := &DeleteInodeRpc{
+		Request: deleteRequest,
+	}
+
+	addrs, addrErr := GetLeaderPeerAddr(cmd, fsId, inodeId)
+	if addrErr != nil {
+		cmdErr := cmderror.ErrGetPeer()
+		cmdErr.Format(addrErr.Error())
+		return cmdErr
+	}
+
+	timeout := config.GetRpcTimeout(cmd)
+	retryTimes := config.GetRpcRetryTimes(cmd)
+	deleteInodeRpc.Info = basecmd.NewRpc(addrs, timeout, retryTimes, "DeleteInode")
+	deleteInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	reponse, cmdErr := basecmd.GetRpcResponse(deleteInodeRpc.Info, deleteInodeRpc)
+	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
+		return cmdErr
+	}
+	deleteInodeResponse := reponse.(*metaserver.DeleteInodeResponse)
+
+	if statusCode := deleteInodeResponse.GetStatusCode(); statusCode != metaserver.MetaStatusCode_OK {
+		return cmderror.ErrMetaServerRequest(int(statusCode))
+	}
+
+	return nil
+}
+
+func UpdateInodeAttr(cmd *cobra.Command, fsId uint32, inodeId uint64) *cmderror.CmdError {
+
+	partitionInfo, err := GetPartitionInfo(cmd, fsId, inodeId)
+	if err != nil {
+		cmdErr := cmderror.ErrGetFsPartition()
+		cmdErr.Format(err.Error())
+		return cmdErr
+	}
+	cmderror.ErrGetFsPartition()
+	poolId := partitionInfo.GetPoolId()
+	copysetId := partitionInfo.GetCopysetId()
+	partitionId := partitionInfo.GetPartitionId()
+
+	now := time.Now()
+	tv_sec := uint64(now.Unix())
+	tv_nsec := uint32(now.Nanosecond())
+
+	updateRequest := &metaserver.UpdateInodeRequest{
+		PoolId:      &poolId,
+		CopysetId:   &copysetId,
+		PartitionId: &partitionId,
+		FsId:        &fsId,
+		InodeId:     &inodeId,
+		Ctime:       &tv_sec,
+		CtimeNs:     &tv_nsec,
+		Mtime:       &tv_sec,
+		MtimeNs:     &tv_nsec,
+	}
+
+	updateInodeRpc := &UpdateInodeRpc{
+		Request: updateRequest,
+	}
+
+	addrs, addrErr := GetLeaderPeerAddr(cmd, fsId, inodeId)
+	if addrErr != nil {
+		cmdErr := cmderror.ErrGetPeer()
+		cmdErr.Format(addrErr.Error())
+		return cmdErr
+	}
+
+	timeout := config.GetRpcTimeout(cmd)
+	retryTimes := config.GetRpcRetryTimes(cmd)
+	updateInodeRpc.Info = basecmd.NewRpc(addrs, timeout, retryTimes, "UpdateInode")
+	updateInodeRpc.Info.RpcDataShow = config.GetFlagBool(cmd, "verbose")
+
+	updateInodeResult, rpcErr := basecmd.GetRpcResponse(updateInodeRpc.Info, updateInodeRpc)
+	if rpcErr.TypeCode() != cmderror.CODE_SUCCESS {
+		return rpcErr
+	}
+
+	updateInodeResponse := updateInodeResult.(*metaserver.UpdateInodeResponse)
+	if statusCode := updateInodeResponse.GetStatusCode(); statusCode != metaserver.MetaStatusCode_OK {
+		return cmderror.ErrMetaServerRequest(int(statusCode))
+	}
+
+	return nil
+}
+
 // get dir path
 func GetInodePath(cmd *cobra.Command, fsId uint32, inodeId uint64) (string, string, error) {
 
@@ -597,9 +754,9 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *S
 					continue
 				}
 			}
-			atomic.AddUint64(&summary.Length, inodeAttr.GetLength())
+			atomic.AddUint64(&summary.TotalSize, inodeAttr.GetLength())
 		}
-		atomic.AddUint64(&summary.Inodes, 1)
+		atomic.AddUint64(&summary.TotalInodes, 1)
 		if entry.GetType() != metaserver.FsFileType_TYPE_DIRECTORY {
 			continue
 		}
@@ -645,11 +802,11 @@ func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64,
 	defer cancel()
 	var inodeMap *sync.Map = &sync.Map{}
 	sumErr := GetDirSummarySize(cmd, fsId, dirInode, summary, concurrent, ctx, cancel, isFsCheck, inodeMap)
-	log.Printf("end summary directory statistics, inode[%d],inodes[%d],size[%d]", dirInode, summary.Inodes, summary.Length)
+	log.Printf("end summary directory statistics, inode[%d],inodes[%d],size[%d]", dirInode, summary.TotalInodes, summary.TotalSize)
 	if sumErr != nil {
 		return 0, 0, sumErr
 	}
-	return int64(summary.Length), int64(summary.Inodes), nil
+	return int64(summary.TotalSize), int64(summary.TotalInodes), nil
 }
 
 // get inode s3 chunks
