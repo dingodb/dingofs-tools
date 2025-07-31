@@ -115,11 +115,8 @@ func GetFsInfo(cmd *cobra.Command, fsId uint32, fsName string) (*pbmdsv2.FsInfo,
 
 func GetFsEpochByFsInfo(fsInfo *pbmdsv2.FsInfo) uint64 {
 	partitionPolicy := fsInfo.GetPartitionPolicy()
-	if partitionPolicy.GetType() == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION {
-		return partitionPolicy.GetParentHash().GetEpoch()
-	}
 
-	return partitionPolicy.GetMono().GetEpoch()
+	return partitionPolicy.GetEpoch()
 }
 
 func GetFsEpochByFsId(cmd *cobra.Command, fsId uint32) (uint64, error) {
