@@ -83,7 +83,7 @@ const (
 	DINGOFS_DEFAULT_CLUSTERMAP     = "topo_example.json"
 	DINGOFS_THREADS                = "threads"
 	VIPER_DINGOFS_THREADS          = "dingofs.threads"
-	DINGOFS_DEFAULT_THREADS        = uint32(1)
+	DINGOFS_DEFAULT_THREADS        = uint32(8)
 	DINGOFS_MARGIN                 = "margin"
 	VIPER_DINGOFS_MARGIN           = "dingofs.margin"
 	DINGOFS_DEFAULT_MARGIN         = uint64(1000)

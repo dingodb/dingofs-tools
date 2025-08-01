@@ -40,9 +40,10 @@ var _ basecmd.FinalDingoCmdFunc = (*SetQuotaCommand)(nil) // check interface
 func NewSetQuotaCommand() *cobra.Command {
 	setQuotaCmd := &SetQuotaCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
-			Use:     "set",
-			Short:   "set quota to a directory",
-			Example: `$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --inodes 100000`,
+			Use:   "set",
+			Short: "set quota to a directory",
+			Example: `$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --inodes 100000
+$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --threads 8`,
 		},
 	}
 	basecmd.NewFinalDingoCli(&setQuotaCmd.FinalDingoCmd, setQuotaCmd)
@@ -59,6 +60,7 @@ func (setQuotaCmd *SetQuotaCommand) AddFlags() {
 	config.AddFsPathRequiredFlag(setQuotaCmd.Cmd)
 	config.AddFsCapacityOptionalFlag(setQuotaCmd.Cmd)
 	config.AddFsInodesOptionalFlag(setQuotaCmd.Cmd)
+	config.AddThreadsOptionFlag(setQuotaCmd.Cmd)
 }
 
 func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) error {
@@ -94,12 +96,20 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	}
 	endpoint := common.GetEndPoint(dirInodeId)
 	mdsRpc := common.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "SetDirQuota")
+
+	// get real used space
+	threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+	realUsedBytes, realUsedInodes, getErr := common.GetDirectorySizeAndInodes(setQuotaCmd.Cmd, fsId, dirInodeId, false, epoch, threads)
+	if getErr != nil {
+		return getErr
+	}
+
 	// set request info
 	request := &pbmdsv2.SetDirQuotaRequest{
 		Context: &pbmdsv2.Context{Epoch: epoch},
 		FsId:    fsId,
 		Ino:     dirInodeId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes)},
+		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes), UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
 	}
 	setQuotaCmd.Rpc = &common.SetDirQuotaRpc{
 		Info:    mdsRpc,

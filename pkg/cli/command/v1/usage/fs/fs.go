@@ -43,8 +43,8 @@ $ dingo usage fs --fsid 1
 # get usage by fsname
 $ dingo usage fs --fsname dingofs1,
 
-# get all usage
-$ dingo usage fs`
+# get all usage with 8 threads
+$ dingo usage fs --threads 8`
 )
 
 func NewFsUsageCommand() *cobra.Command {
@@ -66,6 +66,7 @@ func (fsUsageCmd *FsUageCommand) AddFlags() {
 	config.AddFsMdsAddrFlag(fsUsageCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsUsageCmd.Cmd)
 	config.AddFsNameStringOptionFlag(fsUsageCmd.Cmd)
+	config.AddThreadsOptionFlag(fsUsageCmd.Cmd)
 	config.AddHumanizeOptionFlag(fsUsageCmd.Cmd)
 }
 
@@ -134,7 +135,8 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 	for idx, fsId := range fsIds {
 		row := make(map[string]string)
 		//get real used space
-		realUsedBytes, realUsedInodes, err := cmdCommon.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true)
+		threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+		realUsedBytes, realUsedInodes, err := cmdCommon.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true, threads)
 		if err != nil {
 			errGetFsUsage = cmderror.ErrGetFsUsage()
 			errGetFsUsage.Format(err.Error())

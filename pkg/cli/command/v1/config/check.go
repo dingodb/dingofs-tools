@@ -40,9 +40,10 @@ var _ basecmd.FinalDingoCmdFunc = (*CheckQuotaCommand)(nil) // check interface
 func NewCheckQuotaCommand() *cobra.Command {
 	checkQuotaCmd := &CheckQuotaCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
-			Use:     "check",
-			Short:   "check quota of fs",
-			Example: `$ dingo config check --fsid 1`,
+			Use:   "check",
+			Short: "check quota of fs",
+			Example: `$ dingo config check --fsid 1
+$ dingo config check --fsid 1 --threads 8`,
 		},
 	}
 	basecmd.NewFinalDingoCli(&checkQuotaCmd.FinalDingoCmd, checkQuotaCmd)
@@ -56,6 +57,7 @@ func (checkQuotaCmd *CheckQuotaCommand) AddFlags() {
 	config.AddFsMdsAddrFlag(checkQuotaCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(checkQuotaCmd.Cmd)
 	config.AddFsNameStringOptionFlag(checkQuotaCmd.Cmd)
+	config.AddThreadsOptionFlag(checkQuotaCmd.Cmd)
 	config.AddBoolOptionPFlag(checkQuotaCmd.Cmd, config.DINGOFS_QUOTA_REPAIR, "r", "repair inconsistent quota (default: false)")
 }
 
@@ -83,7 +85,8 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 	}
 	fsQuota := fsResponse.GetQuota()
 	// get root director real used space
-	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, config.ROOTINODEID, true)
+	threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, config.ROOTINODEID, true, threads)
 	if getErr != nil {
 		return getErr
 	}

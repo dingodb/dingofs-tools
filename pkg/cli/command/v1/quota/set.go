@@ -38,9 +38,10 @@ var _ basecmd.FinalDingoCmdFunc = (*SetQuotaCommand)(nil) // check interface
 func NewSetQuotaCommand() *cobra.Command {
 	setQuotaCmd := &SetQuotaCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
-			Use:     "set",
-			Short:   "set quota to a directory",
-			Example: `$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --inodes 100000`,
+			Use:   "set",
+			Short: "set quota to a directory",
+			Example: `$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --inodes 100000
+$ dingo quota set --fsid 1 --path /quotadir --capacity 10 --threads 8`,
 		},
 	}
 	basecmd.NewFinalDingoCli(&setQuotaCmd.FinalDingoCmd, setQuotaCmd)
@@ -57,6 +58,7 @@ func (setQuotaCmd *SetQuotaCommand) AddFlags() {
 	config.AddFsPathRequiredFlag(setQuotaCmd.Cmd)
 	config.AddFsCapacityOptionalFlag(setQuotaCmd.Cmd)
 	config.AddFsInodesOptionalFlag(setQuotaCmd.Cmd)
+	config.AddThreadsOptionFlag(setQuotaCmd.Cmd)
 }
 
 func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) error {
@@ -84,7 +86,8 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 		return inodeErr
 	}
 	// get directory real used
-	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(setQuotaCmd.Cmd, fsId, dirInodeId, false)
+	threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(setQuotaCmd.Cmd, fsId, dirInodeId, false, threads)
 	if getErr != nil {
 		return getErr
 	}

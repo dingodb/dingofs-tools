@@ -152,7 +152,8 @@ func (fsUsageCmd *FsUageCommand) RunCommand(cmd *cobra.Command, args []string) e
 
 		row := make(map[string]string)
 		//get real used space
-		realUsedBytes, realUsedInodes, err := common.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true, epochs[idx])
+		threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+		realUsedBytes, realUsedInodes, err := common.GetDirectorySizeAndInodes(fsUsageCmd.Cmd, fsId, config.ROOTINODEID, true, epochs[idx], threads)
 		if err != nil {
 			errGetFsUsage = cmderror.ErrGetFsUsage()
 			errGetFsUsage.Format(err.Error())

@@ -431,14 +431,14 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *c
 }
 
 // get directory size and inodes by path name
-func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64, isFsCheck bool, epoch uint64) (int64, int64, error) {
+func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64, isFsCheck bool, epoch uint64, threads uint32) (int64, int64, error) {
 	log.Printf("start to summary directory statistics, inode[%d]", dirInode)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	summary := &cmdcommon.Summary{0, 0}
-	concurrent := make(chan struct{}, 50)
+	concurrent := make(chan struct{}, threads)
 	var inodeMap *sync.Map = &sync.Map{}
 
 	sumErr := GetDirSummarySize(cmd, fsId, dirInode, summary, concurrent, ctx, cancel, isFsCheck, inodeMap, epoch)
@@ -448,5 +448,7 @@ func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64,
 
 	log.Printf("end summary directory statistics, inode[%d],inodes[%d],size[%d]", dirInode, summary.Inodes, summary.Length)
 
+	// add root inode
+	atomic.AddUint64(&summary.Inodes, 1)
 	return int64(summary.Length), int64(summary.Inodes), nil
 }

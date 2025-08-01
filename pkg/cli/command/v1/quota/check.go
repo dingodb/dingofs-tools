@@ -56,6 +56,7 @@ func (checkQuotaCmd *CheckQuotaCommand) AddFlags() {
 	config.AddFsIdUint32OptionFlag(checkQuotaCmd.Cmd)
 	config.AddFsNameStringOptionFlag(checkQuotaCmd.Cmd)
 	config.AddFsPathRequiredFlag(checkQuotaCmd.Cmd)
+	config.AddThreadsOptionFlag(checkQuotaCmd.Cmd)
 	config.AddBoolOptionPFlag(checkQuotaCmd.Cmd, config.DINGOFS_QUOTA_REPAIR, "r", "repair inconsistent quota (default: false)")
 }
 
@@ -87,7 +88,8 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		return dirErr
 	}
 	// get real used space
-	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, dirInode, false)
+	threads := config.GetFlagUint32(cmd, config.DINGOFS_THREADS)
+	realUsedBytes, realUsedInodes, getErr := cmdCommon.GetDirectorySizeAndInodes(checkQuotaCmd.Cmd, fsId, dirInode, false, threads)
 	if getErr != nil {
 		return getErr
 	}
