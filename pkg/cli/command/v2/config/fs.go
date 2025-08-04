@@ -86,7 +86,7 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 	}
 	// set request info
 	request := &pbmdsv2.SetFsQuotaRequest{
-		Context: &pbmdsv2.Context{Epoch: epoch},
+		Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
 		FsId:    fsId,
 		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes)},
 	}

@@ -121,8 +121,9 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		}
 		// set request info
 		request := &pbmdsv2.SetFsQuotaRequest{
-			FsId:  fsId,
-			Quota: &pbmdsv2.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
+			Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
+			FsId:    fsId,
+			Quota:   &pbmdsv2.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
 		}
 
 		setFsQuotaRpc := &common.SetFsQuotaRpc{

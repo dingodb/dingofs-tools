@@ -147,7 +147,7 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmdsv2.GetFsQuotaRequest
 	}
 	// set request info
 	request := &pbmdsv2.GetFsQuotaRequest{
-		Context: &pbmdsv2.Context{Epoch: epoch},
+		Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
 		FsId:    fsId,
 	}
 	requestRpc := &common.GetFsQuotaRpc{
