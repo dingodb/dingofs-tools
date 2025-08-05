@@ -48,7 +48,7 @@ func NewListCacheMemberCommand() *ReweightMemberCommand {
 	reweightMemberCmd := &ReweightMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "list cache members in cachegroup",
+			Short:   "set remote cachegroup member attribute",
 			Example: SetMemberExample,
 		},
 	}
@@ -62,7 +62,6 @@ func (reweightMember *ReweightMemberCommand) AddFlags() {
 	config.AddRpcRetryDelayFlag(reweightMember.Cmd)
 	config.AddRpcTimeoutFlag(reweightMember.Cmd)
 	config.AddFsMdsAddrFlag(reweightMember.Cmd)
-	config.AddCacheGroup(reweightMember.Cmd)
 	config.AddCacheMemberId(reweightMember.Cmd)
 	config.AddCacheMemberWeight(reweightMember.Cmd)
 }
@@ -91,16 +90,14 @@ func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args
 	verbose := config.GetFlagBool(cmd, config.VERBOSE)
 	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "LoadMembers")
 
-	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 	memberId := config.GetFlagUint64(cmd, config.DINGOFS_CACHE_MEMBERID)
 	weight := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_WEIGHT)
 
 	rpc := &common.ReweightMemberRpc{
 		Info: rpcInfo,
 		Request: &cachegroup.ReweightMemberRequest{
-			GroupName: &groupName,
-			MemberId:  &memberId,
-			Weight:    &weight,
+			MemberId: &memberId,
+			Weight:   &weight,
 		},
 	}
 
