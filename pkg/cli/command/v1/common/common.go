@@ -486,19 +486,29 @@ func GetDirPathInodeId(cmd *cobra.Command, fsId uint32, path string) (uint64, er
 }
 
 // check the quota value from command line
-func CheckAndGetQuotaValue(cmd *cobra.Command) (uint64, uint64, error) {
-	var capacity uint64
-	var inodes uint64
+func CheckAndGetQuotaValue(cmd *cobra.Command) (int64, int64, error) {
+	var maxBytes int64 = 0
+	var maxInodes int64 = 0
+
 	if !cmd.Flag(config.DINGOFS_QUOTA_CAPACITY).Changed && !cmd.Flag(config.DINGOFS_QUOTA_INODES).Changed {
 		return 0, 0, fmt.Errorf("capacity or inodes is required")
 	}
 	if cmd.Flag(config.DINGOFS_QUOTA_CAPACITY).Changed {
-		capacity = config.GetFlagUint64(cmd, config.DINGOFS_QUOTA_CAPACITY)
+		maxBytesGB := int64(config.GetFlagUint64(cmd, config.DINGOFS_QUOTA_CAPACITY))
+		maxBytes = maxBytesGB * 1024 * 1024 * 1024
 	}
 	if cmd.Flag(config.DINGOFS_QUOTA_INODES).Changed {
-		inodes = config.GetFlagUint64(cmd, config.DINGOFS_QUOTA_INODES)
+		maxInodes = int64(config.GetFlagUint64(cmd, config.DINGOFS_QUOTA_INODES))
 	}
-	return capacity * 1024 * 1024 * 1024, inodes, nil
+
+	if maxBytes == 0 { // not set or set to 0,unlimited
+		maxBytes = math.MaxInt64
+	}
+	if maxInodes == 0 { //not set or set to 0,unlimited
+		maxInodes = math.MaxInt64
+	}
+
+	return maxBytes, maxInodes, nil
 }
 
 // convert number value to Humanize Value
@@ -509,7 +519,7 @@ func ConvertQuotaToHumanizeValue(capacity uint64, usedBytes int64, maxInodes uin
 	var maxInodesPercentStr string
 	var result []string
 
-	if capacity == 0 {
+	if capacity == math.MaxInt64 {
 		capacityStr = "unlimited"
 		usedPercentStr = ""
 	} else {
@@ -519,7 +529,7 @@ func ConvertQuotaToHumanizeValue(capacity uint64, usedBytes int64, maxInodes uin
 	result = append(result, capacityStr)
 	result = append(result, humanize.IBytes(uint64(usedBytes))) //TODO usedBytes  may be negative
 	result = append(result, usedPercentStr)
-	if maxInodes == 0 {
+	if maxInodes == math.MaxInt64 {
 		maxInodesStr = "unlimited"
 		maxInodesPercentStr = ""
 	} else {

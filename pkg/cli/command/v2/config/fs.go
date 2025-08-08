@@ -16,7 +16,6 @@ package config
 
 import (
 	"fmt"
-
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
@@ -26,7 +25,6 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
-
 	"github.com/spf13/cobra"
 )
 
@@ -70,7 +68,8 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 		return err
 	}
 	// check flags values
-	capacity, inodes, quotaErr := cmdcommon.CheckAndGetQuotaValue(fsQuotaCmd.Cmd)
+	// if quota not set , return value will be -1
+	maxBytes, maxInodes, quotaErr := cmdcommon.CheckAndGetQuotaValue(fsQuotaCmd.Cmd)
 	if quotaErr != nil {
 		return quotaErr
 	}
@@ -84,11 +83,12 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 	if epochErr != nil {
 		return epochErr
 	}
+
 	// set request info
 	request := &pbmdsv2.SetFsQuotaRequest{
 		Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
 		FsId:    fsId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes)},
+		Quota:   &pbmdsv2.Quota{MaxBytes: maxBytes, MaxInodes: maxInodes},
 	}
 	fsQuotaCmd.Rpc = &common.SetFsQuotaRpc{
 		Info:    mdsRpc,

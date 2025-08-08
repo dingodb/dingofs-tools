@@ -68,7 +68,7 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 		return fmt.Errorf(getAddrErr.Message)
 	}
 	//check flags values
-	capacity, inodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(setQuotaCmd.Cmd)
+	tmpMaxBytes, tmpMaxInodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(setQuotaCmd.Cmd)
 	if quotaErr != nil {
 		return quotaErr
 	}
@@ -99,6 +99,8 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	poolId := partitionInfo.GetPoolId()
 	copyetId := partitionInfo.GetCopysetId()
 
+	maxBytes := uint64(tmpMaxBytes)
+	maxInodes := uint64(tmpMaxInodes)
 	//set rpc request
 	request := &metaserver.SetDirQuotaRequest{
 		PoolId:     &poolId,
@@ -106,8 +108,8 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 		FsId:       &fsId,
 		DirInodeId: &dirInodeId,
 		Quota: &metaserver.Quota{
-			MaxBytes:   &capacity,
-			MaxInodes:  &inodes,
+			MaxBytes:   &maxBytes,
+			MaxInodes:  &maxInodes,
 			UsedBytes:  &realUsedBytes,
 			UsedInodes: &realUsedInodes,
 		},
