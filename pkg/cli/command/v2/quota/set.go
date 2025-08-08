@@ -16,7 +16,6 @@ package quota
 
 import (
 	"fmt"
-
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
@@ -65,7 +64,7 @@ func (setQuotaCmd *SetQuotaCommand) AddFlags() {
 
 func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) error {
 	// check flags values
-	capacity, inodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(setQuotaCmd.Cmd)
+	maxBytes, maxInodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(setQuotaCmd.Cmd)
 	if quotaErr != nil {
 		return quotaErr
 	}
@@ -104,12 +103,21 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 		return getErr
 	}
 
+	var quota pbmdsv2.Quota
+	if maxBytes > 0 { //  capacity is set
+		quota.MaxBytes = maxBytes
+	}
+	if maxInodes > 0 { // maxInode not set
+		quota.MaxInodes = maxInodes
+	}
+	quota.UsedBytes = realUsedBytes
+	quota.UsedInodes = realUsedInodes
 	// set request info
 	request := &pbmdsv2.SetDirQuotaRequest{
 		Context: &pbmdsv2.Context{Epoch: epoch},
 		FsId:    fsId,
 		Ino:     dirInodeId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: int64(capacity), MaxInodes: int64(inodes), UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
+		Quota:   &quota,
 	}
 	setQuotaCmd.Rpc = &common.SetDirQuotaRpc{
 		Info:    mdsRpc,

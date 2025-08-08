@@ -16,7 +16,6 @@ package config
 
 import (
 	"fmt"
-
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
@@ -68,7 +67,8 @@ func (fsQuotaCmd *ConfigFsQuotaCommand) Init(cmd *cobra.Command, args []string) 
 		return fmt.Errorf(getAddrErr.Message)
 	}
 	// check flags values
-	capacity, inodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(fsQuotaCmd.Cmd)
+	// if quota not set , return value will be -1
+	tmpMaxBytes, tmpMaxInodes, quotaErr := cmdCommon.CheckAndGetQuotaValue(fsQuotaCmd.Cmd)
 	if quotaErr != nil {
 		return quotaErr
 	}
@@ -84,12 +84,22 @@ func (fsQuotaCmd *ConfigFsQuotaCommand) Init(cmd *cobra.Command, args []string) 
 	}
 	poolId := partitionInfo.GetPoolId()
 	copyetId := partitionInfo.GetCopysetId()
+
+	var quota metaserver.Quota
+	if tmpMaxBytes > 0 { //  capacity is set
+		maxBytes := uint64(tmpMaxBytes)
+		quota.MaxBytes = &maxBytes
+	}
+	if tmpMaxInodes > 0 { // maxInode is set
+		maxInodes := uint64(tmpMaxInodes)
+		quota.MaxInodes = &maxInodes
+	}
 	//set request info
 	request := &metaserver.SetFsQuotaRequest{
 		FsId:      &fsId,
 		PoolId:    &poolId,
 		CopysetId: &copyetId,
-		Quota:     &metaserver.Quota{MaxBytes: &capacity, MaxInodes: &inodes},
+		Quota:     &quota,
 	}
 	fsQuotaCmd.Rpc = &cmdCommon.SetFsQuotaRpc{
 		Request: request,
