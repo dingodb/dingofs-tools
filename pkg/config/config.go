@@ -34,7 +34,7 @@ import (
 )
 
 var (
-	MDSApiV2 bool // is MDS API v2
+	MDSApiV1 bool // is MDS API v2
 )
 
 const (
@@ -102,16 +102,16 @@ func InitConfig(confFile string) {
 	}
 
 	// check mds api version, env MDS_API_VERSION priority > config file
-	MDSApiV2 = false
+	MDSApiV1 = false
 	mdsApiVersion := os.Getenv("MDS_API_VERSION")
-	if mdsApiVersion == "2" {
-		MDSApiV2 = true
+	if mdsApiVersion == "1" {
+		MDSApiV1 = true
 		return
 	}
 	if len(mdsApiVersion) == 0 { // env not set, check config file
 		mdsApiVersion = viper.GetString(VIPER_GLOBALE_MDS_API_VERSION)
-		if mdsApiVersion == "2" {
-			MDSApiV2 = true
+		if mdsApiVersion == "1" {
+			MDSApiV1 = true
 		}
 	}
 }

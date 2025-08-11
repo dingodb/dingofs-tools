@@ -143,7 +143,7 @@ global:
   rpcRetryDelay: 200ms
   maxChannelSize: 4
   showError: false
-  mds_api_version: 1  #mds版本 1: mdsv1 2: mdsv2
+  mds_api_version: 2  #mds版本 1: mdsv1 2: mdsv2
 
 dingofs:
   mdsAddr: 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700

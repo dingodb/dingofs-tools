@@ -67,20 +67,7 @@ func addSubCommands(cmd *cobra.Command) {
 		fuse.NewFuseCommand(),
 	)
 
-	if config.MDSApiV2 {
-		cmd.AddCommand(
-			v2List.NewListCommand(),
-			v2Create.NewCreateCommand(),
-			v2Delete.NewDeleteCommand(),
-			v2Status.NewStatusCommand(),
-			v2Config.NewConfigCommand(),
-			v2Query.NewQueryCommand(),
-			v2Stats.NewStatsCommand(),
-			v2Umount.NewUmountCommand(),
-			v2Quota.NewQuotaCommand(),
-			v2Usage.NewUsageCommand(),
-		)
-	} else {
+	if config.MDSApiV1 {
 		cmd.AddCommand(
 			usage.NewUsageCommand(),
 			list.NewListCommand(),
@@ -95,6 +82,18 @@ func addSubCommands(cmd *cobra.Command) {
 			quotaconfig.NewConfigCommand(),
 			set.NewSetCommand(),
 		)
+	} else {
+		cmd.AddCommand(
+			v2List.NewListCommand(),
+			v2Create.NewCreateCommand(),
+			v2Delete.NewDeleteCommand(),
+			v2Status.NewStatusCommand(),
+			v2Config.NewConfigCommand(),
+			v2Query.NewQueryCommand(),
+			v2Stats.NewStatsCommand(),
+			v2Umount.NewUmountCommand(),
+			v2Quota.NewQuotaCommand(),
+			v2Usage.NewUsageCommand())
 	}
 }
 
