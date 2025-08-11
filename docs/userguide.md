@@ -18,6 +18,7 @@ A tool for DingoFS
     - [delete](#delete)
       - [delete fs](#delete-fs)
       - [delete metaserver](#delete-metaserver)
+      - [delete cachemember](#delete-cachemember)
     - [list](#list)
       - [list copyset](#list-copyset)
       - [list fs](#list-fs)
@@ -25,6 +26,8 @@ A tool for DingoFS
       - [list partition](#list-partition)
       - [list topology](#list-topology)
       - [list dentry](#list-dentry)
+      - [list cachegroup](#list-cachegroup)
+      - [list cachemember](#list-cachemember)
     - [query](#query)
       - [query copyset](#query-copyset)
       - [query fs](#query-fs)
@@ -32,6 +35,8 @@ A tool for DingoFS
       - [query metaserver](#query-metaserver)
       - [query partition](#query-partition)
       - [query dirtree](#query-dirtree)
+    - [set](#set)
+      - [set cachemember](#set-cachemember)
     - [status](#status)
       - [status mds](#status-mds)
       - [status metaserver](#status-metaserver)
@@ -347,6 +352,26 @@ Output:
 +---------+
 ```
 
+#### delete cachemember
+
+delete cachegroup member
+
+Usage:
+
+```shell
+ dingo delete cachemember --group test_cache --ip 10.225.10.170 --port 10001
+```
+
+Output:
+
+```shell
++---------+
+| RESULT  |
++---------+
+| success |
++---------+
+```
+
 ### list
 
 #### list copyset
@@ -563,6 +588,49 @@ Output:
 +------+----------+------+---------+----------------+
 ```
 
+#### list cachegroup
+
+list all remote cache groups
+
+Usage:
+
+```shell
+dingo list cachegroup
+```
+
+Output:
+
+```shell
++---------+
+|  GROUP  |
++---------+
+| group_1 |
++---------+
+```
+
+#### list cachemember
+
+list cachegroup members
+
+Usage:
+
+```shell
+dingo list cachemember --group group_1
+```
+
+Output:
+
+```shell
+| ID  |      IP       | PORT  | WEIGHT |    LAST ONLINE TIME     |  STATE  |
++-----+---------------+-------+--------+-------------------------+---------+
+| 1   | 10.225.10.248 | 20001 | 99     | 2025-08-05 17:29:16.918 | offline |
++-----+---------------+-------+--------+-------------------------+---------+
+| 101 | 10.225.10.170 | 20001 | 100    | 2025-08-05 17:30:22.176 | online  |
++-----+---------------+-------+--------+-------------------------+---------+
+| 102 | 10.225.10.248 | 20002 | 100    | 2025-08-05 17:30:21.138 | online  |
++-----+---------------+-------+--------+-------------------------+---------+
+```
+
 ### query
 
 #### query copyset
@@ -688,6 +756,27 @@ Output:
 ```shell
 -- name  path:	/workunits/suites/tmp.roZYcz7Ln7/p9/dc/d1a/d1b/d21/d34
 -- inode path:	1/8390147/10487316/9441617/2101392/7344488/6295896/6295898/7344505/7344525
+```
+### set
+
+#### set cachemember
+
+set remote cachegroup member attribute
+
+Usage:
+
+```shell
+dingo set cachemember --memberid 3 --weight 40
+```
+
+Output:
+
+```shell
++---------+
+| RESULT  |
++---------+
+| success |
++---------+
 ```
 
 ### status
