@@ -168,11 +168,7 @@ func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch u
 	result := response.(*pbmdsv2.GetDirQuotaResponse)
 
 	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
-		if mdsErr.GetErrcode() == pbmdsv2error.Errno_ENOT_FOUND {
-			return nil, nil, fmt.Errorf("no quota for directory, inodeid: %d", dirInodeId)
-		} else {
-			return nil, nil, cmderror.MDSV2Error(mdsErr).ToError()
-		}
+		return nil, nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
 	return getQuotaRpc.Request, result, nil
