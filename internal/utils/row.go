@@ -35,7 +35,7 @@ const (
 	ROW_COPYSET         = "copyset"
 	ROW_COPYSET_ID      = "copysetId"
 	ROW_COPYSET_KEY     = "copysetKey"
-	ROW_CREATE_TIME     = "createTime"
+	ROW_CREATE_TIME     = "create time"
 	ROW_CREATED         = "created"
 	ROW_LASTONLINETIME  = "last online time"
 	ROW_DUMMY_ADDR      = "dummyAddr"

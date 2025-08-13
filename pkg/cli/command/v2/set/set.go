@@ -12,32 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package delete
+package set
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/spf13/cobra"
 )
 
-type DeleteCommand struct {
+type SetCommand struct {
 	basecmd.MidDingoCmd
 }
 
-var _ basecmd.MidDingoCmdFunc = (*DeleteCommand)(nil) // check interface
+var _ basecmd.MidDingoCmdFunc = (*SetCommand)(nil) // check interface
 
-func (deleteCmd *DeleteCommand) AddSubCommands() {
-	deleteCmd.Cmd.AddCommand(
-		NewDeleteFsCommand(),
-		NewDeleteCacheMemberCommand(),
+func (setCmd *SetCommand) AddSubCommands() {
+	setCmd.Cmd.AddCommand(
+		NewCacheMemberCommand(),
 	)
 }
 
-func NewDeleteCommand() *cobra.Command {
-	deleteCmd := &DeleteCommand{
+func NewSetCommand() *cobra.Command {
+	setCmd := &SetCommand{
 		basecmd.MidDingoCmd{
-			Use:   "delete",
-			Short: "delete resources in the dingofs",
+			Use:   "set",
+			Short: "set dingofs resoure",
 		},
 	}
-	return basecmd.NewMidDingoCli(&deleteCmd.MidDingoCmd, deleteCmd)
+	return basecmd.NewMidDingoCli(&setCmd.MidDingoCmd, setCmd)
 }

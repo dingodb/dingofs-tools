@@ -175,11 +175,13 @@ const (
 	DINGOFS_DEFAULT_SUBPATH_GID = uint32(0)
 
 	// cache group
-	DINGOFS_CACHE_GROUP    = "group"
-	DINGOFS_CACHE_MEMBERID = "memberid"
-	DINGOFS_CACHE_WEIGHT   = "weight"
-	DINGOFS_CACHE_IP       = "ip"
-	DINGOFS_CACHE_PORT     = "port"
+	DINGOFS_CACHE_GROUP        = "group"
+	DINGOFS_CACHE_MEMBERID     = "memberid"
+	DINGOFS_CACHE_WEIGHT       = "weight"
+	DINGOFS_CACHE_IP           = "ip"
+	DINGOFS_CACHE_PORT         = "port"
+	VIPER_DINGOFS_CACHE_PORT   = "dingofs.cachegroup.port"
+	DINGOFS_DEFAULT_CACHE_PORT = uint32(0)
 )
 
 var (
@@ -243,6 +245,9 @@ var (
 		//subpath
 		DINGOFS_SUBPATH_UID: VIPER_DINGOFS_SUBPATH_UID,
 		DINGOFS_SUBPATH_GID: VIPER_DINGOFS_SUBPATH_GID,
+
+		// cache group
+		DINGOFS_CACHE_PORT: VIPER_DINGOFS_CACHE_PORT,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
@@ -288,6 +293,9 @@ var (
 		//subpath
 		DINGOFS_SUBPATH_UID: DINGOFS_DEFAULT_SUBPATH_UID,
 		DINGOFS_SUBPATH_GID: DINGOFS_DEFAULT_SUBPATH_GID,
+
+		// cache group
+		DINGOFS_CACHE_PORT: DINGOFS_DEFAULT_CACHE_PORT,
 	}
 )
 
@@ -1002,22 +1010,38 @@ func AddClientIdRequiredFlag(cmd *cobra.Command) {
 }
 
 // cachegroup
-func AddCacheGroup(cmd *cobra.Command) {
+func AddCacheGroupFlag(cmd *cobra.Command) {
 	AddStringRequiredFlag(cmd, DINGOFS_CACHE_GROUP, "cachegroup name")
 }
 
-func AddCacheMemberId(cmd *cobra.Command) {
-	AddUint64RequiredFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+func AddCacheGroupOptionalFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_CACHE_GROUP, "cachegroup name")
 }
 
-func AddCacheMemberWeight(cmd *cobra.Command) {
+func AddCacheMemberIdFlag(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+}
+
+func AddCacheMemberIdOptionalFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+}
+
+func AddCacheMemberWeightFlag(cmd *cobra.Command) {
 	AddUint32RequiredFlag(cmd, DINGOFS_CACHE_WEIGHT, "cachemember weight")
 }
 
-func AddCacheMemberIP(cmd *cobra.Command) {
-	AddStringRequiredFlag(cmd, DINGOFS_CACHE_IP, "cachemember name")
+func AddCacheMemberIp(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_CACHE_IP, "cachemember ip")
+}
+
+func AddCacheMemberIpOptionalFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_CACHE_IP, "cachemember ip")
 }
 
 func AddCacheMemberPort(cmd *cobra.Command) {
 	AddUint32RequiredFlag(cmd, DINGOFS_CACHE_PORT, "cachemember port")
+}
+
+func AddCacheMemberPortOptionalFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_CACHE_PORT, "cachemember port")
 }

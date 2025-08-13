@@ -24,7 +24,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/set"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/deregister"
 	"os"
 
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/fuse"
@@ -37,6 +37,8 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/query"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/quota"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/register"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/set"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/stats"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/status"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/umount"
@@ -50,9 +52,13 @@ import (
 	v2Config "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/config"
 	v2Create "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/create"
 	v2Delete "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/delete"
+	v2Deregister "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/deregister"
 	v2List "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/list"
 	v2Query "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/query"
 	v2Quota "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/quota"
+	v2Register "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/register"
+
+	v2Set "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/set"
 	v2Stats "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/stats"
 	v2Status "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/status"
 	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
@@ -81,6 +87,8 @@ func addSubCommands(cmd *cobra.Command) {
 			quota.NewQuotaCommand(),
 			quotaconfig.NewConfigCommand(),
 			set.NewSetCommand(),
+			register.NewRegisterCommand(),
+			deregister.NewDeregisterCommand(),
 		)
 	} else {
 		cmd.AddCommand(
@@ -93,7 +101,11 @@ func addSubCommands(cmd *cobra.Command) {
 			v2Stats.NewStatsCommand(),
 			v2Umount.NewUmountCommand(),
 			v2Quota.NewQuotaCommand(),
-			v2Usage.NewUsageCommand())
+			v2Usage.NewUsageCommand(),
+			v2Set.NewSetCommand(),
+			v2Register.NewRegisterCommand(),
+			v2Deregister.NewDeregisterCommand(),
+		)
 	}
 }
 

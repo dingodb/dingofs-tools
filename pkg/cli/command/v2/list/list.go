@@ -30,6 +30,8 @@ func (listCmd *ListCommand) AddSubCommands() {
 		NewFsCommand(),
 		NewDentryCommand(),
 		NewMountPointCommand(),
+		NewCacheGroupCommand(),
+		NewCacheMemberCommand(),
 	)
 }
 

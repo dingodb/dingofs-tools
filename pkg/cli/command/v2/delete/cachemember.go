@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cachemember
+package delete
 
 import (
 	"fmt"
@@ -20,6 +20,7 @@ import (
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
@@ -76,18 +77,12 @@ func (cacheMember *CacheMemberCommand) Print(cmd *cobra.Command, args []string) 
 }
 
 func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	addrs, addrErr := config.GetFsMdsAddrSlice(cacheMember.Cmd)
-	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
-		cacheMember.Error = addrErr
-		return fmt.Errorf(addrErr.Message)
+	// new rpc
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "LeaveCacheMember")
+	if err != nil {
+		return err
 	}
-
-	timeout := config.GetRpcTimeout(cmd)
-	retryTimes := config.GetRpcRetryTimes(cmd)
-	retryDelay := config.GetRpcRetryDelay(cmd)
-	verbose := config.GetFlagBool(cmd, config.VERBOSE)
-	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "LeaveCacheMember")
-
+	// set request info
 	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
 	ip := config.GetFlagString(cmd, config.DINGOFS_CACHE_IP)
@@ -105,12 +100,9 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		request.Port = &port
 	}
 
-	rpc := &base.LeaveCacheMemberRpc{
-		Info:    rpcInfo,
-		Request: &request,
-	}
+	cacheMember.Rpc = &base.LeaveCacheMemberRpc{Info: mdsRpc, Request: &request}
 
-	response, cmdErr := base.GetRpcResponse(rpc.Info, rpc)
+	response, cmdErr := base.GetRpcResponse(cacheMember.Rpc.Info, cacheMember.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}

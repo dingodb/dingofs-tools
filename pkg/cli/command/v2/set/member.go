@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cachemember
+package set
 
 import (
 	"fmt"
@@ -21,9 +21,10 @@ import (
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbCacheGgroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
+	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +35,7 @@ const (
 type ReweightMemberCommand struct {
 	basecmd.FinalDingoCmd
 	Rpc      *base.ReWeightMemberRpc
-	response *pbCacheGgroup.ReweightMemberResponse
+	response *pbCacheGroup.ReweightMemberResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*ReweightMemberCommand)(nil) // check interface
@@ -43,7 +44,7 @@ func NewCacheMemberCommand() *cobra.Command {
 	reweightMemberCmd := &ReweightMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "set cachegroup member attribute",
+			Short:   "set remote cachegroup member attribute",
 			Example: SetMemberExample,
 		},
 	}
@@ -73,37 +74,30 @@ func (reweightMember *ReweightMemberCommand) Print(cmd *cobra.Command, args []st
 }
 
 func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	addrs, addrErr := config.GetFsMdsAddrSlice(reweightMember.Cmd)
-	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
-		reweightMember.Error = addrErr
-		return fmt.Errorf(addrErr.Message)
+	// new rpc
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "ReweightMember")
+	if err != nil {
+		return err
 	}
-
-	timeout := config.GetRpcTimeout(cmd)
-	retryTimes := config.GetRpcRetryTimes(cmd)
-	retryDelay := config.GetRpcRetryDelay(cmd)
-	verbose := config.GetFlagBool(cmd, config.VERBOSE)
-	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "LoadMembers")
-
+	// set request info
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
 	weight := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_WEIGHT)
-
-	rpc := &base.ReWeightMemberRpc{
-		Info: rpcInfo,
-		Request: &pbCacheGgroup.ReweightMemberRequest{
+	reweightMember.Rpc = &base.ReWeightMemberRpc{
+		Info: mdsRpc,
+		Request: &pbCacheGroup.ReweightMemberRequest{
 			MemberId: &memberId,
 			Weight:   &weight,
 		},
 	}
 
-	response, cmdErr := base.GetRpcResponse(rpc.Info, rpc)
+	response, cmdErr := base.GetRpcResponse(reweightMember.Rpc.Info, reweightMember.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbCacheGgroup.ReweightMemberResponse)
+	result := response.(*pbCacheGroup.ReweightMemberResponse)
 	var message string
-	if result.GetStatus() != pbCacheGgroup.CacheGroupErrCode_CacheGroupOk {
+	if result.GetStatus() != pbCacheGroup.CacheGroupErrCode_CacheGroupOk {
 		message = fmt.Sprintf("reweight cahce member %d error: %s", memberId, result.GetStatus().String())
 	} else {
 		message = cmderror.ErrSuccess().Message

@@ -12,32 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package delete
+package unregister
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/spf13/cobra"
 )
 
-type DeleteCommand struct {
+type UnregisterCommand struct {
 	basecmd.MidDingoCmd
 }
 
-var _ basecmd.MidDingoCmdFunc = (*DeleteCommand)(nil) // check interface
+var _ basecmd.MidDingoCmdFunc = (*UnregisterCommand)(nil) // check interface
 
-func (deleteCmd *DeleteCommand) AddSubCommands() {
-	deleteCmd.Cmd.AddCommand(
-		NewDeleteFsCommand(),
-		NewDeleteCacheMemberCommand(),
+func (unregisterCmd *UnregisterCommand) AddSubCommands() {
+	unregisterCmd.Cmd.AddCommand(
+		NewUnRegisterCacheMemberCommand(),
 	)
 }
 
-func NewDeleteCommand() *cobra.Command {
-	deleteCmd := &DeleteCommand{
+func NewUnregisterCommand() *cobra.Command {
+	unregisterCmd := &UnregisterCommand{
 		basecmd.MidDingoCmd{
-			Use:   "delete",
-			Short: "delete resources in the dingofs",
+			Use:   "unregister",
+			Short: "unregister dingofs resoure",
 		},
 	}
-	return basecmd.NewMidDingoCli(&deleteCmd.MidDingoCmd, deleteCmd)
+	return basecmd.NewMidDingoCli(&unregisterCmd.MidDingoCmd, unregisterCmd)
 }

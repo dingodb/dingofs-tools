@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cachegroup
+package list
 
 import (
 	"fmt"
-
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
@@ -74,30 +74,25 @@ func (cacheGroup *CacheGroupCommand) Print(cmd *cobra.Command, args []string) er
 }
 
 func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	addrs, addrErr := config.GetFsMdsAddrSlice(cacheGroup.Cmd)
-	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
-		cacheGroup.Error = addrErr
-		return fmt.Errorf(addrErr.Message)
+	// new rpc
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "ListGroups")
+	if err != nil {
+		return err
 	}
+	// set request info
+	cacheGroup.Rpc = &base.ListCacheGroupRpc{Info: mdsRpc, Request: &pbCacheGroup.ListGroupsRequest{}}
 
-	timeout := config.GetRpcTimeout(cmd)
-	retryTimes := config.GetRpcRetryTimes(cmd)
-	retryDelay := config.GetRpcRetryDelay(cmd)
-	verbose := config.GetFlagBool(cmd, config.VERBOSE)
-	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "ListGroups")
-
-	rpc := &base.ListCacheGroupRpc{
-		Info:    rpcInfo,
-		Request: &pbCacheGroup.ListGroupsRequest{},
-	}
-
-	response, cmdErr := base.GetRpcResponse(rpc.Info, rpc)
+	response, cmdErr := base.GetRpcResponse(cacheGroup.Rpc.Info, cacheGroup.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
 	result := response.(*pbCacheGroup.ListGroupsResponse)
 	groups := result.GetGroupNames()
+	if len(groups) == 0 {
+		return fmt.Errorf("no data found")
+	}
+
 	rows := make([]map[string]string, 0)
 	for _, group := range groups {
 		row := make(map[string]string)

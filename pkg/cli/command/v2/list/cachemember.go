@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cachemember
+package list
 
 import (
 	"fmt"
@@ -22,6 +22,7 @@ import (
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
@@ -35,8 +36,7 @@ $ dingo list cachemember --group group1`
 
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *base.ListCacheMemberRpc
-	response *pbCacheGroup.ListMembersResponse
+	Rpc *base.ListCacheMemberRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
@@ -45,7 +45,7 @@ func NewCacheMemberCommand() *cobra.Command {
 	cacheMemberCmd := &CacheMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "list cache members in cachegroup",
+			Short:   "list all cachemembers",
 			Example: ListMemberExample,
 		},
 	}
@@ -74,39 +74,33 @@ func (cacheMember *CacheMemberCommand) Print(cmd *cobra.Command, args []string) 
 }
 
 func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
-	addrs, addrErr := config.GetFsMdsAddrSlice(cacheMember.Cmd)
-	if addrErr.TypeCode() != cmderror.CODE_SUCCESS {
-		cacheMember.Error = addrErr
-		return fmt.Errorf(addrErr.Message)
+	// new rpc
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "ListMembers")
+	if err != nil {
+		return err
 	}
-
-	timeout := config.GetRpcTimeout(cmd)
-	retryTimes := config.GetRpcRetryTimes(cmd)
-	retryDelay := config.GetRpcRetryDelay(cmd)
-	verbose := config.GetFlagBool(cmd, config.VERBOSE)
-	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "ListMembers")
 
 	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 	request := pbCacheGroup.ListMembersRequest{}
 	if len(groupName) > 0 {
 		request.GroupName = &groupName
 	}
-	rpc := &base.ListCacheMemberRpc{
-		Info:    rpcInfo,
+	cacheMember.Rpc = &base.ListCacheMemberRpc{
+		Info:    mdsRpc,
 		Request: &request,
 	}
-
-	response, cmdErr := base.GetRpcResponse(rpc.Info, rpc)
+	// set request info
+	response, cmdErr := base.GetRpcResponse(cacheMember.Rpc.Info, cacheMember.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
 	result := response.(*pbCacheGroup.ListMembersResponse)
-	if result.GetStatus() != pbCacheGroup.CacheGroupErrCode_CacheGroupOk {
-		return fmt.Errorf("load members error: %s", result.GetStatus().String())
+	members := result.GetMembers()
+	if len(members) == 0 {
+		return fmt.Errorf("no members found")
 	}
 
-	members := result.GetMembers()
 	rows := make([]map[string]string, 0)
 	for _, member := range members {
 		row := make(map[string]string)
@@ -135,8 +129,6 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 				row[cobrautil.ROW_LASTONLINETIME] = onlineTime.Format("2006-01-02 15:04:05.000")
 			}
 		}
-
-		rows = append(rows, row)
 	}
 	list := cobrautil.ListMap2ListSortByKeys(rows, cacheMember.Header, []string{cobrautil.ROW_GROUP, cobrautil.ROW_ID})
 	cacheMember.TableNew.AppendBulk(list)
