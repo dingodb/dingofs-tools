@@ -24,16 +24,15 @@ package cli
 
 import (
 	"fmt"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/deregister"
 	"os"
 
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/fuse"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/gateway"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/version"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/check"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/create"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/deregister"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/leave"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/query"
@@ -44,6 +43,7 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/status"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/umount"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/warmup"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -63,13 +63,13 @@ import (
 	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
 	v2Unlock "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/unlock"
 	v2Usage "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/usage"
+	v2Warmup "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/warmup"
 )
 
 func addSubCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
 		version.NewVersionCommand(),
 		gateway.NewGatewayCommand(),
-		warmup.NewWarmupCommand(),
 		fuse.NewFuseCommand(),
 	)
 
@@ -90,6 +90,7 @@ func addSubCommands(cmd *cobra.Command) {
 			register.NewRegisterCommand(),
 			deregister.NewDeregisterCommand(),
 			leave.NewLeaveCommand(),
+			warmup.NewWarmupCommand(),
 		)
 	} else {
 		cmd.AddCommand(
@@ -106,6 +107,7 @@ func addSubCommands(cmd *cobra.Command) {
 			v2Set.NewSetCommand(),
 			v2Unlock.NewUnlockCommand(),
 			v2Leave.NewLeaveCommand(),
+			v2Warmup.NewWarmupCommand(),
 		)
 	}
 }

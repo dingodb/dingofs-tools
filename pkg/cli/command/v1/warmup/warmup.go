@@ -24,8 +24,8 @@ package warmup
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup/add"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup/query"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/warmup/add"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/warmup/query"
 	"github.com/spf13/cobra"
 )
 

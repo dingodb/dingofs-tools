@@ -25,6 +25,7 @@ package add
 import (
 	"errors"
 	"fmt"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/warmup/query"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -34,7 +35,6 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/warmup/query"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	"github.com/spf13/cobra"
