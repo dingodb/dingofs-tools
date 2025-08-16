@@ -26,15 +26,18 @@ import (
 	"bufio"
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/gookit/color"
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
+	"github.com/gookit/color"
 )
 
 const (
@@ -192,4 +195,37 @@ func StringList2Uint32List(strList []string) ([]uint32, error) {
 		retList = append(retList, uint32(v))
 	}
 	return retList, nil
+}
+
+func RemoveHTTPPrefix(endpoint string) string {
+	re := regexp.MustCompile(`^(?i)https?://`)
+	return re.ReplaceAllString(endpoint, "")
+}
+
+func IsHTTPS(endpoint string) bool {
+	matched, _ := regexp.MatchString(`^(?i)https://`, endpoint)
+	return matched
+}
+
+func IsSSL(host string, timeout time.Duration) bool {
+	conf := &tls.Config{
+		InsecureSkipVerify: true, // ignore certificate check（only check protocol）
+	}
+	conn, err := tls.DialWithDialer(
+		&net.Dialer{Timeout: timeout},
+		"tcp",
+		host,
+		conf,
+	)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+
+	// check TLS Handshake status
+	if err := conn.Handshake(); err != nil {
+		return false // Handshake failed
+	}
+
+	return true // is ssl
 }
