@@ -66,6 +66,7 @@ const (
 	metricGauge
 	metricCounter
 	metricHist
+	metricHit
 )
 
 const MaxItemSize = 5
@@ -225,6 +226,7 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			s.items = append(s.items, &item{"load", "dingofs_remote_node_group_range_total_bytes", metricByte | metricCounter})
 			s.items = append(s.items, &item{"stage", "dingofs_remote_node_group_put_total_bytes", metricByte | metricCounter})
 			s.items = append(s.items, &item{"cache", "dingofs_remote_node_group_cache_total_bytes", metricByte | metricCounter})
+			s.items = append(s.items, &item{"hit", "dingofs_remote_cache", metricHit})
 		default:
 			fmt.Printf("Warning: no item defined for %c\n", r)
 			continue
@@ -343,6 +345,16 @@ func (w *statsWatcher) formatCPU(v float64, dark bool) string {
 		w.colorize("%", BLACK, false, false)
 }
 
+func (w *statsWatcher) formatHits(v float64, dark bool) string {
+	var ret string
+	var color int = GREEN
+	v = v * 100.0
+	ret = fmt.Sprintf("%4.1f", v)
+
+	return w.colorize(ret, color, dark, false) +
+		w.colorize("%", BLACK, false, false)
+}
+
 // read metric data from file
 func readStats(mp string) map[string]float64 {
 
@@ -425,6 +437,15 @@ func (w *statsWatcher) printDiff(left, right map[string]float64, dark bool) {
 					count /= float64(w.interval)
 				}
 				vals = append(vals, w.formatU64(count, dark, false), w.formatTime(avg, dark))
+			case metricHit: // metricHits
+				hitCount := right[it.name+"_hit_count"] - left[it.name+"_hit_count"]
+				missCount := right[it.name+"_miss_count"] - left[it.name+"_miss_count"]
+				totalCount := hitCount + missCount
+				var avg float64
+				if totalCount > 0.0 {
+					avg = hitCount / totalCount
+				}
+				vals = append(vals, w.formatHits(avg, dark))
 			}
 		}
 		values[i] = strings.Join(vals, " ")
