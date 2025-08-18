@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package deregister
+package leave
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/spf13/cobra"
 )
 
-type DeregisterCommand struct {
+type LeaveCommand struct {
 	basecmd.MidDingoCmd
 }
 
-var _ basecmd.MidDingoCmdFunc = (*DeregisterCommand)(nil) // check interface
+var _ basecmd.MidDingoCmdFunc = (*LeaveCommand)(nil) // check interface
 
-func (unregisterCmd *DeregisterCommand) AddSubCommands() {
-	unregisterCmd.Cmd.AddCommand(
-		NewDeregisterCacheMemberCommand(),
+func (leaveCmd *LeaveCommand) AddSubCommands() {
+	leaveCmd.Cmd.AddCommand(
+		NewLeaveCacheMemberCommand(),
 	)
 }
 
-func NewDeregisterCommand() *cobra.Command {
-	unregisterCmd := &DeregisterCommand{
+func NewLeaveCommand() *cobra.Command {
+	leaveCmd := &LeaveCommand{
 		basecmd.MidDingoCmd{
-			Use:   "deregister",
-			Short: "deregister dingofs resoure",
+			Use:   "leave",
+			Short: "leave member from cachegroup",
 		},
 	}
-	return basecmd.NewMidDingoCli(&unregisterCmd.MidDingoCmd, unregisterCmd)
+	return basecmd.NewMidDingoCli(&leaveCmd.MidDingoCmd, leaveCmd)
 }

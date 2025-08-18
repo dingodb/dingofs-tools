@@ -23,6 +23,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v1"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ const (
 
 type RegisterMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *base.RegisterCacheMemberRpc
+	Rpc *rpc.RegisterCacheMemberRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*RegisterMemberCommand)(nil) // check interface
@@ -89,7 +90,7 @@ func (registerMember *RegisterMemberCommand) RunCommand(cmd *cobra.Command, args
 	port := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_PORT)
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
 
-	rpc := &base.RegisterCacheMemberRpc{
+	rpc := &rpc.RegisterCacheMemberRpc{
 		Info: rpcInfo,
 		Request: &pbCacheGroup.RegisterMemberRequest{
 			Ip:     &ip,

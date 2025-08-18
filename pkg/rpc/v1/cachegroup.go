@@ -1,53 +1,54 @@
-package base
+package v1
 
 import (
 	"context"
+	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbCacheGgroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"google.golang.org/grpc"
 )
 
 type ListCacheGroupRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.ListGroupsRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
 type ListCacheMemberRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.ListMembersRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
 type ReWeightMemberRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.ReweightMemberRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
 type LeaveCacheMemberRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.LeaveCacheGroupRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
 type RegisterCacheMemberRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.RegisterMemberRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
 type DeregisterCacheMemberRpc struct {
-	Info             *Rpc
+	Info             *base.Rpc
 	Request          *pbCacheGgroup.DeregisterMemberRequest
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
-var _ RpcFunc = (*ListCacheGroupRpc)(nil)      // check interface
-var _ RpcFunc = (*ListCacheMemberRpc)(nil)     // check interface
-var _ RpcFunc = (*ReWeightMemberRpc)(nil)      // check interface
-var _ RpcFunc = (*LeaveCacheMemberRpc)(nil)    // check interface
-var _ RpcFunc = (*RegisterCacheMemberRpc)(nil) // check interface
+var _ base.RpcFunc = (*ListCacheGroupRpc)(nil)      // check interface
+var _ base.RpcFunc = (*ListCacheMemberRpc)(nil)     // check interface
+var _ base.RpcFunc = (*ReWeightMemberRpc)(nil)      // check interface
+var _ base.RpcFunc = (*LeaveCacheMemberRpc)(nil)    // check interface
+var _ base.RpcFunc = (*RegisterCacheMemberRpc)(nil) // check interface
 
 func (listCacheGroup *ListCacheGroupRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	listCacheGroup.cacheGroupClient = pbCacheGgroup.NewCacheGroupMemberServiceClient(cc)

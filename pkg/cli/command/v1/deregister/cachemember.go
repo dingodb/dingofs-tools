@@ -23,6 +23,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v1"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ const (
 
 type DeregisterMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *base.DeregisterCacheMemberRpc
+	Rpc *rpc.DeregisterCacheMemberRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*DeregisterMemberCommand)(nil) // check interface
@@ -87,7 +88,7 @@ func (deRegisterMember *DeregisterMemberCommand) RunCommand(cmd *cobra.Command, 
 	ip := config.GetFlagString(cmd, config.DINGOFS_CACHE_IP)
 	port := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_PORT)
 
-	rpc := &base.DeregisterCacheMemberRpc{
+	rpc := &rpc.DeregisterCacheMemberRpc{
 		Info: rpcInfo,
 		Request: &pbCacheGroup.DeregisterMemberRequest{
 			Ip:   &ip,

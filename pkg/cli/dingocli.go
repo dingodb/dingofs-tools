@@ -52,16 +52,15 @@ import (
 	v2Config "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/config"
 	v2Create "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/create"
 	v2Delete "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/delete"
-	v2Deregister "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/deregister"
+	v2Leave "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/leave"
 	v2List "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/list"
 	v2Query "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/query"
 	v2Quota "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/quota"
-	v2Register "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/register"
-
 	v2Set "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/set"
 	v2Stats "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/stats"
 	v2Status "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/status"
 	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
+	v2Unlock "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/unlock"
 	v2Usage "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/usage"
 )
 
@@ -103,8 +102,8 @@ func addSubCommands(cmd *cobra.Command) {
 			v2Quota.NewQuotaCommand(),
 			v2Usage.NewUsageCommand(),
 			v2Set.NewSetCommand(),
-			v2Register.NewRegisterCommand(),
-			v2Deregister.NewDeregisterCommand(),
+			v2Unlock.NewUnlockCommand(),
+			v2Leave.NewLeaveCommand(),
 		)
 	}
 }

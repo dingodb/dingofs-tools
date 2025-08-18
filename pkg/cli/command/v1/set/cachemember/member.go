@@ -23,6 +23,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v1"
 	pbCacheGgroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ const (
 
 type ReweightMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *base.ReWeightMemberRpc
+	Rpc      *rpc.ReWeightMemberRpc
 	response *pbCacheGgroup.ReweightMemberResponse
 }
 
@@ -88,7 +89,7 @@ func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
 	weight := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_WEIGHT)
 
-	rpc := &base.ReWeightMemberRpc{
+	rpc := &rpc.ReWeightMemberRpc{
 		Info: rpcInfo,
 		Request: &pbCacheGgroup.ReweightMemberRequest{
 			MemberId: &memberId,

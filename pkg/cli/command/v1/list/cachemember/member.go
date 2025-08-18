@@ -24,6 +24,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v1"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
@@ -35,7 +36,7 @@ $ dingo list cachemember --group group1`
 
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *base.ListCacheMemberRpc
+	Rpc      *rpc.ListCacheMemberRpc
 	response *pbCacheGroup.ListMembersResponse
 }
 
@@ -91,7 +92,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 	if len(groupName) > 0 {
 		request.GroupName = &groupName
 	}
-	rpc := &base.ListCacheMemberRpc{
+	rpc := &rpc.ListCacheMemberRpc{
 		Info:    rpcInfo,
 		Request: &request,
 	}

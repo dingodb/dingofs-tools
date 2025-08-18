@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package unregister
+package unlock
 
 import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/spf13/cobra"
 )
 
-type UnregisterCommand struct {
+type UnlockCommand struct {
 	basecmd.MidDingoCmd
 }
 
-var _ basecmd.MidDingoCmdFunc = (*UnregisterCommand)(nil) // check interface
+var _ basecmd.MidDingoCmdFunc = (*UnlockCommand)(nil) // check interface
 
-func (unregisterCmd *UnregisterCommand) AddSubCommands() {
-	unregisterCmd.Cmd.AddCommand(
-		NewUnRegisterCacheMemberCommand(),
+func (unlockCmd *UnlockCommand) AddSubCommands() {
+	unlockCmd.Cmd.AddCommand(
+		NewCacheMemberCommand(),
 	)
 }
 
-func NewUnregisterCommand() *cobra.Command {
-	unregisterCmd := &UnregisterCommand{
+func NewUnlockCommand() *cobra.Command {
+	setCmd := &UnlockCommand{
 		basecmd.MidDingoCmd{
-			Use:   "unregister",
-			Short: "unregister dingofs resoure",
+			Use:   "unlock",
+			Short: "unlock dingofs resource",
 		},
 	}
-	return basecmd.NewMidDingoCli(&unregisterCmd.MidDingoCmd, unregisterCmd)
+	return basecmd.NewMidDingoCli(&setCmd.MidDingoCmd, setCmd)
 }

@@ -29,6 +29,7 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/common"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
 	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/topology"
 )
 
@@ -192,6 +193,19 @@ func TranslateCacheGroupMemberState(state cachegroup.CacheGroupMemberState) stri
 	case cachegroup.CacheGroupMemberState_CacheGroupMemberStateOffline:
 		return "offline"
 	case cachegroup.CacheGroupMemberState_CacheGroupMemberStateUnstable:
+		return "unstable"
+	default:
+		return "unknown"
+	}
+}
+
+func TranslateCacheGroupMemberState2(state mdsv2.CacheGroupMemberState) string {
+	switch state {
+	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateOnline:
+		return "online"
+	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateOffline:
+		return "offline"
+	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateUnstable:
 		return "unstable"
 	default:
 		return "unknown"

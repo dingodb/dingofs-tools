@@ -175,13 +175,21 @@ const (
 	DINGOFS_DEFAULT_SUBPATH_GID = uint32(0)
 
 	// cache group
-	DINGOFS_CACHE_GROUP        = "group"
-	DINGOFS_CACHE_MEMBERID     = "memberid"
-	DINGOFS_CACHE_WEIGHT       = "weight"
-	DINGOFS_CACHE_IP           = "ip"
-	DINGOFS_CACHE_PORT         = "port"
-	VIPER_DINGOFS_CACHE_PORT   = "dingofs.cachegroup.port"
-	DINGOFS_DEFAULT_CACHE_PORT = uint32(0)
+	DINGOFS_CACHE_GROUP            = "group"
+	VIPER_DINGOFS_CACHE_GROUP      = "dingofs.cachegroup.group"
+	DINGOFS_DEFAULT_CACHE_GROUP    = ""
+	DINGOFS_CACHE_MEMBERID         = "memberid"
+	VIPER_DINGOFS_CACHE_MEMBERID   = "dingofs.cachegroup.memberid"
+	DINGOFS_DEFAULT_CACHE_MEMBERID = ""
+	DINGOFS_CACHE_WEIGHT           = "weight"
+	VIPER_DINGOFS_CACHE_WEIGHT     = "dingofs.cachegroup.weight"
+	DINGOFS_DEFAULT_CACHE_WEIGHT   = uint32(0)
+	DINGOFS_CACHE_IP               = "ip"
+	VIPER_DINGOFS_CACHE_IP         = "dingofs.cachegroup.ip"
+	DINGOFS_DEFAULT_CACHE_IP       = ""
+	DINGOFS_CACHE_PORT             = "port"
+	VIPER_DINGOFS_CACHE_PORT       = "dingofs.cachegroup.port"
+	DINGOFS_DEFAULT_CACHE_PORT     = uint32(0)
 )
 
 var (
@@ -247,7 +255,11 @@ var (
 		DINGOFS_SUBPATH_GID: VIPER_DINGOFS_SUBPATH_GID,
 
 		// cache group
-		DINGOFS_CACHE_PORT: VIPER_DINGOFS_CACHE_PORT,
+		DINGOFS_CACHE_GROUP:    VIPER_DINGOFS_CACHE_GROUP,
+		DINGOFS_CACHE_MEMBERID: VIPER_DINGOFS_CACHE_MEMBERID,
+		DINGOFS_CACHE_WEIGHT:   VIPER_DINGOFS_CACHE_WEIGHT,
+		DINGOFS_CACHE_IP:       VIPER_DINGOFS_CACHE_IP,
+		DINGOFS_CACHE_PORT:     VIPER_DINGOFS_CACHE_PORT,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
@@ -295,7 +307,11 @@ var (
 		DINGOFS_SUBPATH_GID: DINGOFS_DEFAULT_SUBPATH_GID,
 
 		// cache group
-		DINGOFS_CACHE_PORT: DINGOFS_DEFAULT_CACHE_PORT,
+		DINGOFS_CACHE_GROUP:    DINGOFS_DEFAULT_CACHE_GROUP,
+		DINGOFS_CACHE_MEMBERID: DINGOFS_DEFAULT_CACHE_MEMBERID,
+		DINGOFS_CACHE_WEIGHT:   DINGOFS_DEFAULT_CACHE_WEIGHT,
+		DINGOFS_CACHE_IP:       DINGOFS_DEFAULT_CACHE_IP,
+		DINGOFS_CACHE_PORT:     DINGOFS_DEFAULT_CACHE_PORT,
 	}
 )
 
@@ -1019,11 +1035,11 @@ func AddCacheGroupOptionalFlag(cmd *cobra.Command) {
 }
 
 func AddCacheMemberIdFlag(cmd *cobra.Command) {
-	AddStringRequiredFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+	AddStringRequiredFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachemember id")
 }
 
 func AddCacheMemberIdOptionalFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachegroup member id")
+	AddStringOptionFlag(cmd, DINGOFS_CACHE_MEMBERID, "cachemember id")
 }
 
 func AddCacheMemberWeightFlag(cmd *cobra.Command) {

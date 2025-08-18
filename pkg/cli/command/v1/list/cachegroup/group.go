@@ -23,6 +23,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v1"
 	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +34,7 @@ const (
 
 type CacheGroupCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *base.ListCacheGroupRpc
+	Rpc *rpc.ListCacheGroupRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheGroupCommand)(nil) // check interface
@@ -86,7 +87,7 @@ func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []strin
 	verbose := config.GetFlagBool(cmd, config.VERBOSE)
 	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "ListGroups")
 
-	rpc := &base.ListCacheGroupRpc{
+	rpc := &rpc.ListCacheGroupRpc{
 		Info:    rpcInfo,
 		Request: &pbCacheGroup.ListGroupsRequest{},
 	}

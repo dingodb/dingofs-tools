@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package delete
+package leave
 
 import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
@@ -29,24 +29,24 @@ import (
 )
 
 const (
-	DeleteMemberExample = `
-$ dingo delete cachemember --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8`
+	LeaveMemberExample = `
+$ dingo leave cachemember --group group1 --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --ip 10.220.69.6 --port 10001`
 )
 
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *rpc.DeleteCacheMemberRpc
-	response *pbmdsv2.DeleteMemberResponse
+	Rpc      *rpc.LeaveCacheMemberRpc
+	response *pbmdsv2.LeaveCacheGroupResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
 
-func NewDeleteCacheMemberCommand() *cobra.Command {
+func NewLeaveCacheMemberCommand() *cobra.Command {
 	cacheMemberCmd := &CacheMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "delete cachegroup member",
-			Example: DeleteMemberExample,
+			Short:   "leave cachegroup member",
+			Example: LeaveMemberExample,
 		},
 	}
 
@@ -59,7 +59,10 @@ func (cacheMember *CacheMemberCommand) AddFlags() {
 	config.AddRpcRetryDelayFlag(cacheMember.Cmd)
 	config.AddRpcTimeoutFlag(cacheMember.Cmd)
 	config.AddFsMdsAddrFlag(cacheMember.Cmd)
+	config.AddCacheGroupFlag(cacheMember.Cmd)
 	config.AddCacheMemberIdFlag(cacheMember.Cmd)
+	config.AddCacheMemberIp(cacheMember.Cmd)
+	config.AddCacheMemberPort(cacheMember.Cmd)
 }
 
 func (cacheMember *CacheMemberCommand) Init(cmd *cobra.Command, args []string) error {
@@ -75,17 +78,23 @@ func (cacheMember *CacheMemberCommand) Print(cmd *cobra.Command, args []string) 
 
 func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	// new rpc
-	mdsRpc, err := common.CreateNewMdsRpc(cmd, "DeleteCacheMember")
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "LeaveCacheMember")
 	if err != nil {
 		return err
 	}
 	// set request info
+	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
+	ip := config.GetFlagString(cmd, config.DINGOFS_CACHE_IP)
+	port := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_PORT)
 
-	cacheMember.Rpc = &rpc.DeleteCacheMemberRpc{
+	cacheMember.Rpc = &rpc.LeaveCacheMemberRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.DeleteMemberRequest{
-			MemberId: memberId,
+		Request: &pbmdsv2.LeaveCacheGroupRequest{
+			GroupName: groupName,
+			MemberId:  memberId,
+			Ip:        ip,
+			Port:      port,
 		},
 	}
 
@@ -94,7 +103,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.DeleteMemberResponse)
+	result := response.(*pbmdsv2.LeaveCacheGroupResponse)
 	dingoCacheErr := cmderror.MDSV2Error(result.GetError())
 	row := map[string]string{
 		cobrautil.ROW_RESULT: dingoCacheErr.Message,

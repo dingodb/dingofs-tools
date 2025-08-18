@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package set
+package unlock
 
 import (
 	"fmt"
@@ -31,55 +31,54 @@ import (
 )
 
 const (
-	SetMemberExample = `$ dingo set cachemember  --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --ip 10.220.69.6 --port 10001 --weight 90`
+	UnlockMemberExample = `$ dingo unlock cachemember  --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --ip 10.220.69.6 --port 10001`
 )
 
-type ReweightMemberCommand struct {
+type UnlockMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *rpc.ReWeightMemberRpc
-	response *pbmdsv2.ReweightMemberResponse
+	Rpc      *rpc.UnlockCacheMemberRpc
+	response *pbmdsv2.UnLockMemberResponse
 }
 
-var _ basecmd.FinalDingoCmdFunc = (*ReweightMemberCommand)(nil) // check interface
+var _ basecmd.FinalDingoCmdFunc = (*UnlockMemberCommand)(nil) // check interface
 
 func NewCacheMemberCommand() *cobra.Command {
-	reweightMemberCmd := &ReweightMemberCommand{
+	unlockMemberCmd := &UnlockMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "set remote cachegroup member attribute",
-			Example: SetMemberExample,
+			Short:   "unlock cache member",
+			Example: UnlockMemberExample,
 		},
 	}
 
-	basecmd.NewFinalDingoCli(&reweightMemberCmd.FinalDingoCmd, reweightMemberCmd)
-	return reweightMemberCmd.Cmd
+	basecmd.NewFinalDingoCli(&unlockMemberCmd.FinalDingoCmd, unlockMemberCmd)
+	return unlockMemberCmd.Cmd
 }
 
-func (reweightMember *ReweightMemberCommand) AddFlags() {
-	config.AddRpcRetryTimesFlag(reweightMember.Cmd)
-	config.AddRpcRetryDelayFlag(reweightMember.Cmd)
-	config.AddRpcTimeoutFlag(reweightMember.Cmd)
-	config.AddFsMdsAddrFlag(reweightMember.Cmd)
-	config.AddCacheMemberIdFlag(reweightMember.Cmd)
-	config.AddCacheMemberIp(reweightMember.Cmd)
-	config.AddCacheMemberPort(reweightMember.Cmd)
-	config.AddCacheMemberWeightFlag(reweightMember.Cmd)
+func (unlockMember *UnlockMemberCommand) AddFlags() {
+	config.AddRpcRetryTimesFlag(unlockMember.Cmd)
+	config.AddRpcRetryDelayFlag(unlockMember.Cmd)
+	config.AddRpcTimeoutFlag(unlockMember.Cmd)
+	config.AddFsMdsAddrFlag(unlockMember.Cmd)
+	config.AddCacheMemberIdFlag(unlockMember.Cmd)
+	config.AddCacheMemberIp(unlockMember.Cmd)
+	config.AddCacheMemberPort(unlockMember.Cmd)
 }
 
-func (reweightMember *ReweightMemberCommand) Init(cmd *cobra.Command, args []string) error {
+func (unlockMember *UnlockMemberCommand) Init(cmd *cobra.Command, args []string) error {
 	header := []string{cobrautil.ROW_RESULT}
-	reweightMember.SetHeader(header)
+	unlockMember.SetHeader(header)
 
 	return nil
 }
 
-func (reweightMember *ReweightMemberCommand) Print(cmd *cobra.Command, args []string) error {
-	return output.FinalCmdOutput(&reweightMember.FinalDingoCmd, reweightMember)
+func (unlockMember *UnlockMemberCommand) Print(cmd *cobra.Command, args []string) error {
+	return output.FinalCmdOutput(&unlockMember.FinalDingoCmd, unlockMember)
 }
 
-func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
+func (unlockMember *UnlockMemberCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	// new rpc
-	mdsRpc, err := common.CreateNewMdsRpc(cmd, "ReweightMember")
+	mdsRpc, err := common.CreateNewMdsRpc(cmd, "UnlockMember")
 	if err != nil {
 		return err
 	}
@@ -87,28 +86,26 @@ func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
 	ip := config.GetFlagString(cmd, config.DINGOFS_CACHE_IP)
 	port := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_PORT)
-	weight := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_WEIGHT)
 
-	reweightMember.Rpc = &rpc.ReWeightMemberRpc{
+	unlockMember.Rpc = &rpc.UnlockCacheMemberRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.ReweightMemberRequest{
+		Request: &pbmdsv2.UnLockMemberRequest{
 			MemberId: memberId,
 			Ip:       ip,
 			Port:     port,
-			Weight:   weight,
 		},
 	}
 
-	response, cmdErr := base.GetRpcResponse(reweightMember.Rpc.Info, reweightMember.Rpc)
+	response, cmdErr := base.GetRpcResponse(unlockMember.Rpc.Info, unlockMember.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.ReweightMemberResponse)
+	result := response.(*pbmdsv2.UnLockMemberResponse)
 	var message string
 	mdsError := result.GetError()
 	if mdsError.GetErrcode() != pbmdsv2err.Errno_OK {
-		message = fmt.Sprintf("reweight cahce member %s, error: %s", memberId, mdsError.String())
+		message = fmt.Sprintf("unlock cahce member %s, error: %s", memberId, mdsError.String())
 	} else {
 		message = cmderror.ErrSuccess().Message
 	}
@@ -116,7 +113,7 @@ func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args
 	row := map[string]string{
 		cobrautil.ROW_RESULT: message,
 	}
-	reweightMember.TableNew.Append(cobrautil.Map2List(row, reweightMember.Header))
+	unlockMember.TableNew.Append(cobrautil.Map2List(row, unlockMember.Header))
 
 	// to json
 	res, err := output.MarshalProtoJson(result)
@@ -124,12 +121,12 @@ func (reweightMember *ReweightMemberCommand) RunCommand(cmd *cobra.Command, args
 		return err
 	}
 	mapRes := res.(map[string]interface{})
-	reweightMember.Result = mapRes
-	reweightMember.Error = cmderror.ErrSuccess()
+	unlockMember.Result = mapRes
+	unlockMember.Error = cmderror.ErrSuccess()
 
 	return nil
 }
 
-func (reweightMember *ReweightMemberCommand) ResultPlainOutput() error {
-	return output.FinalCmdOutputPlain(&reweightMember.FinalDingoCmd)
+func (unlockMember *UnlockMemberCommand) ResultPlainOutput() error {
+	return output.FinalCmdOutputPlain(&unlockMember.FinalDingoCmd)
 }

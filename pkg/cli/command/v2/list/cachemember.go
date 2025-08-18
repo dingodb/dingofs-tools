@@ -20,12 +20,14 @@ import (
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v2"
+	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+
+	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +38,7 @@ $ dingo list cachemember --group group1`
 
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *base.ListCacheMemberRpc
+	Rpc *rpc.ListCacheMemberRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
@@ -63,7 +65,7 @@ func (cacheMember *CacheMemberCommand) AddFlags() {
 }
 
 func (cacheMember *CacheMemberCommand) Init(cmd *cobra.Command, args []string) error {
-	header := []string{cobrautil.ROW_ID, cobrautil.ROW_IP, cobrautil.ROW_PORT, cobrautil.ROW_WEIGHT, cobrautil.ROW_CREATE_TIME, cobrautil.ROW_LASTONLINETIME, cobrautil.ROW_STATE, cobrautil.ROW_GROUP}
+	header := []string{cobrautil.ROW_MEMBERID, cobrautil.ROW_IP, cobrautil.ROW_PORT, cobrautil.ROW_WEIGHT, cobrautil.ROW_LOCKED, cobrautil.ROW_CREATE_TIME, cobrautil.ROW_LASTONLINETIME, cobrautil.ROW_STATE, cobrautil.ROW_GROUP}
 	cacheMember.SetHeader(header)
 
 	return nil
@@ -80,12 +82,13 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return err
 	}
 
-	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
-	request := pbCacheGroup.ListMembersRequest{}
-	if len(groupName) > 0 {
+	request := pbmdsv2.ListMembersRequest{}
+	if cmd.Flag(config.DINGOFS_CACHE_GROUP).Changed {
+		groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 		request.GroupName = &groupName
 	}
-	cacheMember.Rpc = &base.ListCacheMemberRpc{
+
+	cacheMember.Rpc = &rpc.ListCacheMemberRpc{
 		Info:    mdsRpc,
 		Request: &request,
 	}
@@ -95,24 +98,25 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbCacheGroup.ListMembersResponse)
+	result := response.(*pbmdsv2.ListMembersResponse)
 	members := result.GetMembers()
 	if len(members) == 0 {
-		return fmt.Errorf("no members found")
+		return fmt.Errorf("no cachemember found")
 	}
 
 	rows := make([]map[string]string, 0)
 	for _, member := range members {
 		row := make(map[string]string)
-		row[cobrautil.ROW_ID] = member.GetId()
+		row[cobrautil.ROW_MEMBERID] = member.GetMemberId()
 		ip := member.GetIp()
 		port := member.GetPort()
 		if len(ip) > 0 && port > 0 {
 			row[cobrautil.ROW_IP] = member.GetIp()
 			row[cobrautil.ROW_PORT] = fmt.Sprintf("%d", member.GetPort())
 			row[cobrautil.ROW_WEIGHT] = fmt.Sprintf("%d", member.GetWeight())
-			row[cobrautil.ROW_STATE] = cobrautil.TranslateCacheGroupMemberState(member.GetState())
+			row[cobrautil.ROW_STATE] = cobrautil.TranslateCacheGroupMemberState2(member.GetState())
 			row[cobrautil.ROW_GROUP] = member.GetGroupName()
+			row[cobrautil.ROW_LOCKED] = fmt.Sprintf("%v", member.GetLocked())
 
 			// process create time
 			seconds := int64(member.GetCreateTimeS())
@@ -129,6 +133,8 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 				row[cobrautil.ROW_LASTONLINETIME] = onlineTime.Format("2006-01-02 15:04:05.000")
 			}
 		}
+
+		rows = append(rows, row)
 	}
 	list := cobrautil.ListMap2ListSortByKeys(rows, cacheMember.Header, []string{cobrautil.ROW_GROUP, cobrautil.ROW_ID})
 	cacheMember.TableNew.AppendBulk(list)

@@ -18,12 +18,14 @@ import (
 	"fmt"
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
+	rpc "github.com/dingodb/dingofs-tools/pkg/rpc/v2"
+	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+
+	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v2/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbCacheGroup "github.com/dingodb/dingofs-tools/proto/dingofs/proto/cachegroup"
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +35,7 @@ const (
 
 type CacheGroupCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc *base.ListCacheGroupRpc
+	Rpc *rpc.ListCacheGroupRpc
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheGroupCommand)(nil) // check interface
@@ -80,17 +82,17 @@ func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []strin
 		return err
 	}
 	// set request info
-	cacheGroup.Rpc = &base.ListCacheGroupRpc{Info: mdsRpc, Request: &pbCacheGroup.ListGroupsRequest{}}
+	cacheGroup.Rpc = &rpc.ListCacheGroupRpc{Info: mdsRpc, Request: &pbmdsv2.ListGroupsRequest{}}
 
 	response, cmdErr := base.GetRpcResponse(cacheGroup.Rpc.Info, cacheGroup.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbCacheGroup.ListGroupsResponse)
+	result := response.(*pbmdsv2.ListGroupsResponse)
 	groups := result.GetGroupNames()
 	if len(groups) == 0 {
-		return fmt.Errorf("no data found")
+		return fmt.Errorf("no cachegroup found")
 	}
 
 	rows := make([]map[string]string, 0)
