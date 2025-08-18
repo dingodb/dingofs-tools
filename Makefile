@@ -24,6 +24,7 @@ GOENV += GOPROXY=$(GOPROXY)
 GOENV += CC=$(CC)
 GOENV += CGO_ENABLED=1 CGO_LDFLAGS=$(CGO_LDFLAGS)
 GOENV += GOOS=$(GOOS) GOARCH=$(GOARCH)
+GOENV += CGO_CFLAGS="-I$(THIRD_PARTY_INSTALL_PATH)/include"
 
 # go
 GO := go
@@ -40,7 +41,6 @@ VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/versi
 VERSION_FLAG += -X github.com/dingodb/dingofs-tools/pkg/cli/command/common/version.BuildDate=${BUILD_DATE}
 
 # for rados
-CGO_CFLAGS 		 :=-I$(THIRD_PARTY_INSTALL_PATH)/include
 BUILD_LDFLAGS	 :=-L$(THIRD_PARTY_INSTALL_PATH)/lib
 BUILD_LDFLAGS +=  -l:librados.a  #rados
 BUILD_LDFLAGS +=  -l:librdmacm.a -l:libibverbs.a #rdma
