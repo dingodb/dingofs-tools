@@ -34,6 +34,7 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/check"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/create"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/leave"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/query"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/quota"
@@ -88,6 +89,7 @@ func addSubCommands(cmd *cobra.Command) {
 			set.NewSetCommand(),
 			register.NewRegisterCommand(),
 			deregister.NewDeregisterCommand(),
+			leave.NewLeaveCommand(),
 		)
 	} else {
 		cmd.AddCommand(

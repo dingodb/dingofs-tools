@@ -32,6 +32,12 @@ type LeaveCacheMemberRpc struct {
 	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
 }
 
+type DeleteCacheMemberRpc struct {
+	Info             *base.Rpc
+	Request          *pbCacheGgroup.DeleteMemberIdRequest
+	cacheGroupClient pbCacheGgroup.CacheGroupMemberServiceClient
+}
+
 type RegisterCacheMemberRpc struct {
 	Info             *base.Rpc
 	Request          *pbCacheGgroup.RegisterMemberRequest
@@ -49,6 +55,7 @@ var _ base.RpcFunc = (*ListCacheMemberRpc)(nil)     // check interface
 var _ base.RpcFunc = (*ReWeightMemberRpc)(nil)      // check interface
 var _ base.RpcFunc = (*LeaveCacheMemberRpc)(nil)    // check interface
 var _ base.RpcFunc = (*RegisterCacheMemberRpc)(nil) // check interface
+var _ base.RpcFunc = (*DeleteCacheMemberRpc)(nil)   // check interface
 
 func (listCacheGroup *ListCacheGroupRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	listCacheGroup.cacheGroupClient = pbCacheGgroup.NewCacheGroupMemberServiceClient(cc)
@@ -87,6 +94,16 @@ func (leaveMember *LeaveCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface
 func (leaveMember *LeaveCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := leaveMember.cacheGroupClient.LeaveCacheGroup(ctx, leaveMember.Request)
 	output.ShowRpcData(leaveMember.Request, response, leaveMember.Info.RpcDataShow)
+	return response, err
+}
+
+func (deleteMember *DeleteCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	deleteMember.cacheGroupClient = pbCacheGgroup.NewCacheGroupMemberServiceClient(cc)
+}
+
+func (deleteMember *DeleteCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := deleteMember.cacheGroupClient.DeleteMemberId(ctx, deleteMember.Request)
+	output.ShowRpcData(deleteMember.Request, response, deleteMember.Info.RpcDataShow)
 	return response, err
 }
 

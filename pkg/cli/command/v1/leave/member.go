@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cachemember
+package leave
 
 import (
 	"fmt"
@@ -28,23 +28,25 @@ import (
 )
 
 const (
-	DeleteMemberExample = `$ dingo delete cachemember --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8`
+	LeaveMemberExample = `
+$ dingo leave cachemember --group group1 --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8
+$ dingo leave cachemember --group group1 --ip 10.220.69.6 --port 10001`
 )
 
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
-	Rpc      *rpc.DeleteCacheMemberRpc
-	response *pbCacheGroup.DeleteMemberIdResponse
+	Rpc      *rpc.LeaveCacheMemberRpc
+	response *pbCacheGroup.LeaveCacheGroupResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
 
-func NewDeleteCacheMemberCommand() *cobra.Command {
+func NewLeaveCacheMemberCommand() *cobra.Command {
 	cacheMemberCmd := &CacheMemberCommand{
 		FinalDingoCmd: basecmd.FinalDingoCmd{
 			Use:     "cachemember",
-			Short:   "delete cachegroup member",
-			Example: DeleteMemberExample,
+			Short:   "leave cachegroup member",
+			Example: LeaveMemberExample,
 		},
 	}
 
@@ -57,7 +59,10 @@ func (cacheMember *CacheMemberCommand) AddFlags() {
 	config.AddRpcRetryDelayFlag(cacheMember.Cmd)
 	config.AddRpcTimeoutFlag(cacheMember.Cmd)
 	config.AddFsMdsAddrFlag(cacheMember.Cmd)
-	config.AddCacheMemberIdFlag(cacheMember.Cmd)
+	config.AddCacheGroupFlag(cacheMember.Cmd)
+	config.AddCacheMemberIdOptionalFlag(cacheMember.Cmd)
+	config.AddCacheMemberIpOptionalFlag(cacheMember.Cmd)
+	config.AddCacheMemberPortOptionalFlag(cacheMember.Cmd)
 }
 
 func (cacheMember *CacheMemberCommand) Init(cmd *cobra.Command, args []string) error {
@@ -82,15 +87,28 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 	retryTimes := config.GetRpcRetryTimes(cmd)
 	retryDelay := config.GetRpcRetryDelay(cmd)
 	verbose := config.GetFlagBool(cmd, config.VERBOSE)
-	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "DeleteCacheMember")
+	rpcInfo := base.NewRpc(addrs, timeout, retryTimes, retryDelay, verbose, "LeaveCacheMember")
 
+	groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 	memberId := config.GetFlagString(cmd, config.DINGOFS_CACHE_MEMBERID)
+	ip := config.GetFlagString(cmd, config.DINGOFS_CACHE_IP)
+	port := config.GetFlagUint32(cmd, config.DINGOFS_CACHE_PORT)
 
-	rpc := &rpc.DeleteCacheMemberRpc{
-		Info: rpcInfo,
-		Request: &pbCacheGroup.DeleteMemberIdRequest{
-			MemberId: &memberId,
-		},
+	if (len(memberId) == 0) && (len(ip) == 0 || port == 0) {
+		return fmt.Errorf("memberId or (ip,port) is invalid")
+	}
+
+	request := pbCacheGroup.LeaveCacheGroupRequest{GroupName: &groupName}
+	if len(memberId) > 0 {
+		request.MemberId = &memberId
+	} else {
+		request.Ip = &ip
+		request.Port = &port
+	}
+
+	rpc := &rpc.LeaveCacheMemberRpc{
+		Info:    rpcInfo,
+		Request: &request,
 	}
 
 	response, cmdErr := base.GetRpcResponse(rpc.Info, rpc)
@@ -98,7 +116,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbCacheGroup.DeleteMemberIdResponse)
+	result := response.(*pbCacheGroup.LeaveCacheGroupResponse)
 	dingoCacheErr := cmderror.ErrDingoCacheRequest(result.GetStatus())
 	row := map[string]string{
 		cobrautil.ROW_RESULT: dingoCacheErr.Message,
