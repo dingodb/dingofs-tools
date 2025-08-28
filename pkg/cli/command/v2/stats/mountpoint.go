@@ -198,14 +198,8 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			s.items = append(s.items, &item{"read", "dingofs_vfs_read_bps_total_count", metricByte | metricCounter})
 			s.items = append(s.items, &item{"write", "dingofs_vfs_write_bps_total_count", metricByte | metricCounter})
 		case 'm':
-			s.name = "metaserver"
-			s.items = append(s.items, &item{"ops", "dingofs_metaserver_client_get_allopt", metricTime | metricHist})
-			if verbose {
-				s.items = append(s.items, &item{"txn", "dingofs_metaserver_client_get_txnopt", metricTime | metricHist})
-			}
-		case 's':
 			s.name = "mds"
-			s.items = append(s.items, &item{"ops", "dingofs_mds_client_get_allopt", metricTime | metricHist})
+			s.items = append(s.items, &item{"ops", "dingofs_mdsv2_client_all_operation", metricTime | metricHist})
 		case 'b':
 			s.name = "blockcache"
 			s.items = append(s.items, &item{"load", "dingofs_disk_cache_group_load_total_bytes", metricByte | metricCounter})
