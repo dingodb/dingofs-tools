@@ -75,6 +75,7 @@ func (fCmd *FsCommand) AddFlags() {
 	config.AddStorageTypeOptionFlag(fCmd.Cmd)
 	config.AddCapacityOptionFlag(fCmd.Cmd)
 	config.AddPartitionTypeOptionFlag(fCmd.Cmd)
+	config.AddMdsNumOptionalFlag(fCmd.Cmd)
 	// s3
 	config.AddS3AkOptionFlag(fCmd.Cmd)
 	config.AddS3SkOptionFlag(fCmd.Cmd)
@@ -95,7 +96,6 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// get request parameters
-	fsId := config.GetFlagUint32(cmd, config.DINGOFS_FSID)
 	fsName := config.GetFlagString(cmd, config.DINGOFS_FSNAME)
 	if !cobrautil.IsValidFsname(fsName) {
 		return fmt.Errorf("fsname[%s] is not vaild, it should be match regex: %s", fsName, cobrautil.FS_NAME_REGEX)
@@ -151,22 +151,33 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	default:
 		return fmt.Errorf("invalid partition type: %s", partitionTypeStr)
 	}
+
+	request := pbmdsv2.CreateFsRequest{
+		FsName:        fsName,
+		BlockSize:     blockSize,
+		ChunkSize:     chunkSize,
+		FsType:        fsType,
+		Owner:         owner,
+		Capacity:      capability,
+		FsExtra:       &fsExtra,
+		PartitionType: partitionType,
+	}
+
+	if cmd.Flag(config.DINGOFS_FSID).Changed {
+		fsId := config.GetFlagUint32(cmd, config.DINGOFS_FSID)
+		request.FsId = fsId
+	}
+	if (cmd.Flag(config.DINGOFS_MDS_NUM).Changed) && (partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION) {
+		mdsNum := config.GetFlagUint32(cmd, config.DINGOFS_MDS_NUM)
+		request.ExpectMdsNum = mdsNum
+	}
+
 	// set request info
 	fCmd.Rpc = &common.CreateFsRpc{
-		Info: mdsRpc,
-		Request: &pbmdsv2.CreateFsRequest{
-			FsId:          fsId,
-			FsName:        fsName,
-			BlockSize:     blockSize,
-			ChunkSize:     chunkSize,
-			FsType:        fsType,
-			Owner:         owner,
-			Capacity:      capability,
-			FsExtra:       &fsExtra,
-			PartitionType: partitionType,
-		},
+		Info:    mdsRpc,
+		Request: &request,
 	}
-	
+
 	return nil
 }
 

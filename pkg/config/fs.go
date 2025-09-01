@@ -190,6 +190,11 @@ const (
 	DINGOFS_CACHE_PORT             = "port"
 	VIPER_DINGOFS_CACHE_PORT       = "dingofs.cachegroup.port"
 	DINGOFS_DEFAULT_CACHE_PORT     = uint32(0)
+
+	// mds numbers
+	DINGOFS_MDS_NUM         = "mdsnum"
+	VIPER_DINGOFS_MDS_NUM   = "dingofs.mdsnum"
+	DINGOFS_DEFAULT_MDS_NUM = uint32(0)
 )
 
 var (
@@ -260,6 +265,9 @@ var (
 		DINGOFS_CACHE_WEIGHT:   VIPER_DINGOFS_CACHE_WEIGHT,
 		DINGOFS_CACHE_IP:       VIPER_DINGOFS_CACHE_IP,
 		DINGOFS_CACHE_PORT:     VIPER_DINGOFS_CACHE_PORT,
+
+		// mds numbers
+		DINGOFS_MDS_NUM: VIPER_DINGOFS_MDS_NUM,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
@@ -312,6 +320,9 @@ var (
 		DINGOFS_CACHE_WEIGHT:   DINGOFS_DEFAULT_CACHE_WEIGHT,
 		DINGOFS_CACHE_IP:       DINGOFS_DEFAULT_CACHE_IP,
 		DINGOFS_CACHE_PORT:     DINGOFS_DEFAULT_CACHE_PORT,
+
+		// mds numbers
+		DINGOFS_MDS_NUM: DINGOFS_DEFAULT_MDS_NUM,
 	}
 )
 
@@ -1060,4 +1071,9 @@ func AddCacheMemberPort(cmd *cobra.Command) {
 
 func AddCacheMemberPortOptionalFlag(cmd *cobra.Command) {
 	AddUint32OptionFlag(cmd, DINGOFS_CACHE_PORT, "cachemember port")
+}
+
+// mds numbers for create fs
+func AddMdsNumOptionalFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_MDS_NUM, "expect mds numbers, only used for hash partition")
 }
