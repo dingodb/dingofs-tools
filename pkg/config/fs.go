@@ -103,7 +103,7 @@ const (
 	DINGOFS_DEFAULT_STORAGE        = "disk"
 	DINGOFS_STATS_SCHEMA           = "schema"
 	VIPER_DINGOFS_STATS_SCHEMA     = "dingofs.schema"
-	DINGOFS_STATS_DEFAULT_SCHEMA   = "ufmbor"
+	DINGOFS_STATS_DEFAULT_SCHEMA   = "ufbor"
 	DINGOFS_STATS_COUNT            = "count"
 	VIPER_DINGOFS_STATS_COUNT      = "dingofs.count"
 	DINGOFS_STATS_DEFAULT_COUNT    = uint32(0)
@@ -900,7 +900,7 @@ func GetStorageFlag(cmd *cobra.Command) string {
 
 // stats schema [option]
 func AddFsSchemaOptionalFlag(cmd *cobra.Command) {
-	AddStringOptionFlag(cmd, DINGOFS_STATS_SCHEMA, `schema string that controls the output sections (u: usage, f: fuse, m: metaserver,s: mds, b: blockcache, o: object)`)
+	AddStringOptionFlag(cmd, DINGOFS_STATS_SCHEMA, `schema string that controls the output sections (u: usage, f: fuse, b: blockcache, o: object, r: remotecache, m: metaserver, s: mds)`)
 }
 
 func GetStatsSchemaFlagOptionFlag(cmd *cobra.Command) string {
