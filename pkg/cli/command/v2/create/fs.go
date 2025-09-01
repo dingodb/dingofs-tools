@@ -67,6 +67,7 @@ func (fCmd *FsCommand) AddFlags() {
 	config.AddRpcRetryDelayFlag(fCmd.Cmd)
 	config.AddRpcTimeoutFlag(fCmd.Cmd)
 	config.AddFsMdsAddrFlag(fCmd.Cmd)
+	config.AddFsIdUint32OptionFlag(fCmd.Cmd)
 	config.AddFsNameRequiredFlag(fCmd.Cmd)
 	config.AddUserOptionFlag(fCmd.Cmd)
 	config.AddBlockSizeOptionFlag(fCmd.Cmd)
@@ -94,6 +95,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// get request parameters
+	fsId := config.GetFlagUint32(cmd, config.DINGOFS_FSID)
 	fsName := config.GetFlagString(cmd, config.DINGOFS_FSNAME)
 	if !cobrautil.IsValidFsname(fsName) {
 		return fmt.Errorf("fsname[%s] is not vaild, it should be match regex: %s", fsName, cobrautil.FS_NAME_REGEX)
@@ -153,6 +155,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	fCmd.Rpc = &common.CreateFsRpc{
 		Info: mdsRpc,
 		Request: &pbmdsv2.CreateFsRequest{
+			FsId:          fsId,
 			FsName:        fsName,
 			BlockSize:     blockSize,
 			ChunkSize:     chunkSize,
@@ -163,7 +166,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 			PartitionType: partitionType,
 		},
 	}
-
+	
 	return nil
 }
 
@@ -240,6 +243,9 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	response, errCmd := base.GetRpcResponse(fCmd.Rpc.Info, fCmd.Rpc)
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
+	}
+	if response == nil {
+		return fmt.Errorf("rpc no response")
 	}
 	result := response.(*pbmdsv2.CreateFsResponse)
 	mdsErr := result.GetError()
