@@ -124,11 +124,12 @@ func (queryFSCmd *QueryFsCommand) Init(cmd *cobra.Command, args []string) error 
 	}
 
 	// set table header
-	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_CHUNK_SIZE, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_PARTITION_TYPE, cobrautil.ROW_OWNER, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
+	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_CHUNK_SIZE, cobrautil.ROW_MDS_NUM, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_STORAGE, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
 	queryFSCmd.SetHeader(header)
-	indexOwner := slices.Index(header, cobrautil.ROW_OWNER)
+	queryFSCmd.TableNew.SetAutoWrapText(false)
+
 	indexType := slices.Index(header, cobrautil.ROW_STORAGE_TYPE)
-	queryFSCmd.TableNew.SetAutoMergeCellsByColumnIndex([]int{indexOwner, indexType})
+	queryFSCmd.TableNew.SetAutoMergeCellsByColumnIndex([]int{indexType})
 
 	return nil
 }
@@ -163,17 +164,28 @@ func (queryFSCmd *QueryFsCommand) RunCommand(cmd *cobra.Command, args []string) 
 		}
 		// fill table
 		fsInfo := result.GetFsInfo()
+
 		row := make(map[string]string)
 		row[cobrautil.ROW_FS_ID] = fmt.Sprintf("%d", fsInfo.GetFsId())
 		row[cobrautil.ROW_FS_NAME] = fsInfo.GetFsName()
 		row[cobrautil.ROW_STATUS] = fsInfo.GetStatus().String()
 		row[cobrautil.ROW_BLOCKSIZE] = fmt.Sprintf("%d", fsInfo.GetBlockSize())
 		row[cobrautil.ROW_CHUNK_SIZE] = fmt.Sprintf("%d", fsInfo.GetChunkSize())
-		row[cobrautil.ROW_STORAGE_TYPE] = fsInfo.GetFsType().String()
-		row[cobrautil.ROW_PARTITION_TYPE] = common.ConvertPbPartitionTypeToString(fsInfo.GetPartitionPolicy().GetType())
-		row[cobrautil.ROW_OWNER] = fsInfo.GetOwner()
+
+		partitionType := fsInfo.GetPartitionPolicy().GetType()
+		if partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION {
+			row[cobrautil.ROW_STORAGE_TYPE] = fmt.Sprintf("%s(%s %d)", fsInfo.GetFsType().String(),
+				common.ConvertPbPartitionTypeToString(partitionType), fsInfo.GetPartitionPolicy().GetParentHash().GetBucketNum())
+			row[cobrautil.ROW_MDS_NUM] = fmt.Sprintf("%d", len(fsInfo.GetPartitionPolicy().GetParentHash().GetDistributions()))
+		} else {
+			row[cobrautil.ROW_STORAGE_TYPE] = fmt.Sprintf("%s(%s)", fsInfo.GetFsType().String(), common.ConvertPbPartitionTypeToString(partitionType))
+			row[cobrautil.ROW_MDS_NUM] = "1"
+		}
+
+		row[cobrautil.ROW_STORAGE] = common.ConvertFsExtraToString(fsInfo.GetExtra())
 		row[cobrautil.ROW_MOUNT_NUM] = fmt.Sprintf("%d", len(fsInfo.GetMountPoints()))
 		row[cobrautil.ROW_UUID] = fsInfo.GetUuid()
+
 		rows = append(rows, row)
 
 		// to json

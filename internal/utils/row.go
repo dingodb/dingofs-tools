@@ -51,6 +51,7 @@ const (
 	ROW_FS_CLIENTID     = "clientId"
 	ROW_FS_CTO          = "cto"
 	ROW_STORAGE_TYPE    = "storageType"
+	ROW_STORAGE         = "storage"
 	ROW_PARTITION_TYPE  = "partitionType"
 	ROW_GROUP           = "group"
 	ROW_HOSTNAME        = "hostname"
@@ -154,6 +155,9 @@ const (
 	//fuse
 	ROW_FUSE_CONNECTION = "CONNECTION"
 	ROW_FUSE_WAITING    = "WAITING"
+
+	//mds
+	ROW_MDS_NUM = "mdsnum"
 )
 
 // topology type
