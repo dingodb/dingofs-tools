@@ -47,9 +47,13 @@ func GetInodesAsString(listFilePath string) (string, error) {
 			continue
 		}
 
+		if !strings.HasPrefix(filePath, "/") {
+			return "", fmt.Errorf("filelist[%s] content error, each line requires a full path name", listFilePath)
+		}
+
 		inodeId, err2 := GetFileInode(filePath)
 		if err2 != nil {
-			return "", fmt.Errorf("failed to get inode for %s: not a syscall.Stat_t", filePath)
+			return "", fmt.Errorf("%s not exist", filePath)
 		}
 		if inodeId == 0 {
 			continue
@@ -58,6 +62,6 @@ func GetInodesAsString(listFilePath string) (string, error) {
 	}
 
 	inodeStrings = RemoveDuplicates(inodeStrings)
-	
+
 	return strings.Join(inodeStrings, ","), nil
 }
