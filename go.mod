@@ -31,7 +31,13 @@ require (
 	google.golang.org/protobuf v1.28.1
 )
 
-require github.com/stretchr/testify v1.10.0
+require (
+	github.com/ceph/go-ceph v0.34.0
+	github.com/minio/minio-go/v7 v7.0.24
+	github.com/stretchr/testify v1.10.0
+	go.uber.org/zap v1.21.0
+	gopkg.in/natefinch/lumberjack.v2 v2.0.0
+)
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
@@ -50,12 +56,12 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/bcicen/jstream v1.0.1 // indirect
 	github.com/beevik/ntp v0.3.0 // indirect
+	github.com/benbjohnson/clock v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.0.1 // indirect
 	github.com/briandowns/spinner v1.18.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/ceph/go-ceph v0.34.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charmbracelet/bubbles v0.10.3 // indirect
 	github.com/charmbracelet/bubbletea v0.20.0 // indirect
@@ -170,7 +176,6 @@ require (
 	github.com/minio/madmin-go v1.3.12 // indirect
 	github.com/minio/mc v0.0.0-20220419155441-cc4ff3a0cc82 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.24 // indirect
 	github.com/minio/pkg v1.1.23 // indirect
 	github.com/minio/selfupdate v0.4.0 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
@@ -250,7 +255,6 @@ require (
 	go.opencensus.io v0.23.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
-	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
