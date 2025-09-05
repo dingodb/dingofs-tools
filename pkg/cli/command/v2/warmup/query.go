@@ -134,7 +134,7 @@ func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		if err != nil || warmErrors > 0 {
 			break
 		}
-		if (finished + warmErrors) == finished {
+		if (finished + warmErrors) == total {
 			break
 		}
 		if isDaemon {
