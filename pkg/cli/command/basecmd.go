@@ -18,6 +18,7 @@ import (
 	"os"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
+	"github.com/dingodb/dingofs-tools/internal/logger"
 	"github.com/dingodb/dingofs-tools/internal/utils/process"
 	cobratemplate "github.com/dingodb/dingofs-tools/internal/utils/template"
 	config "github.com/dingodb/dingofs-tools/pkg/config"
@@ -31,15 +32,16 @@ import (
 // Error Use to indicate whether the command is wrong
 // and the reason for the execution error
 type FinalDingoCmd struct {
-	Use      string             `json:"-"`
-	Short    string             `json:"-"`
-	Long     string             `json:"-"`
-	Example  string             `json:"-"`
-	Error    *cmderror.CmdError `json:"error"`
-	Result   interface{}        `json:"result"`
-	TableNew *tablewriter.Table `json:"-"`
-	Header   []string           `json:"-"`
-	Cmd      *cobra.Command     `json:"-"`
+	Use      string              `json:"-"`
+	Short    string              `json:"-"`
+	Long     string              `json:"-"`
+	Example  string              `json:"-"`
+	Error    *cmderror.CmdError  `json:"error"`
+	Result   interface{}         `json:"result"`
+	TableNew *tablewriter.Table  `json:"-"`
+	Header   []string            `json:"-"`
+	Cmd      *cobra.Command      `json:"-"`
+	Logger   *logger.DingoLogger `json:"-"`
 }
 
 func (fc *FinalDingoCmd) SetHeader(header []string) {
@@ -83,6 +85,7 @@ type MidDingoCmdFunc interface {
 }
 
 func NewFinalDingoCli(cli *FinalDingoCmd, funcs FinalDingoCmdFunc) *cobra.Command {
+	cli.Logger = logger.GetLogger()
 	cli.Cmd = &cobra.Command{
 		Use:     cli.Use,
 		Short:   cli.Short,
@@ -104,6 +107,7 @@ func NewFinalDingoCli(cli *FinalDingoCmd, funcs FinalDingoCmdFunc) *cobra.Comman
 		},
 		SilenceUsage: false,
 	}
+	
 	config.AddFormatFlag(cli.Cmd)
 	funcs.AddFlags()
 	cobratemplate.SetFlagErrorFunc(cli.Cmd)
