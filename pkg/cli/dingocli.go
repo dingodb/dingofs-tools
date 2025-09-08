@@ -18,10 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dingodb/dingofs-tools/pkg/config"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
+	"github.com/dingodb/dingofs-tools/internal/logger"
 	cobratemplate "github.com/dingodb/dingofs-tools/internal/utils/template"
 	cmdConfig "github.com/dingodb/dingofs-tools/pkg/cli/command/config"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create"
@@ -40,6 +37,9 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/usage"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/version"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/warmup"
+	"github.com/dingodb/dingofs-tools/pkg/config"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func addSubCommands(cmd *cobra.Command) {
@@ -92,8 +92,11 @@ func newDingoCommand() *cobra.Command {
 
 	rootCmd.PersistentFlags().BoolP("help", "", false, "print help")
 	rootCmd.PersistentFlags().StringP("conf", "", "", "config file (default is $HOME/.dingo/dingo.yaml or /etc/dingo/dingo.yaml)")
-	config.AddShowErrorPFlag(rootCmd)
 	rootCmd.PersistentFlags().BoolP("verbose", "", false, "show some extra info")
+	config.AddShowErrorPFlag(rootCmd)
+	config.AddLogfilePFlag(rootCmd)
+	config.AddLoglevelPFlag(rootCmd)
+	config.AddLogfmtPFlag(rootCmd)
 	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
 
 	addSubCommands(rootCmd)
@@ -109,14 +112,39 @@ func Execute() {
 	// dingo list fs --conf dingo.yaml
 	// we will need to parse cmd flags --conf to determine the MDS API version.
 
+	logfile := logger.DEFAULT_LOG_FILE
+	loglevel := logger.DEFAULT_LOG_LEVEL
+	logfmt := logger.DEFAULT_LOG_FORMAT
+
 	var confFile string
 	for i := 0; i < len(os.Args); i++ {
-		if os.Args[i] == "--conf" {
+		switch os.Args[i] {
+		case "--conf":
 			if i+1 < len(os.Args) {
 				confFile = os.Args[i+1]
+				i++ // Skip the next argument since we've consumed it
 			}
+		case "--logfile":
+			if i+1 < len(os.Args) {
+				logfile = os.Args[i+1]
+				i++
+			}
+		case "--loglevel":
+			if i+1 < len(os.Args) {
+				loglevel = os.Args[i+1]
+				i++
+			}
+		case "--logfmt":
+			if i+1 < len(os.Args) {
+				logfmt = os.Args[i+1]
+				i++
+			}
+		default:
+
 		}
 	}
+	// init glogal logger
+	logger.InitGlobalLogger(logger.WithLogFile(logfile), logger.WithLogLevel(loglevel), logger.WithFormat(logfmt))
 	// initialize config
 	config.InitConfig(confFile)
 

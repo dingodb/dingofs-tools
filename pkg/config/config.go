@@ -27,6 +27,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dingodb/dingofs-tools/internal/logger"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -56,6 +58,15 @@ const (
 	VIPER_GLOBALE_MAX_CHANNEL_SIZE = "global.maxChannelSize"
 	DEFAULT_MAX_CHANNEL_SIZE       = int32(4)
 	VIPER_GLOBALE_MDS_API_VERSION  = "global.mds_api_version"
+	LOGFILE                        = "logfile"
+	VIPER_GLOBALE_LOGFILE          = "global.logfile"
+	DEFAULT_LOGFILE                = logger.DEFAULT_LOG_FILE
+	LOGLEVEL                       = "loglevel"
+	VIPER_GLOBALE_LOGLEVEL         = "global.loglevel"
+	DEFAULT_LOGLEVEL               = logger.DEFAULT_LOG_LEVEL
+	LOGFMT                         = "logfmt"
+	VIPER_GLOBALE_LOGFMT           = "global.logfmt"
+	DEFAULT_LOGFMT                 = logger.DEFAULT_LOG_FORMAT
 )
 
 const (
@@ -148,6 +159,30 @@ func MaxChannelSize() int {
 func AddShowErrorPFlag(cmd *cobra.Command) {
 	cmd.PersistentFlags().Bool(SHOWERROR, false, "display all errors in command")
 	err := viper.BindPFlag(VIPER_GLOBALE_SHOWERROR, cmd.PersistentFlags().Lookup(SHOWERROR))
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
+func AddLogfilePFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().String(LOGFILE, DEFAULT_LOGFILE, "logfile name")
+	err := viper.BindPFlag(VIPER_GLOBALE_LOGFILE, cmd.PersistentFlags().Lookup(LOGFILE))
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
+func AddLoglevelPFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().String(LOGLEVEL, DEFAULT_LOGLEVEL, "loglevel (info|warn|error|debug|fatal|panic)")
+	err := viper.BindPFlag(VIPER_GLOBALE_LOGLEVEL, cmd.PersistentFlags().Lookup(LOGLEVEL))
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+}
+
+func AddLogfmtPFlag(cmd *cobra.Command) {
+	cmd.PersistentFlags().String(LOGFMT, DEFAULT_LOGFMT, "log format (text|json)")
+	err := viper.BindPFlag(VIPER_GLOBALE_LOGFMT, cmd.PersistentFlags().Lookup(LOGFMT))
 	if err != nil {
 		cobra.CheckErr(err)
 	}
