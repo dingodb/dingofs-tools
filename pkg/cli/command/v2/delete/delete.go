@@ -29,6 +29,7 @@ func (deleteCmd *DeleteCommand) AddSubCommands() {
 	deleteCmd.Cmd.AddCommand(
 		NewDeleteFsCommand(),
 		NewDeleteCacheMemberCommand(),
+		NewDeleteSubPathCommand(),
 	)
 }
 

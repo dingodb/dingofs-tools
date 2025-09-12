@@ -158,6 +158,9 @@ const (
 
 	//mds
 	ROW_MDS_NUM = "mdsnum"
+
+	// delete subdir
+	ROW_DELETE_INODES = "delete inodes"
 )
 
 // topology type

@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/output"
 	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
@@ -130,6 +129,18 @@ type ListFsInfoRpc struct {
 	mdsClient pbmdsv2.MDSServiceClient
 }
 
+type UnlinkFileRpc struct {
+	Info      *base.Rpc
+	Request   *pbmdsv2.UnLinkRequest
+	mdsClient pbmdsv2.MDSServiceClient
+}
+
+type RmDirRpc struct {
+	Info      *base.Rpc
+	Request   *pbmdsv2.RmDirRequest
+	mdsClient pbmdsv2.MDSServiceClient
+}
+
 // check interface
 var _ base.RpcFunc = (*GetMdsRpc)(nil)         // check interface
 var _ base.RpcFunc = (*CreateFsRpc)(nil)       // check interface
@@ -151,6 +162,8 @@ var _ base.RpcFunc = (*ListDirQuotaRpc)(nil)   // check interface
 var _ base.RpcFunc = (*DeleteDirQuotaRpc)(nil) // check interface
 var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
 var _ base.RpcFunc = (*CheckDirQuotaRpc)(nil)  // check interface
+var _ base.RpcFunc = (*UnlinkFileRpc)(nil)     // check interface
+var _ base.RpcFunc = (*RmDirRpc)(nil)          // check interface
 
 func (mdsFs *GetMDSRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	mdsFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
@@ -349,5 +362,25 @@ func (listFsInfo *ListFsInfoRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (listFsInfo *ListFsInfoRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := listFsInfo.mdsClient.ListFsInfo(ctx, listFsInfo.Request)
 	output.ShowRpcData(listFsInfo.Request, response, listFsInfo.Info.RpcDataShow)
+	return response, err
+}
+
+func (unlinkFile *UnlinkFileRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	unlinkFile.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+}
+
+func (unlinkFile *UnlinkFileRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := unlinkFile.mdsClient.UnLink(ctx, unlinkFile.Request)
+	output.ShowRpcData(unlinkFile.Request, response, unlinkFile.Info.RpcDataShow)
+	return response, err
+}
+
+func (rmDir *RmDirRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	rmDir.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+}
+
+func (rmDir *RmDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := rmDir.mdsClient.RmDir(ctx, rmDir.Request)
+	output.ShowRpcData(rmDir.Request, response, rmDir.Info.RpcDataShow)
 	return response, err
 }

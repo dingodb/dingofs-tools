@@ -401,6 +401,9 @@ var (
 	ErrGetFsUsage = func() *CmdError {
 		return NewInternalCmdError(44, "get the usage of the file system fail, err: %s")
 	}
+	ErrDeleteSubPath = func() *CmdError {
+		return NewInternalCmdError(45, "delete sub path fail, err: %s")
+	}
 	// http error
 	ErrHttpUnreadableResult = func() *CmdError {
 		return NewHttpResultCmdError(1, "http response is unreadable, the uri is: %s, the error is: %s")

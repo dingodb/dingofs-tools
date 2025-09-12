@@ -26,7 +26,6 @@ import (
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	"github.com/dingodb/dingofs-tools/pkg/base"
-	cmdcommon "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
 	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
@@ -38,6 +37,11 @@ var (
 	routerMtx   sync.RWMutex
 	fsMetaCache *FsMeta
 )
+
+type Summary struct {
+	Length uint64
+	Inodes uint64
+}
 
 func init() {
 	fsMetaCache = NewFsMeta()
@@ -227,6 +231,66 @@ func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string, ep
 	return result.GetDentry(), nil
 }
 
+func DeleteFile(cmd *cobra.Command, fsId uint32, parentId uint64, name string, epoch uint64) error {
+	endpoint := GetEndPoint(parentId)
+	if len(endpoint) == 0 {
+		return fmt.Errorf("endpoint is null")
+	}
+	// new prc
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "UnLink")
+	// set request info
+	unlinkFileRpc := &UnlinkFileRpc{
+		Info: mdsRpc,
+		Request: &pbmdsv2.UnLinkRequest{
+			Context: &pbmdsv2.Context{Epoch: epoch},
+			FsId:    fsId,
+			Parent:  parentId,
+			Name:    name,
+		},
+	}
+	// get rpc result
+	response, errCmd := base.GetRpcResponse(unlinkFileRpc.Info, unlinkFileRpc)
+	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
+		return fmt.Errorf(errCmd.Message)
+	}
+	result := response.(*pbmdsv2.UnLinkResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+		return cmderror.MDSV2Error(mdsErr).ToError()
+	}
+
+	return nil
+}
+
+func DeleteDirectory(cmd *cobra.Command, fsId uint32, parentId uint64, name string, epoch uint64) error {
+	endpoint := GetEndPoint(parentId)
+	if len(endpoint) == 0 {
+		return fmt.Errorf("endpoint is null")
+	}
+	// new prc
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "Rmdir")
+	// set request info
+	rmDirRpc := &RmDirRpc{
+		Info: mdsRpc,
+		Request: &pbmdsv2.RmDirRequest{
+			Context: &pbmdsv2.Context{Epoch: epoch},
+			FsId:    fsId,
+			Parent:  parentId,
+			Name:    name,
+		},
+	}
+	// get rpc result
+	response, errCmd := base.GetRpcResponse(rmDirRpc.Info, rmDirRpc)
+	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
+		return fmt.Errorf(errCmd.Message)
+	}
+	result := response.(*pbmdsv2.RmDirResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+		return cmderror.MDSV2Error(mdsErr).ToError()
+	}
+
+	return nil
+}
+
 // parse directory path -> inodeId
 func GetDirPathInodeId(cmd *cobra.Command, fsId uint32, path string, epoch uint64) (uint64, error) {
 	if path == "/" {
@@ -370,7 +434,7 @@ func GetInodePath(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64)
 }
 
 // get directory size and inodes by inode
-func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *cmdcommon.Summary, concurrent chan struct{},
+func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *Summary, concurrent chan struct{},
 	ctx context.Context, cancel context.CancelFunc, isFsCheck bool, inodeMap *sync.Map, epoch uint64) error {
 	var err error
 	entries, entErr := ListDentry(cmd, fsId, inode, epoch)
@@ -437,7 +501,7 @@ func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64,
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	summary := &cmdcommon.Summary{0, 0}
+	summary := &Summary{0, 0}
 	concurrent := make(chan struct{}, threads)
 	var inodeMap *sync.Map = &sync.Map{}
 
