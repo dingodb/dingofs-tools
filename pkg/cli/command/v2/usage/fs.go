@@ -43,8 +43,8 @@ $ dingo usage fs --fsid 1
 # get usage by fsname
 $ dingo usage fs --fsname dingofs1
 
-# get all usage
-$ dingo usage fs`
+# get all usage with 8 threads
+$ dingo usage fs --threads 8`
 )
 
 func NewFsUsageCommand() *cobra.Command {
@@ -66,6 +66,7 @@ func (fsUsageCmd *FsUageCommand) AddFlags() {
 	config.AddFsMdsAddrFlag(fsUsageCmd.Cmd)
 	config.AddFsIdUint32OptionFlag(fsUsageCmd.Cmd)
 	config.AddFsNameStringOptionFlag(fsUsageCmd.Cmd)
+	config.AddThreadsOptionFlag(fsUsageCmd.Cmd)
 	config.AddHumanizeOptionFlag(fsUsageCmd.Cmd)
 }
 
