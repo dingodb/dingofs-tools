@@ -1,24 +1,16 @@
-/*
- *  Copyright (c) 2022 NetEase Inc.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
-
-/*
- * Project: DingoCli
- * Created Date: 2022-05-09
- * Author: chengyi (Cyber-SiKu)
- */
+// Copyright (c) 2025 dingodb.com, Inc. All Rights Reserved
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package cli
 
@@ -26,44 +18,28 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/fuse"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/gateway"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/common/version"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/check"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/create"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/delete"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/deregister"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/leave"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/list"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/query"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/quota"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/register"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/set"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/stats"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/status"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/umount"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/usage"
-	"github.com/dingodb/dingofs-tools/pkg/cli/command/v1/warmup"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	cobratemplate "github.com/dingodb/dingofs-tools/internal/utils/template"
-	quotaconfig "github.com/dingodb/dingofs-tools/pkg/cli/command/v1/config"
-	v2Config "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/config"
-	v2Create "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/create"
-	v2Delete "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/delete"
-	v2Leave "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/leave"
-	v2List "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/list"
-	v2Query "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/query"
-	v2Quota "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/quota"
-	v2Set "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/set"
-	v2Stats "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/stats"
-	v2Status "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/status"
-	v2Umount "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/umount"
-	v2Unlock "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/unlock"
-	v2Usage "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/usage"
-	v2Warmup "github.com/dingodb/dingofs-tools/pkg/cli/command/v2/warmup"
+	cmdConfig "github.com/dingodb/dingofs-tools/pkg/cli/command/config"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/create"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/fuse"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/gateway"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/leave"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/list"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/query"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/quota"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/set"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/stats"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/status"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/umount"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/unlock"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/usage"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/version"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/warmup"
 )
 
 func addSubCommands(cmd *cobra.Command) {
@@ -71,45 +47,21 @@ func addSubCommands(cmd *cobra.Command) {
 		version.NewVersionCommand(),
 		gateway.NewGatewayCommand(),
 		fuse.NewFuseCommand(),
+		list.NewListCommand(),
+		create.NewCreateCommand(),
+		delete.NewDeleteCommand(),
+		status.NewStatusCommand(),
+		cmdConfig.NewConfigCommand(),
+		query.NewQueryCommand(),
+		stats.NewStatsCommand(),
+		umount.NewUmountCommand(),
+		quota.NewQuotaCommand(),
+		usage.NewUsageCommand(),
+		set.NewSetCommand(),
+		unlock.NewUnlockCommand(),
+		leave.NewLeaveCommand(),
+		warmup.NewWarmupCommand(),
 	)
-
-	if config.MDSApiV1 {
-		cmd.AddCommand(
-			usage.NewUsageCommand(),
-			list.NewListCommand(),
-			status.NewStatusCommand(),
-			umount.NewUmountCommand(),
-			query.NewQueryCommand(),
-			delete.NewDeleteCommand(),
-			create.NewCreateCommand(),
-			check.NewCheckCommand(),
-			stats.NewStatsCommand(),
-			quota.NewQuotaCommand(),
-			quotaconfig.NewConfigCommand(),
-			set.NewSetCommand(),
-			register.NewRegisterCommand(),
-			deregister.NewDeregisterCommand(),
-			leave.NewLeaveCommand(),
-			warmup.NewWarmupCommand(),
-		)
-	} else {
-		cmd.AddCommand(
-			v2List.NewListCommand(),
-			v2Create.NewCreateCommand(),
-			v2Delete.NewDeleteCommand(),
-			v2Status.NewStatusCommand(),
-			v2Config.NewConfigCommand(),
-			v2Query.NewQueryCommand(),
-			v2Stats.NewStatsCommand(),
-			v2Umount.NewUmountCommand(),
-			v2Quota.NewQuotaCommand(),
-			v2Usage.NewUsageCommand(),
-			v2Set.NewSetCommand(),
-			v2Unlock.NewUnlockCommand(),
-			v2Leave.NewLeaveCommand(),
-			v2Warmup.NewWarmupCommand(),
-		)
-	}
 }
 
 func setupRootCommand(cmd *cobra.Command) {

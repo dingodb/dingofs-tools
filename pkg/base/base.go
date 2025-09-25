@@ -18,26 +18,17 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
-	"sync"
-	"syscall"
 	"time"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	config "github.com/dingodb/dingofs-tools/pkg/config"
-	"github.com/spf13/viper"
 )
 
 const (
 	CURL_VERSION = "curl/7.54.0"
 )
-
-type LeaderMetaCache struct {
-	mutex      sync.RWMutex
-	leaderAddr string
-}
 
 type Metric struct {
 	Addrs   []string
@@ -51,10 +42,6 @@ type MetricResult struct {
 	Value string
 	Err   *cmderror.CmdError
 }
-
-var (
-	leaderMetaCache *LeaderMetaCache = &LeaderMetaCache{}
-)
 
 func NewMetric(addrs []string, subUri string, timeout time.Duration) *Metric {
 	return &Metric{
@@ -118,50 +105,6 @@ func GetKeyValueFromJsonMetric(metricRet string, key string) (string, *cmderror.
 	return data[key].(string), cmderror.ErrSuccess()
 }
 
-// get mds leader server
-func GetMdsLeader(mdsAddrs []string) (string, bool) {
-	leaderMetaCache.mutex.RLock()
-	if leaderMetaCache.leaderAddr != "" {
-		return leaderMetaCache.leaderAddr, true
-	}
-	leaderMetaCache.mutex.RUnlock()
-	timeout := viper.GetDuration(config.VIPER_GLOBALE_HTTPTIMEOUT)
-	for _, addr := range mdsAddrs {
-		addrs := []string{addr}
-		statusMetric := NewMetric(addrs, config.STATUS_SUBURI, timeout)
-		result, err := QueryMetric(statusMetric)
-		if err.TypeCode() == cmderror.CODE_SUCCESS {
-			value, err := GetMetricValue(result)
-			if err.TypeCode() == cmderror.CODE_SUCCESS && value == "leader" {
-				leaderMetaCache.mutex.Lock()
-				leaderMetaCache.leaderAddr = addr
-				leaderMetaCache.mutex.Unlock()
-				return addr, true
-			}
-		}
-	}
-	return "", false
-}
-
-// get request hosts
-func GetResuestHosts(reqAddrs []string) []string {
-	var result []string
-	if size := len(reqAddrs); size > 1 {
-		// mutible host,  get leader
-		leaderAddr, ok := GetMdsLeader(reqAddrs)
-		if ok {
-			result = append(result, leaderAddr)
-		} else {
-			// fail,remain origin host list
-			result = reqAddrs
-		}
-	} else {
-		// only one host
-		result = reqAddrs
-	}
-	return result
-}
-
 func httpGet(url string, timeout time.Duration, response chan string, errs chan *cmderror.CmdError) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -194,16 +137,4 @@ func httpGet(url string, timeout time.Duration, response chan string, errs chan 
 		response <- string(body)
 		errs <- cmderror.ErrSuccess()
 	}
-}
-
-// get mountPoint inode
-func GetFileInode(path string) (uint64, error) {
-	fi, err := os.Stat(path)
-	if err != nil {
-		return 0, err
-	}
-	if sst, ok := fi.Sys().(*syscall.Stat_t); ok {
-		return sst.Ino, nil
-	}
-	return 0, nil
 }

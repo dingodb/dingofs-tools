@@ -20,7 +20,6 @@ import (
 	"time"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
-	config "github.com/dingodb/dingofs-tools/pkg/config"
 	"google.golang.org/grpc"
 )
 
@@ -37,7 +36,6 @@ type Rpc struct {
 	RpcDataShow   bool
 }
 
-// TODO field RpcDataShow may be pass by parameter
 func NewRpc(addrs []string, timeout time.Duration, retryTimes int32, retryDelay time.Duration, dataShow bool, funcName string) *Rpc {
 	return &Rpc{
 		Addrs:         addrs,
@@ -61,12 +59,8 @@ type Result struct {
 }
 
 func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *cmderror.CmdError) {
-	var reqAddrs []string
-	if config.MDSApiV1 {
-		reqAddrs = GetResuestHosts(rpc.Addrs)
-	} else {
-		reqAddrs = rpc.Addrs
-	}
+	reqAddrs := rpc.Addrs
+
 	// start rpc request
 	results := make([]Result, 0)
 	for _, address := range reqAddrs {
@@ -116,10 +110,8 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *cmderror.CmdError)
 
 		// Return Connect to Pool
 		pool.PutConnection(address, conn)
-		// for mdsv2
-		if !config.MDSApiV1 { // mdsv2 just choose one available mds
-			break
-		}
+		// for mdsv2 just choose one available mds
+		break
 	}
 	// get the rpc response result
 	var ret interface{}

@@ -28,13 +28,12 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 )
 
- func GetTimeofDayUs() (uint64, *cmderror.CmdError) {
+func GetTimeofDayUs() (uint64, *cmderror.CmdError) {
 	var now syscall.Timeval
 	if e := syscall.Gettimeofday(&now); e != nil {
 		retErr := cmderror.ErrGettimeofday()
 		retErr.Format(e.Error())
 		return uint64(0), retErr
 	}
-	return uint64(now.Sec) * 1000000 + uint64(now.Usec), cmderror.Success()
- }
- 
+	return uint64(now.Sec)*1000000 + uint64(now.Usec), cmderror.Success()
+}

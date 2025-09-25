@@ -33,10 +33,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var (
-	MDSApiV1 bool // is MDS API v2
-)
-
 const (
 	FORMAT = "format"
 	// global
@@ -101,19 +97,6 @@ func InitConfig(confFile string) {
 		}
 	}
 
-	// check mds api version, env MDS_API_VERSION priority > config file
-	MDSApiV1 = false
-	mdsApiVersion := os.Getenv("MDS_API_VERSION")
-	if mdsApiVersion == "1" {
-		MDSApiV1 = true
-		return
-	}
-	if len(mdsApiVersion) == 0 { // env not set, check config file
-		mdsApiVersion = viper.GetString(VIPER_GLOBALE_MDS_API_VERSION)
-		if mdsApiVersion == "1" {
-			MDSApiV1 = true
-		}
-	}
 }
 
 // global
