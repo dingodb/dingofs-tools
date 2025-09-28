@@ -113,7 +113,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 			row[cobrautil.ROW_IP] = member.GetIp()
 			row[cobrautil.ROW_PORT] = fmt.Sprintf("%d", member.GetPort())
 			row[cobrautil.ROW_WEIGHT] = fmt.Sprintf("%d", member.GetWeight())
-			row[cobrautil.ROW_STATE] = cobrautil.TranslateCacheGroupMemberState2(member.GetState())
+			row[cobrautil.ROW_STATE] = cobrautil.TranslateCacheGroupMemberState(member.GetState())
 			row[cobrautil.ROW_GROUP] = member.GetGroupName()
 			row[cobrautil.ROW_LOCKED] = fmt.Sprintf("%v", member.GetLocked())
 
