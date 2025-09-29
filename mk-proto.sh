@@ -17,10 +17,10 @@ protoc --go_out=proto --proto_path=${PROTO_PATH} \
 protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
     ${PROTO_PATH}/dingofs/error.proto
 
-### dingofs-proto/mdsv2.proto
+### dingofs-proto/mds.proto
 protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
     --go_opt=Mdingofs/error.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/error \
-    ${PROTO_PATH}/dingofs/mdsv2.proto
+    ${PROTO_PATH}/dingofs/mds.proto
 
 ### dingofs-proto/cachegroup.proto
 protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \

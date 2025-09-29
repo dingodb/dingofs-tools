@@ -17,12 +17,12 @@ package common
 import (
 	"sync"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
 type MDSRouter interface {
-	Init(mdsSlice []*pbmdsv2.MDS, partitionPolicy *pbmdsv2.PartitionPolicy) bool
-	GetMDS(inodeId uint64) (*pbmdsv2.MDS, bool)
+	Init(mdsSlice []*pbmds.MDS, partitionPolicy *pbmds.PartitionPolicy) bool
+	GetMDS(inodeId uint64) (*pbmds.MDS, bool)
 }
 
 var _ MDSRouter = (*HashMDSRouter)(nil) // check interface
@@ -30,12 +30,12 @@ var _ MDSRouter = (*MonoMDSRouter)(nil) // check interface
 
 type HashMDSRouter struct {
 	mux           sync.RWMutex
-	hashPartition *pbmdsv2.HashPartition
+	hashPartition *pbmds.HashPartition
 	mdsIdMap      map[uint32]int64 // bucket_id -> mds_id
 	mdsMeta       *MDSMeta
 }
 
-func (h *HashMDSRouter) Init(mdsSlice []*pbmdsv2.MDS, partitionPolicy *pbmdsv2.PartitionPolicy) bool {
+func (h *HashMDSRouter) Init(mdsSlice []*pbmds.MDS, partitionPolicy *pbmds.PartitionPolicy) bool {
 	h.mux.Lock()
 	defer h.mux.Unlock()
 
@@ -58,7 +58,7 @@ func (h *HashMDSRouter) Init(mdsSlice []*pbmdsv2.MDS, partitionPolicy *pbmdsv2.P
 	return true
 }
 
-func (h *HashMDSRouter) GetMDS(inodeId uint64) (*pbmdsv2.MDS, bool) {
+func (h *HashMDSRouter) GetMDS(inodeId uint64) (*pbmds.MDS, bool) {
 	h.mux.RLock()
 	defer h.mux.RUnlock()
 
@@ -76,11 +76,11 @@ func (h *HashMDSRouter) GetMDS(inodeId uint64) (*pbmdsv2.MDS, bool) {
 
 type MonoMDSRouter struct {
 	mux     sync.RWMutex
-	mds     *pbmdsv2.MDS
+	mds     *pbmds.MDS
 	mdsMeta *MDSMeta
 }
 
-func (m *MonoMDSRouter) Init(mdsSlice []*pbmdsv2.MDS, partitionPolicy *pbmdsv2.PartitionPolicy) bool {
+func (m *MonoMDSRouter) Init(mdsSlice []*pbmds.MDS, partitionPolicy *pbmds.PartitionPolicy) bool {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -97,7 +97,7 @@ func (m *MonoMDSRouter) Init(mdsSlice []*pbmdsv2.MDS, partitionPolicy *pbmdsv2.P
 	return true
 }
 
-func (m *MonoMDSRouter) GetMDS(inodeId uint64) (*pbmdsv2.MDS, bool) {
+func (m *MonoMDSRouter) GetMDS(inodeId uint64) (*pbmds.MDS, bool) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 
@@ -108,8 +108,8 @@ func (m *MonoMDSRouter) GetMDS(inodeId uint64) (*pbmdsv2.MDS, bool) {
 	return m.mds, true
 }
 
-func NewMDSRouter(partitionType pbmdsv2.PartitionType) MDSRouter {
-	if partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION {
+func NewMDSRouter(partitionType pbmds.PartitionType) MDSRouter {
+	if partitionType == pbmds.PartitionType_PARENT_ID_HASH_PARTITION {
 		return &HashMDSRouter{
 			mdsIdMap: make(map[uint32]int64),
 			mdsMeta:  NewMDSMeta(),

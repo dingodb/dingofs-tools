@@ -26,8 +26,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/spf13/cobra"
 )
@@ -74,7 +74,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// set request info
-	fCmd.Rpc = &rpc.ListFsRpc{Info: mdsRpc, Request: &pbmdsv2.ListFsInfoRequest{}}
+	fCmd.Rpc = &rpc.ListFsRpc{Info: mdsRpc, Request: &pbmds.ListFsInfoRequest{}}
 	// set table header
 	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_BLOCKSIZE, cobrautil.ROW_CHUNK_SIZE, cobrautil.ROW_MDS_NUM, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_STORAGE, cobrautil.ROW_MOUNT_NUM, cobrautil.ROW_UUID}
 	fCmd.SetHeader(header)
@@ -96,8 +96,8 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.ListFsInfoResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.ListFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 	// fill table
@@ -111,7 +111,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		row[cobrautil.ROW_CHUNK_SIZE] = fmt.Sprintf("%d", fsInfo.GetChunkSize())
 
 		partitionType := fsInfo.GetPartitionPolicy().GetType()
-		if partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION {
+		if partitionType == pbmds.PartitionType_PARENT_ID_HASH_PARTITION {
 			row[cobrautil.ROW_STORAGE_TYPE] = fmt.Sprintf("%s(%s %d)", fsInfo.GetFsType().String(),
 				common.ConvertPbPartitionTypeToString(partitionType), fsInfo.GetPartitionPolicy().GetParentHash().GetBucketNum())
 			row[cobrautil.ROW_MDS_NUM] = fmt.Sprintf("%d", len(fsInfo.GetPartitionPolicy().GetParentHash().GetDistributions()))

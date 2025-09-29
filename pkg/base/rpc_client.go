@@ -110,7 +110,7 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *cmderror.CmdError)
 
 		// Return Connect to Pool
 		pool.PutConnection(address, conn)
-		// for mdsv2 just choose one available mds
+		// for mds just choose one available mds
 		break
 	}
 	// get the rpc response result

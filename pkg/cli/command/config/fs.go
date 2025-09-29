@@ -25,7 +25,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -85,10 +85,10 @@ func (fsQuotaCmd *SetFsQuotaCommand) Init(cmd *cobra.Command, args []string) err
 	}
 
 	// set request info
-	request := &pbmdsv2.SetFsQuotaRequest{
-		Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
+	request := &pbmds.SetFsQuotaRequest{
+		Context: &pbmds.Context{Epoch: epoch, IsBypassCache: true},
 		FsId:    fsId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: maxBytes, MaxInodes: maxInodes},
+		Quota:   &pbmds.Quota{MaxBytes: maxBytes, MaxInodes: maxInodes},
 	}
 	fsQuotaCmd.Rpc = &rpc.SetFsQuotaRpc{
 		Info:    mdsRpc,
@@ -111,7 +111,7 @@ func (fsQuotaCmd *SetFsQuotaCommand) RunCommand(cmd *cobra.Command, args []strin
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.SetFsQuotaResponse)
+	result := response.(*pbmds.SetFsQuotaResponse)
 	mdsErr := result.GetError()
 	row := map[string]string{
 		cobrautil.ROW_RESULT: cmderror.MDSV2Error(mdsErr).Message,

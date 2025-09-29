@@ -24,7 +24,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +72,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	fCmd.fsName = config.GetFlagString(fCmd.Cmd, config.DINGOFS_FSNAME)
 	fCmd.clientId = config.GetFlagString(fCmd.Cmd, config.DINGOFS_CLIENT_ID)
 
-	request := &pbmdsv2.UmountFsRequest{
+	request := &pbmds.UmountFsRequest{
 		FsName:   fCmd.fsName,
 		ClientId: fCmd.clientId,
 	}
@@ -95,7 +95,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(errCmd.Message)
 	}
 	fmt.Println(response)
-	result := response.(*pbmdsv2.UmountFsResponse)
+	result := response.(*pbmds.UmountFsResponse)
 	cmdErr := cmderror.MDSV2Error(result.GetError())
 
 	//fill table

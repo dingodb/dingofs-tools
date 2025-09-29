@@ -24,8 +24,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -67,7 +67,7 @@ func (mpCmd *MountPointCommand) Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// set request info
-	mpCmd.Rpc = &rpc.ListFsRpc{Info: mdsRpc, Request: &pbmdsv2.ListFsInfoRequest{}}
+	mpCmd.Rpc = &rpc.ListFsRpc{Info: mdsRpc, Request: &pbmds.ListFsInfoRequest{}}
 	// set table header
 	header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_FS_CLIENTID, cobrautil.ROW_MOUNTPOINT, cobrautil.ROW_FS_CTO}
 	mpCmd.SetHeader(header)
@@ -87,8 +87,8 @@ func (mpCmd *MountPointCommand) RunCommand(cmd *cobra.Command, args []string) er
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.ListFsInfoResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.ListFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 	// fill table

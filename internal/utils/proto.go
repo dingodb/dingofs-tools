@@ -15,16 +15,16 @@
 package cobrautil
 
 import (
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
-func TranslateCacheGroupMemberState(state mdsv2.CacheGroupMemberState) string {
+func TranslateCacheGroupMemberState(state mds.CacheGroupMemberState) string {
 	switch state {
-	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateOnline:
+	case mds.CacheGroupMemberState_CacheGroupMemberStateOnline:
 		return "online"
-	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateOffline:
+	case mds.CacheGroupMemberState_CacheGroupMemberStateOffline:
 		return "offline"
-	case mdsv2.CacheGroupMemberState_CacheGroupMemberStateUnstable:
+	case mds.CacheGroupMemberState_CacheGroupMemberStateUnstable:
 		return "unstable"
 	default:
 		return "unknown"

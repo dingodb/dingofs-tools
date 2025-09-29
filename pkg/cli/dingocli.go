@@ -103,7 +103,7 @@ func newDingoCommand() *cobra.Command {
 }
 
 func Execute() {
-	// for compatibility, dingo support mdsv2 and mdsv1, so we need to load different commands based on the MDS API version.
+	// for compatibility, dingo support mds and mdsv1, so we need to load different commands based on the MDS API version.
 	// MDS API version can be set by environment variable MDS_API_VERSION or mds_api_version in config file.
 	// if used mds_api_version parameter in config file with --conf flag,e.g.:
 	// dingo list fs --conf dingo.yaml

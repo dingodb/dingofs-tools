@@ -19,7 +19,7 @@ import (
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/rpc"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -35,7 +35,7 @@ $ dingo delete cachemember --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8`
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
 	Rpc      *rpc.DeleteCacheMemberRpc
-	response *pbmdsv2.DeleteMemberResponse
+	response *pbmds.DeleteMemberResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
@@ -83,7 +83,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 
 	cacheMember.Rpc = &rpc.DeleteCacheMemberRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.DeleteMemberRequest{
+		Request: &pbmds.DeleteMemberRequest{
 			MemberId: memberId,
 		},
 	}
@@ -93,7 +93,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.DeleteMemberResponse)
+	result := response.(*pbmds.DeleteMemberResponse)
 	dingoCacheErr := cmderror.MDSV2Error(result.GetError())
 	row := map[string]string{
 		cobrautil.ROW_RESULT: dingoCacheErr.Message,

@@ -25,7 +25,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -120,10 +120,10 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 			return err
 		}
 		// set request info
-		request := &pbmdsv2.SetFsQuotaRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
+		request := &pbmds.SetFsQuotaRequest{
+			Context: &pbmds.Context{Epoch: epoch, IsBypassCache: true},
 			FsId:    fsId,
-			Quota:   &pbmdsv2.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
+			Quota:   &pbmds.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
 		}
 
 		setFsQuotaRpc := &rpc.SetFsQuotaRpc{
@@ -136,7 +136,7 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 			return fmt.Errorf(errCmd.Message)
 		}
-		result := response.(*pbmdsv2.SetFsQuotaResponse)
+		result := response.(*pbmds.SetFsQuotaResponse)
 		mdsErr := result.GetError()
 
 		// fill table

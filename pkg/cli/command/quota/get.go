@@ -25,8 +25,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -148,14 +148,14 @@ func (getQuotaCmd *GetQuotaCommand) ResultPlainOutput() error {
 	return output.FinalCmdOutputPlain(&getQuotaCmd.FinalDingoCmd)
 }
 
-func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch uint64) (*pbmdsv2.GetDirQuotaRequest, *pbmdsv2.GetDirQuotaResponse, error) {
+func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch uint64) (*pbmds.GetDirQuotaRequest, *pbmds.GetDirQuotaResponse, error) {
 	endpoint := rpc.GetEndPoint(dirInodeId)
 	mdsRpc := rpc.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "GetDirQuota")
 	// set request info
 	getQuotaRpc := &rpc.GetDirQuotaRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.GetDirQuotaRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.GetDirQuotaRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Ino:     dirInodeId,
 		},
@@ -165,9 +165,9 @@ func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch u
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetDirQuotaResponse)
+	result := response.(*pbmds.GetDirQuotaResponse)
 
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 

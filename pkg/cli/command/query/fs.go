@@ -27,10 +27,10 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
 	"github.com/spf13/cobra"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
 const (
@@ -90,7 +90,7 @@ func (queryFSCmd *QueryFsCommand) Init(cmd *cobra.Command, args []string) error 
 	for _, fsName := range fsNames {
 		// set request info
 		getFsRpc := &rpc.GetFsRpc{
-			Request: &pbmdsv2.GetFsInfoRequest{
+			Request: &pbmds.GetFsInfoRequest{
 				FsName: fsName,
 			},
 		}
@@ -111,7 +111,7 @@ func (queryFSCmd *QueryFsCommand) Init(cmd *cobra.Command, args []string) error 
 		id32 := uint32(id)
 		// set request info
 		getFsRpc := &rpc.GetFsRpc{
-			Request: &pbmdsv2.GetFsInfoRequest{
+			Request: &pbmds.GetFsInfoRequest{
 				FsId: id32,
 			},
 		}
@@ -155,11 +155,11 @@ func (queryFSCmd *QueryFsCommand) RunCommand(cmd *cobra.Command, args []string) 
 	var resList []interface{}
 	rows := make([]map[string]string, 0)
 	for _, response := range responses {
-		result := response.(*pbmdsv2.GetFsInfoResponse)
+		result := response.(*pbmds.GetFsInfoResponse)
 		if result == nil {
 			continue
 		}
-		if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+		if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 			errs = append(errs, cmderror.MDSV2Error(mdsErr))
 			continue
 		}
@@ -174,7 +174,7 @@ func (queryFSCmd *QueryFsCommand) RunCommand(cmd *cobra.Command, args []string) 
 		row[cobrautil.ROW_CHUNK_SIZE] = fmt.Sprintf("%d", fsInfo.GetChunkSize())
 
 		partitionType := fsInfo.GetPartitionPolicy().GetType()
-		if partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION {
+		if partitionType == pbmds.PartitionType_PARENT_ID_HASH_PARTITION {
 			row[cobrautil.ROW_STORAGE_TYPE] = fmt.Sprintf("%s(%s %d)", fsInfo.GetFsType().String(),
 				common.ConvertPbPartitionTypeToString(partitionType), fsInfo.GetPartitionPolicy().GetParentHash().GetBucketNum())
 			row[cobrautil.ROW_MDS_NUM] = fmt.Sprintf("%d", len(fsInfo.GetPartitionPolicy().GetParentHash().GetDistributions()))

@@ -21,7 +21,7 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -82,14 +82,14 @@ func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []strin
 		return err
 	}
 	// set request info
-	cacheGroup.Rpc = &rpc.ListCacheGroupRpc{Info: mdsRpc, Request: &pbmdsv2.ListGroupsRequest{}}
+	cacheGroup.Rpc = &rpc.ListCacheGroupRpc{Info: mdsRpc, Request: &pbmds.ListGroupsRequest{}}
 
 	response, cmdErr := base.GetRpcResponse(cacheGroup.Rpc.Info, cacheGroup.Rpc)
 	if cmdErr.TypeCode() != cmderror.CODE_SUCCESS {
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.ListGroupsResponse)
+	result := response.(*pbmds.ListGroupsResponse)
 	groups := result.GetGroupNames()
 	if len(groups) == 0 {
 		return fmt.Errorf("no cachegroup found")

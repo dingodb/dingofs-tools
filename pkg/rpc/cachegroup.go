@@ -19,44 +19,44 @@ import (
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"google.golang.org/grpc"
 )
 
 type ListCacheGroupRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.ListGroupsRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.ListGroupsRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 type ListCacheMemberRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.ListMembersRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.ListMembersRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 type ReWeightMemberRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.ReweightMemberRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.ReweightMemberRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 type LeaveCacheMemberRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.LeaveCacheGroupRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.LeaveCacheGroupRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 type DeleteCacheMemberRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.DeleteMemberRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.DeleteMemberRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 type UnlockCacheMemberRpc struct {
 	Info             *base.Rpc
-	Request          *mdsv2.UnLockMemberRequest
-	cacheGroupClient mdsv2.MDSServiceClient
+	Request          *mds.UnLockMemberRequest
+	cacheGroupClient mds.MDSServiceClient
 }
 
 var _ base.RpcFunc = (*ListCacheGroupRpc)(nil)    // check interface
@@ -67,7 +67,7 @@ var _ base.RpcFunc = (*DeleteCacheMemberRpc)(nil) // check interface
 var _ base.RpcFunc = (*UnlockCacheMemberRpc)(nil) // check interface
 
 func (listCacheGroup *ListCacheGroupRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listCacheGroup.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	listCacheGroup.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (listCacheGroup *ListCacheGroupRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -77,7 +77,7 @@ func (listCacheGroup *ListCacheGroupRpc) Stub_Func(ctx context.Context) (interfa
 }
 
 func (listCacheMember *ListCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listCacheMember.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	listCacheMember.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (listCacheMember *ListCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -87,7 +87,7 @@ func (listCacheMember *ListCacheMemberRpc) Stub_Func(ctx context.Context) (inter
 }
 
 func (rewightMember *ReWeightMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	rewightMember.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	rewightMember.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (rewightMember *ReWeightMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -97,7 +97,7 @@ func (rewightMember *ReWeightMemberRpc) Stub_Func(ctx context.Context) (interfac
 }
 
 func (leaveMember *LeaveCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	leaveMember.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	leaveMember.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (leaveMember *LeaveCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -107,7 +107,7 @@ func (leaveMember *LeaveCacheMemberRpc) Stub_Func(ctx context.Context) (interfac
 }
 
 func (deleteMember *DeleteCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	deleteMember.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	deleteMember.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (deleteMember *DeleteCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -117,7 +117,7 @@ func (deleteMember *DeleteCacheMemberRpc) Stub_Func(ctx context.Context) (interf
 }
 
 func (unlockMember *UnlockCacheMemberRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	unlockMember.cacheGroupClient = mdsv2.NewMDSServiceClient(cc)
+	unlockMember.cacheGroupClient = mds.NewMDSServiceClient(cc)
 }
 
 func (unlockMember *UnlockCacheMemberRpc) Stub_Func(ctx context.Context) (interface{}, error) {

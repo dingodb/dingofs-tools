@@ -17,15 +17,15 @@ package common
 import (
 	"sync"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
 type MDSMeta struct {
-	mdsMap map[int64]*pbmdsv2.MDS // mds_id -> mds_meta
+	mdsMap map[int64]*pbmds.MDS // mds_id -> mds_meta
 	mux    sync.RWMutex
 }
 
-func (m *MDSMeta) SetMDS(mdsSlice []*pbmdsv2.MDS) {
+func (m *MDSMeta) SetMDS(mdsSlice []*pbmds.MDS) {
 	m.mux.Lock()
 	defer m.mux.Unlock()
 
@@ -35,7 +35,7 @@ func (m *MDSMeta) SetMDS(mdsSlice []*pbmdsv2.MDS) {
 	}
 }
 
-func (m *MDSMeta) GetMDS(mdsId int64) (*pbmdsv2.MDS, bool) {
+func (m *MDSMeta) GetMDS(mdsId int64) (*pbmds.MDS, bool) {
 	m.mux.RLock()
 	defer m.mux.RUnlock()
 	mds, ok := m.mdsMap[mdsId]
@@ -45,6 +45,6 @@ func (m *MDSMeta) GetMDS(mdsId int64) (*pbmdsv2.MDS, bool) {
 
 func NewMDSMeta() *MDSMeta {
 	return &MDSMeta{
-		mdsMap: make(map[int64]*pbmdsv2.MDS),
+		mdsMap: make(map[int64]*pbmds.MDS),
 	}
 }

@@ -22,7 +22,7 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -81,7 +81,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return err
 	}
 
-	request := pbmdsv2.ListMembersRequest{}
+	request := pbmds.ListMembersRequest{}
 	if cmd.Flag(config.DINGOFS_CACHE_GROUP).Changed {
 		groupName := config.GetFlagString(cmd, config.DINGOFS_CACHE_GROUP)
 		request.GroupName = &groupName
@@ -97,7 +97,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.ListMembersResponse)
+	result := response.(*pbmds.ListMembersResponse)
 	members := result.GetMembers()
 	if len(members) == 0 {
 		return fmt.Errorf("no cachemember found")

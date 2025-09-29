@@ -19,7 +19,7 @@ import (
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/rpc"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -35,7 +35,7 @@ $ dingo leave cachemember --group group1 --memberid 6ba7b810-9dad-11d1-80b4-00c0
 type CacheMemberCommand struct {
 	basecmd.FinalDingoCmd
 	Rpc      *rpc.LeaveCacheMemberRpc
-	response *pbmdsv2.LeaveCacheGroupResponse
+	response *pbmds.LeaveCacheGroupResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*CacheMemberCommand)(nil) // check interface
@@ -89,7 +89,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 
 	cacheMember.Rpc = &rpc.LeaveCacheMemberRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.LeaveCacheGroupRequest{
+		Request: &pbmds.LeaveCacheGroupRequest{
 			GroupName: groupName,
 			MemberId:  memberId,
 			Ip:        ip,
@@ -102,7 +102,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.LeaveCacheGroupResponse)
+	result := response.(*pbmds.LeaveCacheGroupResponse)
 	dingoCacheErr := cmderror.MDSV2Error(result.GetError())
 	row := map[string]string{
 		cobrautil.ROW_RESULT: dingoCacheErr.Message,

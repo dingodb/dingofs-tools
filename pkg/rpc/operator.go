@@ -21,8 +21,8 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 	"log"
 	"path"
@@ -32,8 +32,8 @@ import (
 	"syscall"
 )
 
-// get mdsv2 list
-func GetMDSList(cmd *cobra.Command) ([]*pbmdsv2.MDS, error) {
+// get mds list
+func GetMDSList(cmd *cobra.Command) ([]*pbmds.MDS, error) {
 	// new prc
 	mdsRpc, err := CreateNewMdsRpc(cmd, "GetMDSList")
 	if err != nil {
@@ -41,7 +41,7 @@ func GetMDSList(cmd *cobra.Command) ([]*pbmdsv2.MDS, error) {
 	}
 	getMDSRpc := &GetMDSRpc{
 		Info:    mdsRpc,
-		Request: &pbmdsv2.GetMDSListRequest{},
+		Request: &pbmds.GetMDSListRequest{},
 	}
 
 	// get rpc result
@@ -49,8 +49,8 @@ func GetMDSList(cmd *cobra.Command) ([]*pbmdsv2.MDS, error) {
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetMDSListResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.GetMDSListResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -99,21 +99,21 @@ func GetFsName(cmd *cobra.Command) (string, error) {
 }
 
 // list filesystem info
-func ListFsInfo(cmd *cobra.Command) ([]*pbmdsv2.FsInfo, error) {
+func ListFsInfo(cmd *cobra.Command) ([]*pbmds.FsInfo, error) {
 	// new prc
 	mdsRpc, err := CreateNewMdsRpc(cmd, "ListFsInfo")
 	if err != nil {
 		return nil, err
 	}
 	// set request info
-	listFsRpc := &ListFsInfoRpc{Info: mdsRpc, Request: &pbmdsv2.ListFsInfoRequest{}}
+	listFsRpc := &ListFsInfoRpc{Info: mdsRpc, Request: &pbmds.ListFsInfoRequest{}}
 	// get rpc result
 	response, errCmd := base.GetRpcResponse(listFsRpc.Info, listFsRpc)
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.ListFsInfoResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.ListFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -127,7 +127,7 @@ func ListFsInfo(cmd *cobra.Command) ([]*pbmdsv2.FsInfo, error) {
 }
 
 // get fsinfo by fsid or fsname
-func GetFsInfo(cmd *cobra.Command, fsId uint32, fsName string) (*pbmdsv2.FsInfo, error) {
+func GetFsInfo(cmd *cobra.Command, fsId uint32, fsName string) (*pbmds.FsInfo, error) {
 	// first read from cache
 	fsInfo, ok := fsMetaCache.GetFsInfo(fsId)
 	if ok {
@@ -141,17 +141,17 @@ func GetFsInfo(cmd *cobra.Command, fsId uint32, fsName string) (*pbmdsv2.FsInfo,
 	// set request info
 	var getFsRpc *GetFsRpc
 	if fsId > 0 {
-		getFsRpc = &GetFsRpc{Info: mdsRpc, Request: &pbmdsv2.GetFsInfoRequest{FsId: fsId}}
+		getFsRpc = &GetFsRpc{Info: mdsRpc, Request: &pbmds.GetFsInfoRequest{FsId: fsId}}
 	} else {
-		getFsRpc = &GetFsRpc{Info: mdsRpc, Request: &pbmdsv2.GetFsInfoRequest{FsName: fsName}}
+		getFsRpc = &GetFsRpc{Info: mdsRpc, Request: &pbmds.GetFsInfoRequest{FsName: fsName}}
 	}
 	// get rpc result
 	response, errCmd := base.GetRpcResponse(getFsRpc.Info, getFsRpc)
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetFsInfoResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.GetFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -162,7 +162,7 @@ func GetFsInfo(cmd *cobra.Command, fsId uint32, fsName string) (*pbmdsv2.FsInfo,
 }
 
 // GetDentry
-func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string, epoch uint64) (*pbmdsv2.Dentry, error) {
+func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string, epoch uint64) (*pbmds.Dentry, error) {
 	endpoint := GetEndPoint(parentId)
 	if len(endpoint) == 0 {
 		return nil, fmt.Errorf("endpoint is null")
@@ -172,8 +172,8 @@ func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string, ep
 	// set request info
 	getDentryRpc := &GetDentryRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.GetDentryRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.GetDentryRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Parent:  parentId,
 			Name:    name,
@@ -184,8 +184,8 @@ func GetDentry(cmd *cobra.Command, fsId uint32, parentId uint64, name string, ep
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetDentryResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.GetDentryResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 	return result.GetDentry(), nil
@@ -201,8 +201,8 @@ func DeleteFile(cmd *cobra.Command, fsId uint32, parentId uint64, name string, e
 	// set request info
 	unlinkFileRpc := &UnlinkFileRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.UnLinkRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.UnLinkRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Parent:  parentId,
 			Name:    name,
@@ -213,8 +213,8 @@ func DeleteFile(cmd *cobra.Command, fsId uint32, parentId uint64, name string, e
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.UnLinkResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.UnLinkResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -231,8 +231,8 @@ func DeleteDirectory(cmd *cobra.Command, fsId uint32, parentId uint64, name stri
 	// set request info
 	rmDirRpc := &RmDirRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.RmDirRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.RmDirRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Parent:  parentId,
 			Name:    name,
@@ -243,8 +243,8 @@ func DeleteDirectory(cmd *cobra.Command, fsId uint32, parentId uint64, name stri
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.RmDirResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.RmDirResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -265,7 +265,7 @@ func GetDirPathInodeId(cmd *cobra.Command, fsId uint32, path string, epoch uint6
 			if err != nil {
 				return 0, err
 			}
-			if dentry.GetType() != pbmdsv2.FileType_DIRECTORY {
+			if dentry.GetType() != pbmds.FileType_DIRECTORY {
 				return 0, syscall.ENOTDIR
 			}
 			inodeId = dentry.GetIno()
@@ -279,9 +279,9 @@ func GetDirPathInodeId(cmd *cobra.Command, fsId uint32, path string, epoch uint6
 }
 
 // get inode
-func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, epoch uint64) (*pbmdsv2.Inode, error) {
+func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, epoch uint64) (*pbmds.Inode, error) {
 	var endpoint []string
-	requestContext := &pbmdsv2.Context{Epoch: epoch}
+	requestContext := &pbmds.Context{Epoch: epoch}
 
 	if IsFile(inodeId) && parent > 0 { // file: get endpoint by parent
 		endpoint = GetEndPoint(parent)
@@ -300,7 +300,7 @@ func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, ep
 	// set request info
 	getInodeRpc := &GetInodeRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.GetInodeRequest{
+		Request: &pbmds.GetInodeRequest{
 			Context: requestContext,
 			FsId:    fsId,
 			Ino:     inodeId,
@@ -311,8 +311,8 @@ func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, ep
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetInodeResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.GetInodeResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -320,7 +320,7 @@ func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, ep
 }
 
 // list dentry
-func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64) ([]*pbmdsv2.Dentry, error) {
+func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64) ([]*pbmds.Dentry, error) {
 	endpoint := GetEndPoint(inodeId)
 	if len(endpoint) == 0 {
 		return nil, fmt.Errorf("endpoint is null")
@@ -330,8 +330,8 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64) (
 	// set request info
 	listDentryRpc := &ListDentryRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.ListDentryRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.ListDentryRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Parent:  inodeId,
 		},
@@ -341,8 +341,8 @@ func ListDentry(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64) (
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.ListDentryResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.ListDentryResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, cmderror.MDSV2Error(mdsErr).ToError()
 	}
 
@@ -404,7 +404,7 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *c
 	var wg sync.WaitGroup
 	var errCh = make(chan error, 1)
 	for _, entry := range entries {
-		if entry.GetType() == pbmdsv2.FileType_FILE {
+		if entry.GetType() == pbmds.FileType_FILE {
 			inodeAttr, err := GetInode(cmd, fsId, entry.GetIno(), entry.GetParent(), epoch)
 			if err != nil {
 				return err
@@ -417,7 +417,7 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *c
 			atomic.AddUint64(&summary.Length, inodeAttr.GetLength())
 		}
 		atomic.AddUint64(&summary.Inodes, 1)
-		if entry.GetType() != pbmdsv2.FileType_DIRECTORY {
+		if entry.GetType() != pbmds.FileType_DIRECTORY {
 			continue
 		}
 		select {
@@ -428,7 +428,7 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *c
 			return fmt.Errorf("cancel scan directory for other goroutine error")
 		case concurrent <- struct{}{}:
 			wg.Add(1)
-			go func(e *pbmdsv2.Dentry) {
+			go func(e *pbmds.Dentry) {
 				defer wg.Done()
 				sumErr := GetDirSummarySize(cmd, fsId, e.GetIno(), summary, concurrent, ctx, cancel, isFsCheck, inodeMap, epoch)
 				<-concurrent

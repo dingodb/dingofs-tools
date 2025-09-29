@@ -16,21 +16,21 @@ package common
 
 import (
 	"fmt"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
-func ConvertPbPartitionTypeToString(partitionType pbmdsv2.PartitionType) string {
+func ConvertPbPartitionTypeToString(partitionType pbmds.PartitionType) string {
 	switch partitionType {
-	case pbmdsv2.PartitionType_MONOLITHIC_PARTITION:
+	case pbmds.PartitionType_MONOLITHIC_PARTITION:
 		return "MONOLITHIC"
-	case pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION:
+	case pbmds.PartitionType_PARENT_ID_HASH_PARTITION:
 		return "HASH"
 	default:
 		return "unknown"
 	}
 }
 
-func ConvertFsExtraToString(fsExtra *pbmdsv2.FsExtra) string {
+func ConvertFsExtraToString(fsExtra *pbmds.FsExtra) string {
 	var result string
 
 	s3Info := fsExtra.GetS3Info()

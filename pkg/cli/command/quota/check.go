@@ -25,7 +25,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -117,10 +117,10 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		if err != nil {
 			return err
 		}
-		request := &pbmdsv2.SetDirQuotaRequest{
+		request := &pbmds.SetDirQuotaRequest{
 			FsId:  fsId,
 			Ino:   dirInodeId,
-			Quota: &pbmdsv2.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
+			Quota: &pbmds.Quota{UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
 		}
 		checkQuotaCmd.Rpc = &rpc.CheckDirQuotaRpc{
 			Info:    mdsRpc,
@@ -131,7 +131,7 @@ func (checkQuotaCmd *CheckQuotaCommand) RunCommand(cmd *cobra.Command, args []st
 		if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 			return fmt.Errorf(errCmd.Message)
 		}
-		result := response.(*pbmdsv2.SetDirQuotaResponse)
+		result := response.(*pbmds.SetDirQuotaResponse)
 		mdsErr := result.GetError()
 		//set header
 		header := []string{cobrautil.ROW_RESULT}

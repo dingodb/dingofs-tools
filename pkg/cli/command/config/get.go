@@ -25,8 +25,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -87,7 +87,7 @@ func (fsQuotaCmd *GetFsQuotaCommand) RunCommand(cmd *cobra.Command, args []strin
 
 	mdsErr := result.GetError()
 	row := make(map[string]string, 0)
-	if mdsErr.GetErrcode() == pbmdsv2error.Errno_OK {
+	if mdsErr.GetErrcode() == pbmdserror.Errno_OK {
 		// set table header
 		header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_CAPACITY, cobrautil.ROW_USED, cobrautil.ROW_USED_PERCNET,
 			cobrautil.ROW_INODES, cobrautil.ROW_INODES_IUSED, cobrautil.ROW_INODES_PERCENT}
@@ -134,7 +134,7 @@ func (fsQuotaCmd *GetFsQuotaCommand) ResultPlainOutput() error {
 	return output.FinalCmdOutputPlain(&fsQuotaCmd.FinalDingoCmd)
 }
 
-func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmdsv2.GetFsQuotaRequest, *pbmdsv2.GetFsQuotaResponse, error) {
+func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmds.GetFsQuotaRequest, *pbmds.GetFsQuotaResponse, error) {
 	// new prc
 	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "getFsQuota")
 	if err != nil {
@@ -146,8 +146,8 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmdsv2.GetFsQuotaRequest
 		return nil, nil, epochErr
 	}
 	// set request info
-	request := &pbmdsv2.GetFsQuotaRequest{
-		Context: &pbmdsv2.Context{Epoch: epoch, IsBypassCache: true},
+	request := &pbmds.GetFsQuotaRequest{
+		Context: &pbmds.Context{Epoch: epoch, IsBypassCache: true},
 		FsId:    fsId,
 	}
 	requestRpc := &rpc.GetFsQuotaRpc{
@@ -159,7 +159,7 @@ func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*pbmdsv2.GetFsQuotaRequest
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetFsQuotaResponse)
+	result := response.(*pbmds.GetFsQuotaResponse)
 
 	return request, result, nil
 }

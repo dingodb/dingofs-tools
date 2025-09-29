@@ -24,8 +24,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	config "github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 
 	"time"
@@ -60,7 +60,7 @@ func (mdsCmd *MdsCommand) Init(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	// set request info
-	mdsCmd.Rpc = &rpc.GetMdsRpc{Info: mdsRpc, Request: &pbmdsv2.GetMDSListRequest{}}
+	mdsCmd.Rpc = &rpc.GetMdsRpc{Info: mdsRpc, Request: &pbmds.GetMDSListRequest{}}
 	// set table header
 	header := []string{cobrautil.ROW_ID, cobrautil.ROW_ADDR, cobrautil.ROW_STATE, cobrautil.ROW_LASTONLINETIME, cobrautil.ROW_ONLINE_STATE}
 	mdsCmd.SetHeader(header)
@@ -79,8 +79,8 @@ func (mdsCmd *MdsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(errCmd.Message)
 	}
 
-	result := response.(*pbmdsv2.GetMDSListResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.GetMDSListResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 	// fill table

@@ -25,7 +25,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -195,7 +195,7 @@ func (subPathCmd *SubPathCommand) DeleteDirectoryAndData(cmd *cobra.Command, fsI
 	var wg sync.WaitGroup
 	var errCh = make(chan error, 1)
 	for _, entry := range entries {
-		if entry.GetType() != pbmdsv2.FileType_DIRECTORY {
+		if entry.GetType() != pbmds.FileType_DIRECTORY {
 			err := rpc.DeleteFile(cmd, fsId, entry.GetParent(), entry.GetName(), subPathCmd.epoch)
 			if err != nil {
 				return err
@@ -214,7 +214,7 @@ func (subPathCmd *SubPathCommand) DeleteDirectoryAndData(cmd *cobra.Command, fsI
 			return fmt.Errorf("cancel delete directory for other goroutine error")
 		case concurrent <- struct{}{}:
 			wg.Add(1)
-			go func(e *pbmdsv2.Dentry) {
+			go func(e *pbmds.Dentry) {
 				defer wg.Done()
 				deleteErr := subPathCmd.DeleteDirectoryAndData(cmd, fsId, e.GetParent(), e.GetIno(), e.GetName(), summary, concurrent, ctx, cancel)
 				<-concurrent

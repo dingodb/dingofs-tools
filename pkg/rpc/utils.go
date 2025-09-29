@@ -20,7 +20,7 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/common"
 	"github.com/dingodb/dingofs-tools/pkg/config"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 	"sync"
 )
@@ -38,7 +38,7 @@ func IsFile(inodeId uint64) bool {
 	return (inodeId & 1) == 0
 }
 
-func GetFsEpochByFsInfo(fsInfo *pbmdsv2.FsInfo) uint64 {
+func GetFsEpochByFsInfo(fsInfo *pbmds.FsInfo) uint64 {
 	partitionPolicy := fsInfo.GetPartitionPolicy()
 
 	return partitionPolicy.GetEpoch()

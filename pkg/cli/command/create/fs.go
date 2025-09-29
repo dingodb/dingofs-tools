@@ -20,8 +20,8 @@ import (
 	"github.com/dingodb/dingofs-tools/pkg/rpc"
 	"strings"
 
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -121,18 +121,18 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid capability: %s", capStr)
 	}
 	// storage type,s3 or rados
-	var fsType pbmdsv2.FsType
-	var fsExtra pbmdsv2.FsExtra
+	var fsType pbmds.FsType
+	var fsExtra pbmds.FsExtra
 	storageTypeStr := strings.ToUpper(config.GetFlagString(cmd, config.DINGOFS_STORAGETYPE))
 	switch storageTypeStr {
 	case "S3":
-		fsType = pbmdsv2.FsType_S3
+		fsType = pbmds.FsType_S3
 		err := SetS3Info(&fsExtra, fCmd.Cmd)
 		if err != nil {
 			return err
 		}
 	case "RADOS":
-		fsType = pbmdsv2.FsType_RADOS
+		fsType = pbmds.FsType_RADOS
 		err := SetRadosInfo(&fsExtra, fCmd.Cmd)
 		if err != nil {
 			return err
@@ -141,18 +141,18 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid storage type: %s", storageTypeStr)
 	}
 	// partition type
-	var partitionType pbmdsv2.PartitionType
+	var partitionType pbmds.PartitionType
 	partitionTypeStr := strings.ToUpper(config.GetFlagString(cmd, config.DINGOFS_PARTITION_TYPE))
 	switch partitionTypeStr {
 	case "HASH":
-		partitionType = pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION
+		partitionType = pbmds.PartitionType_PARENT_ID_HASH_PARTITION
 	case "MONOLITHIC":
-		partitionType = pbmdsv2.PartitionType_MONOLITHIC_PARTITION
+		partitionType = pbmds.PartitionType_MONOLITHIC_PARTITION
 	default:
 		return fmt.Errorf("invalid partition type: %s", partitionTypeStr)
 	}
 
-	request := pbmdsv2.CreateFsRequest{
+	request := pbmds.CreateFsRequest{
 		FsName:        fsName,
 		BlockSize:     blockSize,
 		ChunkSize:     chunkSize,
@@ -167,7 +167,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 		fsId := config.GetFlagUint32(cmd, config.DINGOFS_FSID)
 		request.FsId = fsId
 	}
-	if (cmd.Flag(config.DINGOFS_MDS_NUM).Changed) && (partitionType == pbmdsv2.PartitionType_PARENT_ID_HASH_PARTITION) {
+	if (cmd.Flag(config.DINGOFS_MDS_NUM).Changed) && (partitionType == pbmds.PartitionType_PARENT_ID_HASH_PARTITION) {
 		mdsNum := config.GetFlagUint32(cmd, config.DINGOFS_MDS_NUM)
 		request.ExpectMdsNum = mdsNum
 	}
@@ -181,7 +181,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func SetS3Info(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
+func SetS3Info(fsExtra *pbmds.FsExtra, cmd *cobra.Command) error {
 	ak := config.GetFlagString(cmd, config.DINGOFS_S3_AK)
 	sk := config.GetFlagString(cmd, config.DINGOFS_S3_SK)
 	endpoint := config.GetFlagString(cmd, config.DINGOFS_S3_ENDPOINT)
@@ -201,7 +201,7 @@ func SetS3Info(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
 		return fmt.Errorf("%s,%w", s3Checker.Name(), checkErr)
 	}
 
-	s3Info := &pbmdsv2.S3Info{
+	s3Info := &pbmds.S3Info{
 		Ak:         ak,
 		Sk:         sk,
 		Endpoint:   endpoint,
@@ -212,7 +212,7 @@ func SetS3Info(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
 	return nil
 }
 
-func SetRadosInfo(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
+func SetRadosInfo(fsExtra *pbmds.FsExtra, cmd *cobra.Command) error {
 	userName := config.GetFlagString(cmd, config.DINGOFS_RADOS_USERNAME)
 	secretKey := config.GetFlagString(cmd, config.DINGOFS_RADOS_KEY)
 	monitor := config.GetFlagString(cmd, config.DINGOFS_RADOS_MON)
@@ -237,7 +237,7 @@ func SetRadosInfo(fsExtra *pbmdsv2.FsExtra, cmd *cobra.Command) error {
 		return fmt.Errorf("%s,%w", radosChecker.Name(), checkErr)
 	}
 
-	radosInfo := &pbmdsv2.RadosInfo{
+	radosInfo := &pbmds.RadosInfo{
 		UserName:    userName,
 		Key:         secretKey,
 		MonHost:     monitor,
@@ -258,13 +258,13 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	if response == nil {
 		return fmt.Errorf("rpc no response")
 	}
-	result := response.(*pbmdsv2.CreateFsResponse)
+	result := response.(*pbmds.CreateFsResponse)
 	mdsErr := result.GetError()
 	row := map[string]string{
 		cobrautil.ROW_FS_NAME: fCmd.Rpc.Request.GetFsName(),
 		cobrautil.ROW_RESULT:  cmderror.MDSV2Error(mdsErr).Message,
 	}
-	if mdsErr.GetErrcode() == pbmdsv2error.Errno_OK {
+	if mdsErr.GetErrcode() == pbmdserror.Errno_OK {
 		header := []string{cobrautil.ROW_FS_ID, cobrautil.ROW_FS_NAME, cobrautil.ROW_STATUS, cobrautil.ROW_STORAGE_TYPE, cobrautil.ROW_UUID, cobrautil.ROW_RESULT}
 		fCmd.SetHeader(header)
 		fsInfo := result.GetFsInfo()

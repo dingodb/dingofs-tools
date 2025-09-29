@@ -24,7 +24,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/spf13/cobra"
 )
@@ -71,7 +71,7 @@ func (fCmd *FsCommand) Init(cmd *cobra.Command, args []string) error {
 	fsName := config.GetFlagString(fCmd.Cmd, config.DINGOFS_FSNAME)
 	fCmd.Rpc = &rpc.DeleteFsRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.DeleteFsRequest{
+		Request: &pbmds.DeleteFsRequest{
 			FsName: fsName,
 		},
 	}
@@ -96,7 +96,7 @@ func (fCmd *FsCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.DeleteFsResponse)
+	result := response.(*pbmds.DeleteFsResponse)
 	mdsErr := result.GetError()
 	row := map[string]string{
 		cobrautil.ROW_FS_NAME: fCmd.Rpc.Request.GetFsName(),

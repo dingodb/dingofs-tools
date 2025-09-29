@@ -21,8 +21,8 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	pbmdsv2err "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserr "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/config"
@@ -37,7 +37,7 @@ const (
 type UnlockMemberCommand struct {
 	basecmd.FinalDingoCmd
 	Rpc      *rpc.UnlockCacheMemberRpc
-	response *pbmdsv2.UnLockMemberResponse
+	response *pbmds.UnLockMemberResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*UnlockMemberCommand)(nil) // check interface
@@ -89,7 +89,7 @@ func (unlockMember *UnlockMemberCommand) RunCommand(cmd *cobra.Command, args []s
 
 	unlockMember.Rpc = &rpc.UnlockCacheMemberRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.UnLockMemberRequest{
+		Request: &pbmds.UnLockMemberRequest{
 			MemberId: memberId,
 			Ip:       ip,
 			Port:     port,
@@ -101,10 +101,10 @@ func (unlockMember *UnlockMemberCommand) RunCommand(cmd *cobra.Command, args []s
 		return cmdErr.ToError()
 	}
 
-	result := response.(*pbmdsv2.UnLockMemberResponse)
+	result := response.(*pbmds.UnLockMemberResponse)
 	var message string
 	mdsError := result.GetError()
-	if mdsError.GetErrcode() != pbmdsv2err.Errno_OK {
+	if mdsError.GetErrcode() != pbmdserr.Errno_OK {
 		message = fmt.Sprintf("unlock cahce member %s, error: %s", memberId, mdsError.String())
 	} else {
 		message = cmderror.ErrSuccess().Message

@@ -27,8 +27,8 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -89,8 +89,8 @@ func (listQuotaCmd *ListQuotaCommand) Init(cmd *cobra.Command, args []string) er
 	// set request info
 	listQuotaCmd.Rpc = &rpc.ListDirQuotaRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.LoadDirQuotasRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.LoadDirQuotasRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId},
 	}
 
@@ -114,8 +114,8 @@ func (listQuotaCmd *ListQuotaCommand) RunCommand(cmd *cobra.Command, args []stri
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.LoadDirQuotasResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.LoadDirQuotasResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr).ToError()
 	}
 

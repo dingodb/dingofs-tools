@@ -19,7 +19,7 @@ import (
 	common "github.com/dingodb/dingofs-tools/pkg/common"
 	"github.com/dingodb/dingofs-tools/pkg/rpc"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	cobrautil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -105,11 +105,11 @@ func (setQuotaCmd *SetQuotaCommand) Init(cmd *cobra.Command, args []string) erro
 	}
 
 	// set request info
-	request := &pbmdsv2.SetDirQuotaRequest{
-		Context: &pbmdsv2.Context{Epoch: epoch},
+	request := &pbmds.SetDirQuotaRequest{
+		Context: &pbmds.Context{Epoch: epoch},
 		FsId:    fsId,
 		Ino:     dirInodeId,
-		Quota:   &pbmdsv2.Quota{MaxBytes: maxBytes, MaxInodes: maxInodes, UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
+		Quota:   &pbmds.Quota{MaxBytes: maxBytes, MaxInodes: maxInodes, UsedBytes: realUsedBytes, UsedInodes: realUsedInodes},
 	}
 	setQuotaCmd.Rpc = &rpc.SetDirQuotaRpc{
 		Info:    mdsRpc,
@@ -133,7 +133,7 @@ func (setQuotaCmd *SetQuotaCommand) RunCommand(cmd *cobra.Command, args []string
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.SetDirQuotaResponse)
+	result := response.(*pbmds.SetDirQuotaResponse)
 	mdsErr := result.GetError()
 	row := map[string]string{
 		cobrautil.ROW_RESULT: cmderror.MDSV2Error(mdsErr).Message,

@@ -25,8 +25,8 @@ import (
 	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
@@ -37,7 +37,7 @@ import (
 type ClusterCommand struct {
 	basecmd.FinalDingoCmd
 	Rpc      *rpc.GetFsStatsRpc
-	Response *pbmdsv2.GetFsStatsResponse
+	Response *pbmds.GetFsStatsResponse
 }
 
 var _ basecmd.FinalDingoCmdFunc = (*ClusterCommand)(nil) // check interface
@@ -81,7 +81,7 @@ func (clusterCmd *ClusterCommand) Init(cmd *cobra.Command, args []string) error 
 	}
 	clusterCmd.Rpc = &rpc.GetFsStatsRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.GetFsStatsRequest{
+		Request: &pbmds.GetFsStatsRequest{
 			FsName: fsName,
 		},
 	}
@@ -113,9 +113,9 @@ func (clusterCmd *ClusterCommand) GetFsStatsData() (map[string]float64, error) {
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return nil, fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.GetFsStatsResponse)
+	result := response.(*pbmds.GetFsStatsResponse)
 	mdsErr := result.GetError()
-	if mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	if mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return nil, fmt.Errorf("GetFsStats error,errmsg[%s]", cmderror.MDSV2Error(mdsErr).Message)
 	}
 	// get fs data

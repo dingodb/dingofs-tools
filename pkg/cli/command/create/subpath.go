@@ -25,9 +25,9 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -189,8 +189,8 @@ func (subPathCmd *SubPathCommand) MkDir(cmd *cobra.Command, inodeParam InodePara
 
 	mkDirRpc := &rpc.MkDirRpc{
 		Info: mdsRpc,
-		Request: &mdsv2.MkDirRequest{
-			Context: &pbmdsv2.Context{Epoch: inodeParam.epoch},
+		Request: &mds.MkDirRequest{
+			Context: &pbmds.Context{Epoch: inodeParam.epoch},
 			FsId:    inodeParam.fsId,
 			Name:    inodeParam.name,
 			Length:  inodeParam.length,
@@ -206,8 +206,8 @@ func (subPathCmd *SubPathCommand) MkDir(cmd *cobra.Command, inodeParam InodePara
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return errCmd
 	}
-	result := response.(*pbmdsv2.MkDirResponse)
-	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdsv2error.Errno_OK {
+	result := response.(*pbmds.MkDirResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 		return cmderror.MDSV2Error(mdsErr)
 	}
 

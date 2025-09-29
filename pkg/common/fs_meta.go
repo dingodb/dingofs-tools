@@ -17,22 +17,22 @@ package common
 import (
 	"sync"
 
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 )
 
 type FsMeta struct {
-	fsMap map[uint32]*pbmdsv2.FsInfo // fsid -> fsinfo
+	fsMap map[uint32]*pbmds.FsInfo // fsid -> fsinfo
 	mux   sync.RWMutex
 }
 
-func (f *FsMeta) SetFsInfo(fsInfo *pbmdsv2.FsInfo) {
+func (f *FsMeta) SetFsInfo(fsInfo *pbmds.FsInfo) {
 	f.mux.Lock()
 	defer f.mux.Unlock()
 
 	f.fsMap[fsInfo.GetFsId()] = fsInfo
 }
 
-func (f *FsMeta) GetFsInfo(fsId uint32) (*pbmdsv2.FsInfo, bool) {
+func (f *FsMeta) GetFsInfo(fsId uint32) (*pbmds.FsInfo, bool) {
 	f.mux.RLock()
 	defer f.mux.RUnlock()
 
@@ -43,6 +43,6 @@ func (f *FsMeta) GetFsInfo(fsId uint32) (*pbmdsv2.FsInfo, bool) {
 
 func NewFsMeta() *FsMeta {
 	return &FsMeta{
-		fsMap: make(map[uint32]*pbmdsv2.FsInfo),
+		fsMap: make(map[uint32]*pbmds.FsInfo),
 	}
 }

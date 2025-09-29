@@ -24,7 +24,7 @@ import (
 	basecmd "github.com/dingodb/dingofs-tools/pkg/cli/command"
 	"github.com/dingodb/dingofs-tools/pkg/config"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -91,8 +91,8 @@ func (deleteQuotaCmd *DeleteQuotaCommand) Init(cmd *cobra.Command, args []string
 	mdsRpc := rpc.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "DeleteDirQuota")
 	deleteQuotaCmd.Rpc = &rpc.DeleteDirQuotaRpc{
 		Info: mdsRpc,
-		Request: &pbmdsv2.DeleteDirQuotaRequest{
-			Context: &pbmdsv2.Context{Epoch: epoch},
+		Request: &pbmds.DeleteDirQuotaRequest{
+			Context: &pbmds.Context{Epoch: epoch},
 			FsId:    fsId,
 			Ino:     dirInodeId,
 		},
@@ -115,7 +115,7 @@ func (deleteQuotaCmd *DeleteQuotaCommand) RunCommand(cmd *cobra.Command, args []
 	if errCmd.TypeCode() != cmderror.CODE_SUCCESS {
 		return fmt.Errorf(errCmd.Message)
 	}
-	result := response.(*pbmdsv2.DeleteDirQuotaResponse)
+	result := response.(*pbmds.DeleteDirQuotaResponse)
 	mdsErr := result.GetError()
 	row := map[string]string{
 		cobrautil.ROW_RESULT: cmderror.MDSV2Error(mdsErr).Message,

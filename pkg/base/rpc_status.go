@@ -15,29 +15,29 @@
 package base
 
 import (
-	mdsv2error "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	mdsError "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
 )
 
 var (
-	mdsV2RetryErrors = map[mdsv2error.Errno]bool{
-		mdsv2error.Errno_EREQUEST_FULL:      true,
-		mdsv2error.Errno_EGEN_FSID:          true,
-		mdsv2error.Errno_EREDIRECT:          true,
-		mdsv2error.Errno_ENOT_SERVE:         true,
-		mdsv2error.Errno_EPARTIAL_SUCCESS:   true,
-		mdsv2error.Errno_ESTORE_MAYBE_RETRY: true,
+	mdsRetryErrors = map[mdsError.Errno]bool{
+		mdsError.Errno_EREQUEST_FULL:      true,
+		mdsError.Errno_EGEN_FSID:          true,
+		mdsError.Errno_EREDIRECT:          true,
+		mdsError.Errno_ENOT_SERVE:         true,
+		mdsError.Errno_EPARTIAL_SUCCESS:   true,
+		mdsError.Errno_ESTORE_MAYBE_RETRY: true,
 	}
 )
 
-type MdsV2StatusChecker interface {
-	GetError() *mdsv2error.Error
+type MdsStatusChecker interface {
+	GetError() *mdsError.Error
 }
 
 func CheckRpcNeedRetry(result interface{}) bool {
-	// check mdsV2 retry errors
-	if checker, ok := result.(MdsV2StatusChecker); ok {
+	// check mds retry errors
+	if checker, ok := result.(MdsStatusChecker); ok {
 		errCode := checker.GetError().GetErrcode()
-		if _, exists := mdsV2RetryErrors[errCode]; exists {
+		if _, exists := mdsRetryErrors[errCode]; exists {
 			return true
 		}
 	}

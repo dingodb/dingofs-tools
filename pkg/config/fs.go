@@ -1031,7 +1031,7 @@ func AddGidOptionalFlag(cmd *cobra.Command) {
 	AddUint32OptionFlag(cmd, DINGOFS_SUBPATH_GID, "gid of subpath")
 }
 
-// mdsv2 clientid [required]
+// mds clientid [required]
 func AddClientIdRequiredFlag(cmd *cobra.Command) {
 	AddStringRequiredFlag(cmd, DINGOFS_CLIENT_ID, "the client id of dingo-fuse")
 }

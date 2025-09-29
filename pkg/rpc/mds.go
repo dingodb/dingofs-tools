@@ -4,141 +4,141 @@ import (
 	"context"
 	"github.com/dingodb/dingofs-tools/pkg/base"
 	"github.com/dingodb/dingofs-tools/pkg/output"
-	pbmdsv2 "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mdsv2"
+	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
 	"google.golang.org/grpc"
 )
 
 // rpc services
 type GetMDSRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetMDSListRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetMDSListRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type CreateFsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.CreateFsRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.CreateFsRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type DeleteFsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.DeleteFsRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.DeleteFsRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type ListFsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.ListFsInfoRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.ListFsInfoRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetFsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetFsInfoRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetFsInfoRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetMdsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetMDSListRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetMDSListRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type SetFsQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.SetFsQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.SetFsQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetFsQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetFsQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetFsQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetInodeRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetInodeRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetInodeRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type MkDirRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.MkDirRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.MkDirRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetDentryRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetDentryRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetDentryRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type ListDentryRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.ListDentryRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.ListDentryRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetFsStatsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetFsStatsRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetFsStatsRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type UmountFsRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.UmountFsRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.UmountFsRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type SetDirQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.SetDirQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.SetDirQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type GetDirQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.GetDirQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.GetDirQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type ListDirQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.LoadDirQuotasRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.LoadDirQuotasRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type DeleteDirQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.DeleteDirQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.DeleteDirQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type CheckDirQuotaRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.SetDirQuotaRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.SetDirQuotaRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type ListFsInfoRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.ListFsInfoRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.ListFsInfoRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type UnlinkFileRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.UnLinkRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.UnLinkRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 type RmDirRpc struct {
 	Info      *base.Rpc
-	Request   *pbmdsv2.RmDirRequest
-	mdsClient pbmdsv2.MDSServiceClient
+	Request   *pbmds.RmDirRequest
+	mdsClient pbmds.MDSServiceClient
 }
 
 // check interface
@@ -166,7 +166,7 @@ var _ base.RpcFunc = (*UnlinkFileRpc)(nil)     // check interface
 var _ base.RpcFunc = (*RmDirRpc)(nil)          // check interface
 
 func (mdsFs *GetMDSRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	mdsFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	mdsFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (mdsFs *GetMDSRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -176,7 +176,7 @@ func (mdsFs *GetMDSRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 func (createFs *CreateFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	createFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	createFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (createFs *CreateFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -186,7 +186,7 @@ func (createFs *CreateFsRpc) Stub_Func(ctx context.Context) (interface{}, error)
 }
 
 func (deleteFs *DeleteFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	deleteFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	deleteFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (deleteFs *DeleteFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -196,7 +196,7 @@ func (deleteFs *DeleteFsRpc) Stub_Func(ctx context.Context) (interface{}, error)
 }
 
 func (listFs *ListFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	listFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (listFs *ListFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -206,7 +206,7 @@ func (listFs *ListFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 func (getFs *GetFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getFs *GetFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -216,7 +216,7 @@ func (getFs *GetFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 func (getMds *GetMdsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getMds.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getMds.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getMds *GetMdsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -226,7 +226,7 @@ func (getMds *GetMdsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 func (setFsQuota *SetFsQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	setFsQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	setFsQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (setFsQuota *SetFsQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -236,7 +236,7 @@ func (setFsQuota *SetFsQuotaRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (getFsQuota *GetFsQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getFsQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getFsQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getFsQuota *GetFsQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -246,7 +246,7 @@ func (getFsQuota *GetFsQuotaRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (getInode *GetInodeRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getInode.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getInode.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getInode *GetInodeRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -256,7 +256,7 @@ func (getInode *GetInodeRpc) Stub_Func(ctx context.Context) (interface{}, error)
 }
 
 func (mkDir *MkDirRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	mkDir.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	mkDir.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (mkDir *MkDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -266,7 +266,7 @@ func (mkDir *MkDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 }
 
 func (listDentry *ListDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listDentry.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	listDentry.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (listDentry *ListDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -276,7 +276,7 @@ func (listDentry *ListDentryRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (getDentry *GetDentryRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getDentry.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getDentry.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getDentry *GetDentryRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -286,7 +286,7 @@ func (getDentry *GetDentryRpc) Stub_Func(ctx context.Context) (interface{}, erro
 }
 
 func (getFsStats *GetFsStatsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getFsStats.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getFsStats.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getFsStats *GetFsStatsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -296,7 +296,7 @@ func (getFsStats *GetFsStatsRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (umountFs *UmountFsRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	umountFs.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	umountFs.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (umountFs *UmountFsRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -306,7 +306,7 @@ func (umountFs *UmountFsRpc) Stub_Func(ctx context.Context) (interface{}, error)
 }
 
 func (setDirQuota *SetDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	setDirQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	setDirQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (setDirQuota *SetDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -316,7 +316,7 @@ func (setDirQuota *SetDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, 
 }
 
 func (getDirQuota *GetDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	getDirQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	getDirQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (getDirQuota *GetDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -326,7 +326,7 @@ func (getDirQuota *GetDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, 
 }
 
 func (listDirQuota *ListDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listDirQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	listDirQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (listDirQuota *ListDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -336,7 +336,7 @@ func (listDirQuota *ListDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}
 }
 
 func (deleteDirQuota *DeleteDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	deleteDirQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	deleteDirQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (deleteDirQuota *DeleteDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -346,7 +346,7 @@ func (deleteDirQuota *DeleteDirQuotaRpc) Stub_Func(ctx context.Context) (interfa
 }
 
 func (checkDirQuota *CheckDirQuotaRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	checkDirQuota.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	checkDirQuota.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (checkDirQuota *CheckDirQuotaRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -356,7 +356,7 @@ func (checkDirQuota *CheckDirQuotaRpc) Stub_Func(ctx context.Context) (interface
 }
 
 func (listFsInfo *ListFsInfoRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	listFsInfo.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	listFsInfo.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (listFsInfo *ListFsInfoRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -366,7 +366,7 @@ func (listFsInfo *ListFsInfoRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (unlinkFile *UnlinkFileRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	unlinkFile.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	unlinkFile.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (unlinkFile *UnlinkFileRpc) Stub_Func(ctx context.Context) (interface{}, error) {
@@ -376,7 +376,7 @@ func (unlinkFile *UnlinkFileRpc) Stub_Func(ctx context.Context) (interface{}, er
 }
 
 func (rmDir *RmDirRpc) NewRpcClient(cc grpc.ClientConnInterface) {
-	rmDir.mdsClient = pbmdsv2.NewMDSServiceClient(cc)
+	rmDir.mdsClient = pbmds.NewMDSServiceClient(cc)
 }
 
 func (rmDir *RmDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
