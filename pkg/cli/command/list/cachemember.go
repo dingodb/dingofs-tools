@@ -99,10 +99,6 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 
 	result := response.(*pbmds.ListMembersResponse)
 	members := result.GetMembers()
-	if len(members) == 0 {
-		return fmt.Errorf("no cachemember found")
-	}
-
 	rows := make([]map[string]string, 0)
 	for _, member := range members {
 		row := make(map[string]string)
@@ -137,7 +133,7 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 	}
 	list := cobrautil.ListMap2ListSortByKeys(rows, cacheMember.Header, []string{cobrautil.ROW_GROUP, cobrautil.ROW_ID})
 	cacheMember.TableNew.AppendBulk(list)
-
+	
 	// to json
 	res, err := output.MarshalProtoJson(result)
 	if err != nil {
@@ -151,5 +147,8 @@ func (cacheMember *CacheMemberCommand) RunCommand(cmd *cobra.Command, args []str
 }
 
 func (cacheMember *CacheMemberCommand) ResultPlainOutput() error {
+	if cacheMember.TableNew.NumLines() == 0 {
+		fmt.Println("no cachemember found")
+	}
 	return output.FinalCmdOutputPlain(&cacheMember.FinalDingoCmd)
 }

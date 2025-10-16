@@ -91,9 +91,6 @@ func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []strin
 
 	result := response.(*pbmds.ListGroupsResponse)
 	groups := result.GetGroupNames()
-	if len(groups) == 0 {
-		return fmt.Errorf("no cachegroup found")
-	}
 
 	rows := make([]map[string]string, 0)
 	for _, group := range groups {
@@ -118,5 +115,8 @@ func (cacheGroup *CacheGroupCommand) RunCommand(cmd *cobra.Command, args []strin
 }
 
 func (cacheGroup *CacheGroupCommand) ResultPlainOutput() error {
+	if cacheGroup.TableNew.NumLines() == 0 {
+		return fmt.Errorf("no cachegroup found")
+	}
 	return output.FinalCmdOutputPlain(&cacheGroup.FinalDingoCmd)
 }
