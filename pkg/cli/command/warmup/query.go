@@ -84,6 +84,7 @@ func (qCmd *QueryCommand) Print(cmd *cobra.Command, args []string) error {
 func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 
 	isDaemon := config.GetDaemonFlag(qCmd.Cmd)
+	qCmd.Logger.Infof("query warmup progress, file: %s", qCmd.path)
 	filename := strings.Split(qCmd.path, "/")
 	var bar *progressbar.ProgressBar
 	if !isDaemon {
@@ -113,11 +114,13 @@ func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	var resultStr string
 	for {
 		// result data format [finished/total/errors]
+		qCmd.Logger.Debugf("get warmup xattr")
 		result, err := xattr.Get(qCmd.path, DINGOFS_WARMUP_OP_XATTR)
 		if err != nil {
 			return err
 		}
 		resultStr = string(result)
+		qCmd.Logger.Debugf("warmup xattr: [%s],[finished/total/errors]", resultStr)
 		strs := strings.Split(resultStr, "/")
 		if len(strs) != 3 {
 			return fmt.Errorf("response data format error, should be [finished/total/errors]")
@@ -134,6 +137,8 @@ func (qCmd *QueryCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			break
 		}
+
+		qCmd.Logger.Debugf("warmup result: total[%d], finished[%d], errors[%d]", total, finished, warmErrors)
 		if (finished + warmErrors) == total {
 			break
 		}

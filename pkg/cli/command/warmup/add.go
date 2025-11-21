@@ -85,7 +85,9 @@ func (aCmd *AddCommand) Init(cmd *cobra.Command, args []string) error {
 		aCmd.Error = err
 		return err.ToError()
 	} else if len(mountpoints) == 0 {
-		return errors.New("no dingofs mountpoint found")
+		message := "no dingofs mountpoint found"
+		aCmd.Logger.Error(message)
+		return errors.New(message)
 	}
 
 	// check args
@@ -101,9 +103,11 @@ func (aCmd *AddCommand) Init(cmd *cobra.Command, args []string) error {
 		aCmd.Single = true
 	}
 
+	aCmd.Logger.Infof("path: %s", aCmd.Path)
 	absPath, _ := filepath.Abs(aCmd.Path)
 	cleanAbsPath := filepath.Clean(absPath)
 	aCmd.Path = cleanAbsPath
+	aCmd.Logger.Infof("absPath: %s", cleanAbsPath)
 
 	// check file is exist
 	info, errStat := os.Stat(aCmd.Path)
@@ -114,12 +118,14 @@ func (aCmd *AddCommand) Init(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("stat [%s] fail: %s", aCmd.Path, errStat.Error())
 		}
 	} else if !aCmd.Single && info.IsDir() {
+		aCmd.Logger.Infof("file info: %s", info)
 		// --filelist must be a file
 		return fmt.Errorf("[%s]: must be a file", aCmd.Path)
 	}
 
 	aCmd.Mountpoint = nil
 	for _, mountpoint := range mountpoints {
+		aCmd.Logger.Infof("mountpoint: %v", *mountpoint)
 		if strings.HasPrefix(cleanAbsPath, mountpoint.MountPoint) {
 			aCmd.Mountpoint = mountpoint
 			break
@@ -143,12 +149,14 @@ func (aCmd *AddCommand) RunCommand(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
+		aCmd.Logger.Infof("inodeid: %d", inodeId)
 		inodesStr = fmt.Sprintf("%d", inodeId)
 	} else {
 		inodes, err := cobrautil.GetInodesAsString(aCmd.Path)
 		if err != nil {
 			return err
 		}
+		aCmd.Logger.Infof("inodes: %s", inodes)
 		inodesStr = inodes
 	}
 
@@ -162,10 +170,12 @@ func (aCmd *AddCommand) RunCommand(cmd *cobra.Command, args []string) error {
 	}
 	if !config.GetDaemonFlag(aCmd.Cmd) {
 		time.Sleep(1 * time.Second) //wait for 1s
+		aCmd.Logger.Infof("query warmup progress...")
 		GetWarmupProgress(aCmd.Cmd, aCmd.Path)
 	} else {
 		aCmd.TableNew.Append([]string{"success"})
 	}
+	aCmd.Logger.Infof("run warmup command over")
 
 	return nil
 }
