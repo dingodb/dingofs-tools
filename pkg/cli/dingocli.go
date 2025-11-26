@@ -23,6 +23,7 @@ import (
 	cmdConfig "github.com/dingodb/dingofs-tools/pkg/cli/command/config"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/create"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/delete"
+	"github.com/dingodb/dingofs-tools/pkg/cli/command/export"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/fuse"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/gateway"
 	"github.com/dingodb/dingofs-tools/pkg/cli/command/leave"
@@ -61,6 +62,7 @@ func addSubCommands(cmd *cobra.Command) {
 		unlock.NewUnlockCommand(),
 		leave.NewLeaveCommand(),
 		warmup.NewWarmupCommand(),
+		export.NewExportCommand(),
 	)
 }
 
