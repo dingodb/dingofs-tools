@@ -83,8 +83,9 @@ func FinalCmdOutput(finalCmd *basecmd.FinalDingoCmd,
 
 func MarshalProtoJson(message proto.Message) (interface{}, error) {
 	m := protojson.MarshalOptions{
-		Multiline: true,
-		Indent:    "  ",
+		Multiline:       true,
+		Indent:          "  ",
+		EmitUnpopulated: true,
 	}
 	jsonByte, err := m.Marshal(message)
 	if err != nil {
@@ -104,8 +105,9 @@ func SetFinalCmdNoOutput(finalCmd *basecmd.FinalDingoCmd) {
 
 func ProtoMessageToJson(message proto.Message) (string, error) {
 	m := protojson.MarshalOptions{
-		Multiline: true,
-		Indent:    "  ",
+		Multiline:       true,
+		Indent:          "  ",
+		EmitUnpopulated: true,
 	}
 	value, err := m.Marshal(message)
 	return string(value), err
