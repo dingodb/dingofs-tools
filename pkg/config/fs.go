@@ -195,6 +195,28 @@ const (
 	DINGOFS_MDS_NUM         = "mdsnum"
 	VIPER_DINGOFS_MDS_NUM   = "dingofs.mdsnum"
 	DINGOFS_DEFAULT_MDS_NUM = uint32(0)
+
+	// nfs-ganesha
+	DINGOFS_NFS_PATH         = "nfs.path"
+	VIPER_DINGOFS_NFS_PATH   = "dingofs.nfs.path"
+	DINGOFS_DEFAULT_NFS_PATH = ""
+	DINGOFS_NFS_CONF         = "nfs.conf"
+	VIPER_DINGOFS_NFS_CONF   = "dingofs.nfs.conf"
+	DINGOFS_DEFAULT_NFS_CONF = ""
+
+	// ssh
+	DINGOFS_SSH_HOST         = "ssh.host"
+	VIPER_DINGOFS_SSH_HOST   = "dingofs.ssh.host"
+	DINGOFS_DEFAULT_SSH_HOST = ""
+	DINGOFS_SSH_PORT         = "ssh.port"
+	VIPER_DINGOFS_SSH_PORT   = "dingofs.ssh.port"
+	DINGOFS_DEFAULT_SSH_PORT = uint32(22)
+	DINGOFS_SSH_USER         = "ssh.user"
+	VIPER_DINGOFS_SSH_USER   = "dingofs.ssh.user"
+	DINGOFS_DEFAULT_SSH_USER = "current user"
+	DINGOFS_SSH_KEY          = "ssh.key"
+	VIPER_DINGOFS_SSH_KEY    = "dingofs.ssh.key"
+	DINGOFS_DEFAULT_SSH_KEY  = "~/.ssh/id_rsa"
 )
 
 var (
@@ -271,6 +293,16 @@ var (
 
 		// mds numbers
 		DINGOFS_MDS_NUM: VIPER_DINGOFS_MDS_NUM,
+
+		// nfs-ganesha
+		DINGOFS_NFS_PATH: VIPER_DINGOFS_NFS_PATH,
+		DINGOFS_NFS_CONF: VIPER_DINGOFS_NFS_CONF,
+
+		// ssh
+		DINGOFS_SSH_HOST: VIPER_DINGOFS_SSH_HOST,
+		DINGOFS_SSH_PORT: VIPER_DINGOFS_SSH_PORT,
+		DINGOFS_SSH_USER: VIPER_DINGOFS_SSH_USER,
+		DINGOFS_SSH_KEY:  VIPER_DINGOFS_SSH_KEY,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		RPCTIMEOUT:             DEFAULT_RPCTIMEOUT,
@@ -326,6 +358,16 @@ var (
 
 		// mds numbers
 		DINGOFS_MDS_NUM: DINGOFS_DEFAULT_MDS_NUM,
+
+		//nfs-ganesha
+		DINGOFS_NFS_PATH: DINGOFS_DEFAULT_NFS_PATH,
+		DINGOFS_NFS_CONF: DINGOFS_DEFAULT_NFS_CONF,
+
+		// ssh
+		DINGOFS_SSH_HOST: DINGOFS_DEFAULT_SSH_HOST,
+		DINGOFS_SSH_PORT: DINGOFS_DEFAULT_SSH_PORT,
+		DINGOFS_SSH_USER: DINGOFS_DEFAULT_SSH_USER,
+		DINGOFS_SSH_KEY:  DINGOFS_DEFAULT_SSH_KEY,
 	}
 )
 
@@ -1079,4 +1121,30 @@ func AddCacheMemberPortOptionalFlag(cmd *cobra.Command) {
 // mds numbers for create fs
 func AddMdsNumOptionalFlag(cmd *cobra.Command) {
 	AddUint32OptionFlag(cmd, DINGOFS_MDS_NUM, "expect mds numbers, only used for hash partition")
+}
+
+// nfs-ganesha
+func AddNFSPathFlag(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_NFS_PATH, "nfs-ganesha export path")
+}
+
+func AddNFSConfFlag(cmd *cobra.Command) {
+	AddStringRequiredFlag(cmd, DINGOFS_NFS_CONF, "NFS export configure")
+}
+
+// SSH
+func AddSSHHostFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_SSH_HOST, "ssh host")
+}
+
+func AddSSHPortFlag(cmd *cobra.Command) {
+	AddUint32OptionFlag(cmd, DINGOFS_SSH_PORT, "ssh port")
+}
+
+func AddSSHUserFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_SSH_USER, "ssh user")
+}
+
+func AddSSHKeyFlag(cmd *cobra.Command) {
+	AddStringOptionFlag(cmd, DINGOFS_SSH_KEY, "ssh private key path")
 }
