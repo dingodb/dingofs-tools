@@ -9,10 +9,6 @@ mkdir -p proto
 
 ## dingofs
 
-### dingofs-proto/common.proto
-protoc --go_out=proto --proto_path=${PROTO_PATH} \
-    ${PROTO_PATH}/dingofs/common.proto
-
 ### dingofs-proto/error.proto
 protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
     ${PROTO_PATH}/dingofs/error.proto

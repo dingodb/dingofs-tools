@@ -21,7 +21,6 @@ import (
 var (
 	mdsRetryErrors = map[mdsError.Errno]bool{
 		mdsError.Errno_EREQUEST_FULL:      true,
-		mdsError.Errno_EGEN_FSID:          true,
 		mdsError.Errno_EREDIRECT:          true,
 		mdsError.Errno_ENOT_SERVE:         true,
 		mdsError.Errno_EPARTIAL_SUCCESS:   true,

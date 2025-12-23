@@ -155,9 +155,10 @@ func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch u
 	getQuotaRpc := &rpc.GetDirQuotaRpc{
 		Info: mdsRpc,
 		Request: &pbmds.GetDirQuotaRequest{
-			Context: &pbmds.Context{Epoch: epoch},
-			FsId:    fsId,
-			Ino:     dirInodeId,
+			Context:       &pbmds.Context{Epoch: epoch},
+			FsId:          fsId,
+			Ino:           dirInodeId,
+			NotUseFsQuota: true,
 		},
 	}
 	// get rpc result
