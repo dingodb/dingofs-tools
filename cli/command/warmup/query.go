@@ -1,0 +1,153 @@
+/*
+ * Copyright (c) 2025 dingodb.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package warmup
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/dingodb/dingofs-tools/cli/cli"
+	"github.com/dingodb/dingofs-tools/internal/output"
+	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingofs-tools/pkg/logger"
+	"github.com/fatih/color"
+	"github.com/pkg/xattr"
+	"github.com/schollz/progressbar/v3"
+
+	"github.com/spf13/cobra"
+)
+
+const (
+	WARMUP_QUERY_EXAMPLE = `Examples:
+   $ dingo warmup query /mnt/dir1`
+)
+
+type queryOptions struct {
+	path string
+}
+
+func NewWarmupQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+	var options queryOptions
+
+	cmd := &cobra.Command{
+		Use:     "query [PATH] [OPTIONS]",
+		Short:   "query the warmup progress",
+		Args:    utils.ExactArgs(1),
+		Example: WARMUP_QUERY_EXAMPLE,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			output.SetShow(true)
+
+			options.path = args[0]
+
+			return runQuery(cmd, dingoadm, options)
+		},
+		SilenceUsage:          false,
+		DisableFlagsInUseLine: true,
+	}
+
+	utils.SetFlagErrorFunc(cmd)
+
+	return cmd
+}
+
+func runQuery(cmd *cobra.Command, dingoadm *cli.DingoAdm, options queryOptions) error {
+
+	logger.Infof("query warmup progress, file: %s", options.path)
+	filename := filepath.Base(options.path)
+
+	var bar *progressbar.ProgressBar
+
+	bar = progressbar.NewOptions64(100,
+		progressbar.OptionSetDescription("[cyan]Warmup[reset] "+filename+"..."),
+		progressbar.OptionShowCount(),
+		progressbar.OptionShowIts(),
+		progressbar.OptionSpinnerType(14),
+		progressbar.OptionFullWidth(),
+		progressbar.OptionThrottle(65*time.Millisecond),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionOnCompletion(func() {
+			fmt.Fprint(os.Stderr, "\n")
+		}),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+
+	var warmErrors uint64 = 0
+	var finished uint64 = 0
+	var total uint64 = 0
+	var resultStr string
+
+	for {
+		// result data format [finished/total/errors]
+		logger.Infof("get warmup xattr")
+		result, err := xattr.Get(options.path, DINGOFS_WARMUP_OP_XATTR)
+		if err != nil {
+			return err
+		}
+		resultStr = string(result)
+
+		logger.Infof("warmup xattr: [%s],[finished/total/errors]", resultStr)
+		strs := strings.Split(resultStr, "/")
+		if len(strs) != 3 {
+			return fmt.Errorf("response data format error, should be [finished/total/errors]")
+		}
+		finished, err = strconv.ParseUint(strs[0], 10, 64)
+		if err != nil {
+			break
+		}
+		total, err = strconv.ParseUint(strs[1], 10, 64)
+		if err != nil {
+			break
+		}
+		warmErrors, err = strconv.ParseUint(strs[2], 10, 64)
+		if err != nil {
+			break
+		}
+
+		logger.Infof("warmup result: total[%d], finished[%d], errors[%d]", total, finished, warmErrors)
+		if (finished + warmErrors) == total {
+			bar.Set64(100)
+			break
+		}
+
+		//bar.ChangeMax64(int64(total))
+		finishedPercent := (float64(finished) / float64(total)) * 100
+		bar.Set64(int64(finishedPercent))
+
+		time.Sleep(1 * time.Second)
+	}
+	if warmErrors > 0 { //warmup failed
+		fmt.Println(color.RedString("\nwarmup finished,%d errors\n", warmErrors))
+	}
+
+	if total > 0 { //current warmup finished,last time warmup finished total will be 0
+		bar.ChangeMax64(int64(total))
+		bar.Set64(int64(total))
+	}
+	bar.Finish()
+
+	return nil
+}

@@ -1,0 +1,165 @@
+/*
+ * Copyright (c) 2025 dingodb.com, Inc. All Rights Reserved
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package cache
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"time"
+
+	"github.com/dingodb/dingofs-tools/cli/cli"
+	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/spf13/cobra"
+)
+
+const (
+	CACHE_START_EXAMPLE = `Examples:
+   $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6`
+)
+
+var (
+	DINGOFS_CACHE_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-cache", GetHomeDir())
+)
+
+type startOptions struct {
+	cacheBinary string
+	cmdArgs     []string
+	daemonize   bool
+}
+
+func NewCacheStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+	var options startOptions
+
+	cmd := &cobra.Command{
+		Use:                "start [OPTIONS]",
+		Short:              "start cache node",
+		Args:               utils.RequiresMinArgs(0),
+		DisableFlagParsing: true,
+		Example:            CACHE_START_EXAMPLE,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			options.cacheBinary = DINGOFS_CACHE_BINARY
+			options.cmdArgs = args
+
+			// check flags
+			for _, arg := range args {
+				if arg == "--help" || arg == "-h" {
+					return runCommandHelp(cmd, options.cacheBinary)
+				}
+				if arg == "--daemonize" || arg == "-d" {
+					options.daemonize = true
+				}
+			}
+
+			// check dingo-cache is exists
+			if !utils.IsFileExists(options.cacheBinary) {
+				return fmt.Errorf("%s not found", options.cacheBinary)
+
+			}
+			// check has execute permission
+			if !utils.HasExecutePermission(options.cacheBinary) {
+				fmt.Printf("no execute permission for %s, now add it\n", options.cacheBinary)
+				err := utils.AddExecutePermission(options.cacheBinary)
+				if err != nil {
+					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.cacheBinary, err)
+				}
+			}
+
+			return runStart(cmd, dingoadm, options)
+		},
+		SilenceUsage:          false,
+		DisableFlagsInUseLine: true,
+	}
+
+	utils.SetFlagErrorFunc(cmd)
+
+	return cmd
+}
+
+func runStart(cmd *cobra.Command, dingoadm *cli.DingoAdm, options startOptions) error {
+	var oscmd *exec.Cmd
+	var name string
+
+	name = options.cacheBinary
+	cmdarg := options.cmdArgs
+
+	oscmd = exec.Command(name, cmdarg...)
+
+	oscmd.Stdout = os.Stdout
+	oscmd.Stderr = os.Stderr
+
+	if err := oscmd.Start(); err != nil {
+		return err
+	}
+
+	// forground mode, wait process exit
+	if options.daemonize {
+		time.Sleep(2 * time.Second)
+		fmt.Println("Successfully start dingo-cache")
+		return nil
+	}
+
+	// wait process complete
+	if err := oscmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func runCommandHelp(cmd *cobra.Command, command string) error {
+	// print dingocli usage
+	fmt.Printf("Usage: dingo %s %s\n", cmd.Parent().Use, cmd.Use)
+	fmt.Println("")
+	fmt.Println(cmd.Short)
+	fmt.Println("")
+
+	// print  dingo-client options
+	fmt.Println("Options:")
+
+	helpArgs := []string{"--help"}
+	oscmd := exec.Command(command, helpArgs...)
+	output, err := oscmd.CombinedOutput()
+	if err != nil && len(output) == 0 {
+		return err
+	}
+
+	lines := strings.Split(string(output), "\n")
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "--") {
+			fmt.Printf("  %s\n", trimmed)
+		}
+	}
+
+	// print dingocli example
+	fmt.Println("")
+	fmt.Println(cmd.Example)
+
+	return nil
+}
+
+func GetHomeDir() string {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+
+	return homedir
+}

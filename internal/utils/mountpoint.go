@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
+ * 	Copyright (c) 2024 dingodb.com Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  *  limitations under the License.
  */
 
-/*
- * Project: DingoCli
- * Created Date: 2022-08-10
- * Author: chengyi (Cyber-SiKu)
- */
-
-package cobrautil
+package utils
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/cilium/cilium/pkg/mountinfo"
-	cmderror "github.com/dingodb/dingofs-tools/internal/error"
 )
 
 const (
@@ -35,21 +29,20 @@ const (
 	DINGOFS_MOUNTPOINT_FSTYPE2 = "fuse" //for backward compatibility
 )
 
-func GetDingoFSMountPoints() ([]*mountinfo.MountInfo, *cmderror.CmdError) {
+func GetDingoFSMountPoints() ([]*mountinfo.MountInfo, error) {
 	mountpoints, err := mountinfo.GetMountInfo()
 	if err != nil {
-		errMountpoint := cmderror.ErrGetMountpoint()
-		errMountpoint.Format(err.Error())
-		return nil, errMountpoint
+		return nil, fmt.Errorf("get mountpoint failed.")
 	}
-	retMoutpoints := make([]*mountinfo.MountInfo, 0)
+
+	dingofs_mountpoints := make([]*mountinfo.MountInfo, 0)
 	for _, m := range mountpoints {
 		if m.FilesystemType == DINGOFS_MOUNTPOINT_FSTYPE || m.FilesystemType == DINGOFS_MOUNTPOINT_FSTYPE2 {
 			// check if the mountpoint is a dingofs mountpoint
-			retMoutpoints = append(retMoutpoints, m)
+			dingofs_mountpoints = append(dingofs_mountpoints, m)
 		}
 	}
-	return retMoutpoints, cmderror.ErrSuccess()
+	return dingofs_mountpoints, nil
 }
 
 // make sure path' abs path start with mountpoint.MountPoint
