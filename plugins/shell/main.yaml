@@ -1,0 +1,23 @@
+options:
+  - key: cmd
+    bind_variable: command
+    default:
+  - key: local
+    bind_variable: exec_in_local
+    default: false
+
+task:
+  - name: execute shell command
+    module: shell
+    options:
+      command: ${command}
+      exec_in_local: ${exec_in_local}
+    bind_variable:
+      out: output
+
+post_task:
+  - name: show command output
+    module: tui
+    options:
+      data: ${output}
+      max_line_length: 50

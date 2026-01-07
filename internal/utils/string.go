@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
+ * 	Copyright (c) 2025 dingodb.com Inc.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,13 +14,7 @@
  *  limitations under the License.
  */
 
-/*
- * Project: DingoCli
- * Created Date: 2022-05-25
- * Author: chengyi (Cyber-SiKu)
- */
-
-package cobrautil
+package utils
 
 import (
 	"bufio"
@@ -36,8 +30,7 @@ import (
 	"strings"
 	"time"
 
-	cmderror "github.com/dingodb/dingofs-tools/internal/error"
-	"github.com/gookit/color"
+	"github.com/fatih/color"
 )
 
 const (
@@ -71,7 +64,7 @@ func prompt(prompt string) string {
 	if prompt != "" {
 		prompt += " "
 	}
-	fmt.Print(color.Yellow.Sprintf("WARNING:"), prompt)
+	fmt.Print(color.YellowString("WARNING:"), prompt)
 
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
@@ -95,23 +88,6 @@ func AskConfirmation(promptStr string, confirm string) bool {
 func IsValidPath(path string) bool {
 	match, _ := regexp.MatchString(PATH_REGEX, path)
 	return match
-}
-
-func SplitMountpoint(mountpoint string) ([]string, *cmderror.CmdError) {
-	mountpointSlice := strings.Split(mountpoint, ":")
-	if len(mountpointSlice) != 3 {
-		err := cmderror.ErrSplitMountpoint()
-		err.Format(mountpoint)
-		return nil, err
-	}
-	_, errP := strconv.ParseUint(mountpointSlice[1], 10, 32)
-	if errP != nil {
-		err := cmderror.ErrSplitMountpoint()
-		err.Format(mountpoint)
-		fmt.Println(errP)
-		return nil, err
-	}
-	return mountpointSlice, cmderror.ErrSuccess()
 }
 
 func GetString2Signature(date uint64, owner string) string {
@@ -155,22 +131,6 @@ func ToUnderscoredName(src string) string {
 		}
 	}
 	return ret
-}
-
-func Addr2IpPort(addr string) (string, uint32, *cmderror.CmdError) {
-	ipPort := strings.Split(addr, ":")
-	if len(ipPort) != 2 {
-		err := cmderror.ErrGetAddr()
-		err.Format("server", addr)
-		return "", 0, err
-	}
-	u64Port, err := strconv.ParseUint(ipPort[1], 10, 32)
-	if err != nil {
-		pErr := cmderror.ErrGetAddr()
-		pErr.Format("server", addr)
-		return "", 0, pErr
-	}
-	return ipPort[0], uint32(u64Port), cmderror.Success()
 }
 
 func StringList2Uint64List(strList []string) ([]uint64, error) {
@@ -228,4 +188,17 @@ func IsSSL(host string, timeout time.Duration) bool {
 	}
 
 	return true // is ssl
+}
+
+func RemoveDuplicates(strs []string) []string {
+	seen := make(map[string]bool)
+	for _, str := range strs {
+		seen[str] = true
+	}
+
+	result := make([]string, 0, len(seen))
+	for str := range seen {
+		result = append(result, str)
+	}
+	return result
 }
