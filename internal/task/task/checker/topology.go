@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-14
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package checker
 
@@ -93,8 +81,6 @@ func (s *step2CheckSSHConfigure) Execute(ctx *context.Context) error {
 func (s *step2CheckS3Configure) Execute(ctx *context.Context) error {
 	dc := s.dc
 	if s.dingoadm.MemStorage().Get(comm.KEY_CHECK_SKIP_SNAPSHOECLONE).(bool) {
-		return nil
-	} else if dc.GetKind() != topology.KIND_CURVEBS {
 		return nil
 	}
 

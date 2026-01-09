@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,20 +14,10 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
 package checker
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dingodb/dingofs-tools/cli/cli"
 	comm "github.com/dingodb/dingofs-tools/internal/common"
@@ -36,17 +25,10 @@ import (
 	"github.com/dingodb/dingofs-tools/internal/configure/topology"
 	"github.com/dingodb/dingofs-tools/internal/errno"
 	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
 	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/pkg/module"
 )
 
 type (
-	step2CheckChunkfilePool struct {
-		dc          *topology.DeployConfig
-		execOptions module.ExecOptions
-	}
-
 	step2CheckS3 struct {
 		s3AccessKey  string
 		s3SecretKey  string
@@ -58,49 +40,6 @@ type (
 		config *configure.ClientConfig
 	}
 )
-
-func (s *step2CheckChunkfilePool) Execute(ctx *context.Context) error {
-	dc := s.dc
-	dataDir := dc.GetDataDir()
-	if dc.GetEnableChunkfilePool() == false {
-		return nil
-	} else if len(dataDir) == 0 {
-		return errno.ERR_CHUNKFILE_POOL_NOT_EXIST
-	}
-
-	var out string
-	step := step.List{
-		Files:       []string{dataDir},
-		Out:         &out,
-		ExecOptions: s.execOptions,
-	}
-	err := step.Execute(ctx)
-	if err != nil {
-		return err
-	}
-
-	// list file in data directory
-	exist := map[string]bool{}
-	files := strings.Split(out, "\n")
-	for _, file := range files {
-		exist[file] = true
-	}
-
-	// check wether the chunkfile pool exist
-	files = []string{
-		topology.LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR,
-		topology.METAFILE_CHUNKFILE_POOL,
-	}
-	for _, file := range files {
-		if _, ok := exist[file]; !ok {
-			return errno.ERR_CHUNKFILE_POOL_NOT_EXIST.
-				F("%s (%s/%s: no such file or directory)",
-					s.dc.GetHost(), dataDir, file)
-		}
-	}
-
-	return nil
-}
 
 func (s *step2CheckS3) Execute(ctx *context.Context) error {
 	/* TODO(P1): validate S3
@@ -118,10 +57,10 @@ func (s *step2CheckClientS3Configure) Execute(ctx *context.Context) error {
 		value string
 		err   *errno.ErrorCode
 	}{
-		{configure.KEY_CLIENT_S3_ACCESS_KEY, cc.GetS3AccessKey(), errno.ERR_INVALID_CURVEFS_CLIENT_S3_ACCESS_KEY},
-		{configure.KEY_CLIENT_S3_SECRET_KEY, cc.GetS3SecretKey(), errno.ERR_INVALID_CURVEFS_CLIENT_S3_SECRET_KEY},
-		{configure.KEY_CLIENT_S3_ADDRESS, cc.GetS3Address(), errno.ERR_INVALID_CURVEFS_CLIENT_S3_ADDRESS},
-		{configure.KEY_CLIENT_S3_BUCKET_NAME, cc.GetS3BucketName(), errno.ERR_INVALID_CURVEFS_CLIENT_S3_BUCKET_NAME},
+		{configure.KEY_CLIENT_S3_ACCESS_KEY, cc.GetS3AccessKey(), errno.ERR_INVALID_DINGOFS_CLIENT_S3_ACCESS_KEY},
+		{configure.KEY_CLIENT_S3_SECRET_KEY, cc.GetS3SecretKey(), errno.ERR_INVALID_DINGOFS_CLIENT_S3_SECRET_KEY},
+		{configure.KEY_CLIENT_S3_ADDRESS, cc.GetS3Address(), errno.ERR_INVALID_DINGOFS_CLIENT_S3_ADDRESS},
+		{configure.KEY_CLIENT_S3_BUCKET_NAME, cc.GetS3BucketName(), errno.ERR_INVALID_DINGOFS_CLIENT_S3_BUCKET_NAME},
 	}
 
 	for _, item := range items {
@@ -133,23 +72,6 @@ func (s *step2CheckClientS3Configure) Execute(ctx *context.Context) error {
 		}
 	}
 	return nil
-}
-
-func NewCheckChunkfilePoolTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
-	if err != nil {
-		return nil, err
-	}
-
-	subname := fmt.Sprintf("host=%s role=%s", dc.GetHost(), dc.GetRole())
-	t := task.NewTask("Check Chunkfile Pool <service>", subname, hc.GetSSHConfig())
-
-	t.AddStep(&step2CheckChunkfilePool{
-		dc:          dc,
-		execOptions: dingoadm.ExecOptions(),
-	})
-
-	return t, nil
 }
 
 func NewCheckS3Task(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {

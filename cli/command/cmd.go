@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,17 +14,6 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
-
 package command
 
 import (
@@ -33,7 +21,6 @@ import (
 
 	"github.com/dingodb/dingofs-tools/cli/command/export"
 	"github.com/dingodb/dingofs-tools/cli/command/fs"
-	"github.com/dingodb/dingofs-tools/cli/command/gateway"
 	"github.com/dingodb/dingofs-tools/cli/command/mds"
 	"github.com/dingodb/dingofs-tools/cli/command/quota"
 	"github.com/dingodb/dingofs-tools/cli/command/stats"
@@ -47,9 +34,6 @@ import (
 	"github.com/dingodb/dingofs-tools/cli/command/config"
 	"github.com/dingodb/dingofs-tools/cli/command/hosts"
 	"github.com/dingodb/dingofs-tools/cli/command/monitor"
-	"github.com/dingodb/dingofs-tools/cli/command/pfs"
-	"github.com/dingodb/dingofs-tools/cli/command/playground"
-	"github.com/dingodb/dingofs-tools/cli/command/target"
 	"github.com/dingodb/dingofs-tools/internal/errno"
 	tools "github.com/dingodb/dingofs-tools/internal/tools/upgrade"
 	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
@@ -72,17 +56,13 @@ type rootOptions struct {
 
 func addSubCommands(cmd *cobra.Command, dingoadm *cli.DingoAdm) {
 	cmd.AddCommand(
-		client.NewClientCommand(dingoadm),         // dingoadm client
-		cluster.NewClusterCommand(dingoadm),       // dingoadm cluster ...
-		config.NewConfigCommand(dingoadm),         // dingoadm config ...
-		hosts.NewHostsCommand(dingoadm),           // dingoadm hosts ...
-		playground.NewPlaygroundCommand(dingoadm), // dingoadm playground ...
-		target.NewTargetCommand(dingoadm),         // dingoadm target ...
-		pfs.NewPFSCommand(dingoadm),               // dingoadm pfs ...
-		monitor.NewMonitorCommand(dingoadm),       // dingoadm monitor ...
-		gateway.NewGatewayCommand(dingoadm),       // dingoadm gateway ...
-		fs.NewFSCommand(dingoadm),                 // dingoadm fs ...
-		subpath.NewSubpathCommand(dingoadm),       // dingoadm subpath ...
+		client.NewClientCommand(dingoadm),   // dingoadm client
+		cluster.NewClusterCommand(dingoadm), // dingoadm cluster ...
+		config.NewConfigCommand(dingoadm),   // dingoadm config ...
+		hosts.NewHostsCommand(dingoadm),     // dingoadm hosts ...
+		monitor.NewMonitorCommand(dingoadm), // dingoadm monitor ...
+		fs.NewFSCommand(dingoadm),           // dingoadm fs ...
+		subpath.NewSubpathCommand(dingoadm), // dingoadm subpath ...
 		// cachegroup.NewCacheGroupCommand(dingoadm),   // dingoadm cachegroup ...
 		// cachemember.NewCacheMemberCommand(dingoadm), // dingoadm cachemember...
 		cache.NewCacheCommand(dingoadm),   // dingoadm cache ...
@@ -98,23 +78,16 @@ func addSubCommands(cmd *cobra.Command, dingoadm *cli.DingoAdm) {
 		NewDeployCommand(dingoadm),     // dingoadm deploy
 		NewEnterCommand(dingoadm),      // dingoadm enter
 		NewExecCommand(dingoadm),       // dingoadm exec
-		NewFormatCommand(dingoadm),     // dingoadm format
-		NewMigrateCommand(dingoadm),    // dingoadm migrate
 		NewPrecheckCommand(dingoadm),   // dingoadm precheck
-		NewReloadCommand(dingoadm),     // dingoadm reload
 		NewRestartCommand(dingoadm),    // dingoadm restart
-		NewScaleOutCommand(dingoadm),   // dingoadm scale-out
 		NewStartCommand(dingoadm),      // dingoadm start
 		NewStatusCommand(dingoadm),     // dingoadm status
 		NewStopCommand(dingoadm),       // dingoadm stop
-		NewSupportCommand(dingoadm),    // dingoadm support
 		NewUpgradeCommand(dingoadm),    // dingoadm upgrade
 		// commonly used shorthands
 		hosts.NewSSHCommand(dingoadm),      // dingoadm ssh
 		hosts.NewPlaybookCommand(dingoadm), // dingoadm playbook
-		client.NewMapCommand(dingoadm),     // dingoadm map
 		client.NewMountCommand(dingoadm),   // dingoadm mount
-		client.NewUnmapCommand(dingoadm),   // dingoadm unmap
 		client.NewUmountCommand(dingoadm),  // dingoadm umount
 	)
 }

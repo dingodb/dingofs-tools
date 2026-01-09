@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-11-23
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package upgrade
 
@@ -46,7 +34,6 @@ import (
 const (
 	URL_LATEST_VERSION   = "https://github.com/dingodb/dingofs-tools/releases/download/latest/commit_id" // TODO replace url
 	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingoadm/master/scripts/install_dingoadm.sh"
-	HEADER_VERSION       = "X-Nos-Meta-Curveadm-Latest-Version"
 	ENV_DINGOADM_UPGRADE = "DINGOADM_UPGRADE"
 	ENV_DINGOADM_VERSION = "DINGOADM_VERSION"
 )
@@ -73,30 +60,6 @@ func IsLatest(currentVersion, remoteVersion string) (error, bool) {
 	}
 
 	return nil, v1 >= v2
-}
-
-func GetLatestVersion(currentVersion string) (string, error) {
-	version := os.Getenv(ENV_DINGOADM_VERSION)
-	if len(version) > 0 {
-		return version, nil
-	}
-
-	// get latest version from remote
-	client := resty.New()
-	resp, err := client.R().Head(URL_LATEST_VERSION)
-	if err != nil {
-		return "", err
-	}
-
-	v, ok := resp.Header()[HEADER_VERSION]
-	if !ok {
-		return "", fmt.Errorf("response header '%s' not exist", HEADER_VERSION)
-	} else if err, yes := IsLatest(currentVersion, strings.TrimPrefix(v[0], "v")); err != nil {
-		return "", err
-	} else if yes {
-		return "", nil
-	}
-	return v[0], nil
 }
 
 func GetLatestCommitId(currentCommit string) (string, error) {

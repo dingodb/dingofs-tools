@@ -58,7 +58,7 @@ TEST_FLAGS += $(DEBUG_FLAGS)
 TEST_FLAGS += -run $(CASE)
 
 # packages
-PACKAGES := $(PWD)/cmd/dingoadm/main.go
+PACKAGES := $(PWD)/cmd/dingo/main.go
 
 # tools
 GOPATH := $(shell go env GOPATH)
@@ -69,7 +69,7 @@ PROTOC_GEN_GO_GRPC := $(GOPATH)/bin/protoc-gen-go-grpc
 # tar
 VERSION := "unknown"
 
-build:
+build: proto
 	$(GOENV) $(GO) build -o $(OUTPUT) $(BUILD_FLAGS) $(PACKAGES)
 
 debug:

@@ -3,6 +3,7 @@ module github.com/dingodb/dingofs-tools
 go 1.22
 
 require (
+	github.com/cilium/cilium v1.12.9
 	github.com/docker/cli v23.0.3+incompatible
 	github.com/dustin/go-humanize v1.0.0
 	github.com/fatih/color v1.15.0
@@ -12,10 +13,13 @@ require (
 	github.com/jpillora/longestcommon v0.0.0-20161227235612-adb9d91ee629
 	github.com/kpango/glg v1.6.14
 	github.com/mattn/go-sqlite3 v1.14.16
-	github.com/melbahja/goph v1.3.0
+	github.com/melbahja/goph v1.4.0
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/moby/term v0.0.0-20221205130635-1aeaba878587
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pingcap/log v1.1.0
+	github.com/pkg/xattr v0.4.9
+	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/sergi/go-diff v1.2.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
@@ -27,17 +31,9 @@ require (
 )
 
 require (
-	github.com/cilium/cilium v1.12.9 // indirect
-	github.com/clipperhouse/displaywidth v0.6.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
-	github.com/olekukonko/cat v0.0.0-20250911104152-50322a0618f6 // indirect
-	github.com/olekukonko/errors v1.1.0 // indirect
-	github.com/olekukonko/ll v0.1.3 // indirect
-	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/pkg/xattr v0.4.9 // indirect
-	github.com/schollz/progressbar/v3 v3.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef // indirect
 )
 
@@ -70,7 +66,7 @@ require (
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-isatty v0.0.19
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/miekg/pkcs11 v1.1.1 // indirect
@@ -87,7 +83,6 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rqlite/gorqlite v0.0.0-20230310040812-ec5e524a562e
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
@@ -100,15 +95,13 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/mod v0.9.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/protobuf v1.29.1
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.0.3 // indirect
 )
-
-replace github.com/melbahja/goph v1.3.0 => github.com/Wine93/goph v0.0.0-20220907033045-3b286d827fb3

@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-14
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package checker
 
@@ -101,8 +89,8 @@ func checkKernelModule(name string, success *bool, out *string) step.LambdaType 
 	}
 }
 
-func NewCheckKernelVersionTask(curveadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := curveadm.GetHost(dc.GetHost())
+func NewCheckKernelVersionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingoadm.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +105,7 @@ func NewCheckKernelVersionTask(curveadm *cli.DingoAdm, dc *topology.DeployConfig
 	t.AddStep(&step.UnixName{
 		KernelRelease: true,
 		Out:           &out,
-		ExecOptions:   curveadm.ExecOptions(),
+		ExecOptions:   dingoadm.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkKernelVersion(&out, dc),
@@ -126,15 +114,15 @@ func NewCheckKernelVersionTask(curveadm *cli.DingoAdm, dc *topology.DeployConfig
 	return t, nil
 }
 
-func NewCheckKernelModuleTask(curveadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
-	host := curveadm.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
-	hc, err := curveadm.GetHost(host)
+func NewCheckKernelModuleTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
+	host := dingoadm.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
+	hc, err := dingoadm.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
 
 	// new task
-	name := curveadm.MemStorage().Get(comm.KEY_CHECK_KERNEL_MODULE_NAME).(string)
+	name := dingoadm.MemStorage().Get(comm.KEY_CHECK_KERNEL_MODULE_NAME).(string)
 	subname := fmt.Sprintf("host=%s module=%s", host, name)
 	t := task.NewTask("Check Kernel Module", subname, hc.GetSSHConfig())
 
@@ -145,7 +133,7 @@ func NewCheckKernelModuleTask(curveadm *cli.DingoAdm, cc *configure.ClientConfig
 		Name:        name,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: curveadm.ExecOptions(),
+		ExecOptions: dingoadm.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkKernelModule(name, &success, &out),

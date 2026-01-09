@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package checker
 
@@ -68,8 +56,8 @@ func checkHost(hc *hosts.HostConfig) step.LambdaType {
 	}
 }
 
-func NewCheckSSHConnectTask(curveadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := curveadm.GetHost(dc.GetHost())
+func NewCheckSSHConnectTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingoadm.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}

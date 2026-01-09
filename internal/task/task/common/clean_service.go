@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,34 +14,19 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
-
 package common
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dingodb/dingofs-tools/cli/cli"
 	comm "github.com/dingodb/dingofs-tools/internal/common"
 	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
 	"github.com/dingodb/dingofs-tools/internal/storage"
 	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/scripts"
 	"github.com/dingodb/dingofs-tools/internal/task/step"
 	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/bs"
 	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
 	"github.com/dingodb/dingofs-tools/internal/utils"
 	"github.com/dingodb/dingofs-tools/pkg/module"
@@ -50,22 +34,10 @@ import (
 )
 
 const (
-	LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR = topology.LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR
-	LAYOUT_CURVEBS_COPYSETS_DIR       = topology.LAYOUT_CURVEBS_COPYSETS_DIR
-	LAYOUT_CURVEBS_RECYCLER_DIR       = topology.LAYOUT_CURVEBS_RECYCLER_DIR
-	METAFILE_CHUNKSERVER_ID           = topology.METAFILE_CHUNKSERVER_ID
-
 	SIGNATURE_CONTAINER_REMOVED = "No such container"
 )
 
 type (
-	step2RecycleChunk struct {
-		dc                *topology.DeployConfig
-		clean             map[string]bool
-		recycleScriptPath string
-		execOptions       module.ExecOptions
-	}
-
 	Step2CleanContainer struct {
 		ServiceId   string
 		ContainerId string
@@ -73,30 +45,6 @@ type (
 		ExecOptions module.ExecOptions
 	}
 )
-
-func (s *step2RecycleChunk) Execute(ctx *context.Context) error {
-	dc := s.dc
-	if !s.clean[comm.CLEAN_ITEM_DATA] {
-		return nil
-	} else if dc.GetRole() != topology.ROLE_CHUNKSERVER {
-		return nil
-	} else if len(dc.GetDataDir()) == 0 {
-		return nil
-	}
-
-	dataDir := dc.GetDataDir()
-	copysetsDir := fmt.Sprintf("%s/%s", dataDir, LAYOUT_CURVEBS_COPYSETS_DIR)
-	recyclerDir := fmt.Sprintf("%s/%s", dataDir, LAYOUT_CURVEBS_RECYCLER_DIR)
-	source := fmt.Sprintf("'%s %s'", copysetsDir, recyclerDir)
-	dest := fmt.Sprintf("%s/%s", dataDir, LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR)
-	chunkSize := strconv.Itoa(bs.DEFAULT_CHUNKFILE_SIZE + bs.DEFAULT_CHUNKFILE_HEADER_SIZE)
-	cmd := ctx.Module().Shell().BashScript(s.recycleScriptPath, source, dest, chunkSize)
-	_, err := cmd.Execute(s.execOptions)
-	if err != nil {
-		errno.ERR_RUN_SCRIPT_FAILED.E(err)
-	}
-	return nil
-}
 
 func (s *Step2CleanContainer) Execute(ctx *context.Context) error {
 	containerId := s.ContainerId
@@ -118,21 +66,14 @@ func (s *Step2CleanContainer) Execute(ctx *context.Context) error {
 	return s.Storage.SetContainId(s.ServiceId, comm.CLEANED_CONTAINER_ID)
 }
 
-func getCleanFiles(clean map[string]bool, dc *topology.DeployConfig, recycle bool) []string {
+func getCleanFiles(clean map[string]bool, dc *topology.DeployConfig) []string {
 	files := []string{}
 	for item := range clean {
 		switch item {
 		case comm.CLEAN_ITEM_LOG:
 			files = append(files, dc.GetLogDir())
 		case comm.CLEAN_ITEM_DATA:
-			if dc.GetRole() != topology.ROLE_CHUNKSERVER || !recycle {
-				files = append(files, dc.GetDataDir())
-			} else {
-				dataDir := dc.GetDataDir()
-				copysetsDir := fmt.Sprintf("%s/%s", dataDir, LAYOUT_CURVEBS_COPYSETS_DIR)
-				chunkserverIdMetafile := fmt.Sprintf("%s/%s", dataDir, METAFILE_CHUNKSERVER_ID)
-				files = append(files, copysetsDir, chunkserverIdMetafile)
-			}
+			files = append(files, dc.GetDataDir())
 		case comm.CLEAN_ITEM_RAFT:
 			if dc.GetRole() == topology.ROLE_COORDINATOR ||
 				dc.GetRole() == topology.ROLE_STORE ||
@@ -181,30 +122,14 @@ func NewCleanServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 
 	// new task
 	only := dingoadm.MemStorage().Get(comm.KEY_CLEAN_ITEMS).([]string)
-	recycle := dingoadm.MemStorage().Get(comm.KEY_CLEAN_BY_RECYCLE).(bool)
 	subname := fmt.Sprintf("host=%s role=%s containerId=%s clean=%s",
 		dc.GetHost(), dc.GetRole(), tui.TrimContainerId(containerId), strings.Join(only, ","))
 	t := task.NewTask("Clean Service", subname, hc.GetSSHConfig())
 
 	// add step to task
 	clean := utils.Slice2Map(only)
-	files := getCleanFiles(clean, dc, recycle) // directorys which need cleaned
-	recyleScript := scripts.RECYCLE
-	recyleScriptPath := utils.RandFilename(dingoadm.TempDir())
+	files := getCleanFiles(clean, dc) // directorys which need cleaned
 
-	if dc.GetKind() == topology.KIND_CURVEBS {
-		t.AddStep((&step.InstallFile{
-			Content:      &recyleScript,
-			HostDestPath: recyleScriptPath,
-			ExecOptions:  dingoadm.ExecOptions(),
-		}))
-		t.AddStep(&step2RecycleChunk{
-			dc:                dc,
-			clean:             clean,
-			recycleScriptPath: recyleScriptPath,
-			execOptions:       dingoadm.ExecOptions(),
-		})
-	}
 	t.AddStep(&step.RemoveFile{
 		Files:       files,
 		ExecOptions: dingoadm.ExecOptions(),

@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,17 +14,6 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-30
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
-
 package build
 
 import (
@@ -35,15 +23,15 @@ import (
 )
 
 const (
-	DEBUG_CURVEADM_CONFIGURE = "DEBUG_CURVEADM_CONFIGURE"
-	DEBUG_HOSTS              = "DEBUG_HOSTS"
-	DEBUG_SMART_CONFIGS      = "DEBUG_SMART_CONFIGS"
-	DEBUG_TOPOLOGY           = "DEBUG_TOPOLOGY"
-	DEBUG_TOOL               = "DEBUG_TOOL"
-	DEBUG_CLUSTER            = "DEBUG_CLUSTER"
-	DEBUG_CREATE_POOL        = "DEBUG_CREATE_POOL"
-	DEBUG_CLIENT_CONFIGURE   = "DEBUG_CLIENT_CONFIGURE"
-	DEBUG_MONITOR_CONFIGURE  = "DEBUG_MONITOR_CONFIGURE"
+	DEBUG_CONFIGURE         = "DEBUG_CONFIGURE"
+	DEBUG_HOSTS             = "DEBUG_HOSTS"
+	DEBUG_SMART_CONFIGS     = "DEBUG_SMART_CONFIGS"
+	DEBUG_TOPOLOGY          = "DEBUG_TOPOLOGY"
+	DEBUG_TOOL              = "DEBUG_TOOL"
+	DEBUG_CLUSTER           = "DEBUG_CLUSTER"
+	DEBUG_CREATE_POOL       = "DEBUG_CREATE_POOL"
+	DEBUG_CLIENT_CONFIGURE  = "DEBUG_CLIENT_CONFIGURE"
+	DEBUG_MONITOR_CONFIGURE = "DEBUG_MONITOR_CONFIGURE"
 )
 
 type Field struct {

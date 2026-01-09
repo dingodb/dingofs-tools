@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package cli
@@ -108,7 +98,6 @@ func NewDingoAdm() (*DingoAdm, error) {
 		return nil, err
 	}
 
-	go dingoadm.detectVersion()
 	return dingoadm, nil
 }
 
@@ -123,7 +112,7 @@ func (dingoadm *DingoAdm) init() error {
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-			return errno.ERR_CREATE_CURVEADM_SUBDIRECTORY_FAILED.E(err)
+			return errno.ERR_CREATE_DINGOADM_SUBDIRECTORY_FAILED.E(err)
 		}
 	}
 
@@ -230,25 +219,6 @@ func getActivatedClusterFromEnv() string {
 	}
 
 	return ""
-}
-
-func (dingoadm *DingoAdm) detectVersion() {
-	latestVersion, err := tools.GetLatestVersion(Version)
-	if err != nil || len(latestVersion) == 0 {
-		return
-	}
-
-	versions, err := dingoadm.Storage().GetVersions()
-	if err != nil {
-		return
-	} else if len(versions) > 0 {
-		pendingVersion := versions[0].Version
-		if pendingVersion == latestVersion {
-			return
-		}
-	}
-
-	dingoadm.Storage().SetVersion(latestVersion, "")
 }
 
 func (dingoadm *DingoAdm) Upgrade() (bool, error) {
@@ -415,13 +385,8 @@ func (dingoadm *DingoAdm) IsSkip(dc *topology.DeployConfig) bool {
 	return err == nil && len(containerId) == 0 && dc.GetRole() == topology.ROLE_SNAPSHOTCLONE
 }
 
-func (dingoadm *DingoAdm) GetVolumeId(host, user, volume string) string {
-	volumeId := fmt.Sprintf("curvebs_volume_%s_%s_%s", host, user, volume)
-	return utils.MD5Sum(volumeId)[:12]
-}
-
 func (dingoadm *DingoAdm) GetFilesystemId(host, mountPoint string) string {
-	filesystemId := fmt.Sprintf("curvefs_filesystem_%s_%s", host, mountPoint)
+	filesystemId := fmt.Sprintf("dingofs_filesystem_%s_%s", host, mountPoint)
 	return utils.MD5Sum(filesystemId)[:12]
 }
 
@@ -455,26 +420,23 @@ func (dingoadm *DingoAdm) CheckRole(role string) error {
 	}
 
 	kind := dcs[0].GetKind()
-	roles := topology.CURVEBS_ROLES
-	if kind == topology.KIND_DINGOFS {
-		roles = topology.DINGOFS_ROLES
-	} else if kind == topology.KIND_DINGODB {
+	roles := topology.DINGOFS_ROLES
+	switch kind {
+	case topology.KIND_DINGODB:
 		roles = topology.DINGODB_ROLES
-	} else if kind == topology.KIND_DINGOSTORE {
+	case topology.KIND_DINGOSTORE:
 		roles = topology.DINGOSTORE_ROLES
 	}
 	supported := utils.Slice2Map(roles)
 	if !supported[role] {
-		if kind == topology.KIND_CURVEBS {
-			return errno.ERR_UNSUPPORT_CURVEBS_ROLE.
-				F("role: %s", role)
-		} else if kind == topology.KIND_DINGOFS {
+		switch kind {
+		case topology.KIND_DINGOFS:
 			return errno.ERR_UNSUPPORT_DINGOFS_ROLE.
 				F("role: %s", role)
-		} else if kind == topology.KIND_DINGODB {
+		case topology.KIND_DINGODB:
 			return errno.ERR_UNSUPPORT_DINGODB_ROLE.
 				F("role: %s", role)
-		} else if kind == topology.KIND_DINGOSTORE {
+		case topology.KIND_DINGOSTORE:
 			return errno.ERR_UNSUPPORT_DINGOSTORE_ROLE.
 				F("role: %s", role)
 		}

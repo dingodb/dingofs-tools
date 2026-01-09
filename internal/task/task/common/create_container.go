@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package common
 
@@ -142,51 +130,6 @@ func (s *Step2InsertService) Execute(ctx *context.Context) error {
 	return err
 }
 
-func getArguments(dc *topology.DeployConfig) string {
-	role := dc.GetRole()
-	if role != topology.ROLE_CHUNKSERVER {
-		return ""
-	}
-
-	// only chunkserver need so many arguments, but who cares
-	layout := dc.GetProjectLayout()
-	dataDir := layout.ServiceDataDir
-	chunkserverArguments := map[string]interface{}{
-		// chunkserver
-		"conf":                  layout.ServiceConfPath,
-		"chunkServerIp":         dc.GetListenIp(),
-		"enableExternalServer":  dc.GetEnableExternalServer(),
-		"chunkServerExternalIp": dc.GetListenExternalIp(),
-		"chunkServerPort":       dc.GetListenPort(),
-		"chunkFilePoolDir":      dataDir,
-		"chunkFilePoolMetaPath": fmt.Sprintf("%s/chunkfilepool.meta", dataDir),
-		"walFilePoolDir":        dataDir,
-		"walFilePoolMetaPath":   fmt.Sprintf("%s/walfilepool.meta", dataDir),
-		"copySetUri":            fmt.Sprintf("local://%s/copysets", dataDir),
-		"recycleUri":            fmt.Sprintf("local://%s/recycler", dataDir),
-		"raftLogUri":            fmt.Sprintf("curve://%s/copysets", dataDir),
-		"raftSnapshotUri":       fmt.Sprintf("curve://%s/copysets", dataDir),
-		"chunkServerStoreUri":   fmt.Sprintf("local://%s", dataDir),
-		"chunkServerMetaUri":    fmt.Sprintf("local://%s/chunkserver.dat", dataDir),
-		// brpc
-		"bthread_concurrency":      18,
-		"graceful_quit_on_sigterm": true,
-		// raft
-		"raft_sync":                            true,
-		"raft_sync_meta":                       true,
-		"raft_sync_segments":                   true,
-		"raft_max_segment_size":                8388608,
-		"raft_max_install_snapshot_tasks_num":  1,
-		"raft_use_fsync_rather_than_fdatasync": false,
-	}
-
-	arguments := []string{}
-	for k, v := range chunkserverArguments {
-		arguments = append(arguments, fmt.Sprintf("-%s=%v", k, v))
-	}
-	return strings.Join(arguments, " ")
-}
-
 func getContainerCMD(dc *topology.DeployConfig) string {
 	//upgrade_flag := dingoadm.MemStorage().Get(comm.KEY_UPGRADE_FLAG).(bool)
 	cmd := "deploystart" // cleanstart
@@ -203,7 +146,7 @@ func getContainerCMD(dc *topology.DeployConfig) string {
 		} else if dc.GetRole() == topology.ROLE_FS_MDS && dc.GetCtx().Lookup(topology.CTX_KEY_MDS_VERSION) == topology.CTX_VAL_MDS_V2 {
 			return ""
 		} else {
-			return fmt.Sprintf("--role %s --args='%s'", dc.GetRole(), getArguments(dc))
+			return fmt.Sprintf("--role %s ", dc.GetRole())
 		}
 	case topology.KIND_DINGOSTORE, topology.KIND_DINGODB:
 		if dc.GetRole() == topology.ROLE_DINGODB_EXECUTOR || dc.GetRole() == topology.ROLE_DINGODB_WEB || dc.GetRole() == topology.ROLE_DINGODB_PROXY {
@@ -212,7 +155,7 @@ func getContainerCMD(dc *topology.DeployConfig) string {
 			return cmd
 		}
 	default:
-		return fmt.Sprintf("--role %s --args='%s'", dc.GetRole(), getArguments(dc))
+		return fmt.Sprintf("--role %s ", dc.GetRole())
 	}
 }
 

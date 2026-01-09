@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package config
 
@@ -44,7 +32,7 @@ type diffOptions struct {
 	filename string
 }
 
-func NewDiffCommand(curveadm *cli.DingoAdm) *cobra.Command {
+func NewDiffCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	var options diffOptions
 
 	cmd := &cobra.Command{
@@ -54,7 +42,7 @@ func NewDiffCommand(curveadm *cli.DingoAdm) *cobra.Command {
 		Example: DIFF_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.filename = args[0]
-			return runDiff(curveadm, options)
+			return runDiff(dingoadm, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -62,9 +50,9 @@ func NewDiffCommand(curveadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runDiff(curveadm *cli.DingoAdm, options diffOptions) error {
+func runDiff(dingoadm *cli.DingoAdm, options diffOptions) error {
 	// 1) data1: current cluster topology data
-	data1 := curveadm.ClusterTopologyData()
+	data1 := dingoadm.ClusterTopologyData()
 
 	// 2) data2: topology in file
 	if !utils.PathExist(options.filename) {
@@ -78,6 +66,6 @@ func runDiff(curveadm *cli.DingoAdm, options diffOptions) error {
 
 	// 3) print difference
 	diff := utils.Diff(data1, data2)
-	curveadm.Out().Write([]byte(diff))
+	dingoadm.Out().Write([]byte(diff))
 	return nil
 }

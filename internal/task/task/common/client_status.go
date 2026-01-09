@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-31
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package common
@@ -68,10 +58,10 @@ type (
 	}
 )
 
-func dumpCfg(curveadm *cli.DingoAdm, id string, cfgPath *string) step.LambdaType {
+func dumpCfg(dingoadm *cli.DingoAdm, id string, cfgPath *string) step.LambdaType {
 	return func(ctx *context.Context) error {
 		*cfgPath = MISSING_CLIENT_CONFIG
-		cfgs, err := curveadm.Storage().GetClientConfig(id)
+		cfgs, err := dingoadm.Storage().GetClientConfig(id)
 		if err != nil {
 			return errno.ERR_SELECT_CLIENT_CONFIG_FAILED.E(err)
 		} else if len(cfgs) == 0 {
@@ -140,27 +130,27 @@ func (s *step2FormatClientStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewInitClientStatusTask(curveadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
+func NewInitClientStatusTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
 	client := v.(storage.Client)
 
 	t := task.NewTask("Init Client Status", "", nil)
 
 	var cfgPath string
 	t.AddStep(&step.Lambda{
-		Lambda: dumpCfg(curveadm, client.Id, &cfgPath),
+		Lambda: dumpCfg(dingoadm, client.Id, &cfgPath),
 	})
 	t.AddStep(&step2InitClientStatus{
 		client:     client,
 		cfgPath:    &cfgPath,
-		memStorage: curveadm.MemStorage(),
+		memStorage: dingoadm.MemStorage(),
 	})
 
 	return t, nil
 }
 
-func NewGetClientStatusTask(curveadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
+func NewGetClientStatusTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
 	client := v.(storage.Client)
-	hc, err := curveadm.GetHost(client.Host)
+	hc, err := dingoadm.GetHost(client.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -177,12 +167,12 @@ func NewGetClientStatusTask(curveadm *cli.DingoAdm, v interface{}) (*task.Task, 
 		Format:      `"{{.Status}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &status,
-		ExecOptions: curveadm.ExecOptions(),
+		ExecOptions: dingoadm.ExecOptions(),
 	})
 	t.AddStep(&step2FormatClientStatus{
 		client:     client,
 		status:     &status,
-		memStorage: curveadm.MemStorage(),
+		memStorage: dingoadm.MemStorage(),
 	})
 
 	return t, nil

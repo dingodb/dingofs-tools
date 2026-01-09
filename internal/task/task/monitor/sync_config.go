@@ -1,6 +1,5 @@
 /*
-*  Copyright (c) 2023 NetEase Inc.
-*  Copyright (c) 2025 dingodb.com.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -13,16 +12,7 @@
 *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
- */
-
-/*
-* Project: Curveadm
-* Created Date: 2023-04-21
-* Author: wanghai (SeanHai)
-*
-* Project: Dingoadm
-* Author: jackblack369 (Dongwei)
- */
+*/
 
 package monitor
 
@@ -44,13 +34,11 @@ import (
 )
 
 const (
-	TOOL_SYS_PATH                  = "/usr/bin/curve_ops_tool"
 	MONITOR_CONF_PATH              = "monitor"
 	PROMETHEUS_CONTAINER_CONF_PATH = "/etc/prometheus"
 	GRAFANA_CONTAINER_PATH         = "/etc/grafana/grafana.ini"
 	DASHBOARD_CONTAINER_PATH       = "/etc/grafana/provisioning/dashboards"
 	GRAFANA_DATA_SOURCE_PATH       = "/etc/grafana/provisioning/datasources/all.yml"
-	CURVE_MANAGER_CONF_PATH        = "/curve-manager/conf/pigeon.yaml"
 	DINGO_TOOL_SRC_PATH            = "/dingofs/conf/dingo.yaml"
 	DINGO_TOOL_DEST_PATH           = "/etc/dingo/dingo.yaml"
 	ORIGIN_MONITOR_PATH            = "/dingofs/monitor"
@@ -214,12 +202,12 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 		})
 
 		hostMonitorDir := cfg.GetDataDir()
-		t.AddStep(&common.Step2CopyFilesFromContainer{ // copy monitor directory
+		t.AddStep(&step.Step2CopyFilesFromContainer{ // copy monitor directory
 			ContainerId:   confContainerId,
 			Files:         &[]string{ORIGIN_MONITOR_PATH},
 			HostDestDir:   hostMonitorDir,
 			ExcludeParent: true,
-			Dingoadm:      dingoadm,
+			ExecOptions:   dingoadm.ExecOptions(),
 		})
 
 		t.AddStep(&step.InstallFile{ // install start_monitor_sync script
