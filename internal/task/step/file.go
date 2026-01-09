@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-12-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package step
 
@@ -125,6 +113,14 @@ type (
 		ContainerId         *string
 		ContainerConfigPath string
 		ContainerEnv        []string
+		module.ExecOptions
+	}
+
+	Step2CopyFilesFromContainer struct {
+		Files         *[]string
+		ContainerId   string
+		HostDestDir   string
+		ExcludeParent bool
 		module.ExecOptions
 	}
 )
@@ -402,4 +398,25 @@ func (s *CreateAndUploadDir) Execute(ctx *context.Context) error {
 	cmd = ctx.Module().Shell().Rmdir(hostPath, randPath)
 	cmd.Execute(s.ExecOptions)
 	return err
+}
+
+func (s *Step2CopyFilesFromContainer) Execute(ctx *context.Context) error {
+	steps := []task.Step{}
+	for _, file := range *s.Files {
+		steps = append(steps, &CopyFromContainer{
+			ContainerSrcPath: file,
+			HostDestPath:     s.HostDestDir,
+			ContainerId:      s.ContainerId,
+			ExcludeParent:    s.ExcludeParent,
+			ExecOptions:      s.ExecOptions,
+		})
+	}
+
+	for _, step := range steps {
+		err := step.Execute(ctx)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

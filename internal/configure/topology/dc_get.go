@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,22 +14,10 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2021-12-23
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
-
 package topology
 
 import (
 	"fmt"
-	"path"
 	"strconv"
 
 	"github.com/dingodb/dingofs-tools/internal/utils"
@@ -45,8 +32,6 @@ const (
 	LAYOUT_DINGOSTORE_BIN_DIR                = "/opt/dingo-store/build/bin"
 	LAYOUT_DINGOSTORE_DIST_DIR               = "/opt/dingo-store/dist"
 	LAYOUT_DINGDB_DINGO_ROOT_DIR             = "/opt/dingo"
-	LAYOUT_CURVEFS_ROOT_DIR                  = "/curvefs"
-	LAYOUT_CURVEBS_ROOT_DIR                  = "/curvebs"
 	LAYOUT_PLAYGROUND_ROOT_DIR               = "playground"
 	LAYOUT_CONF_SRC_DIR                      = "/conf"
 	LAYOUT_SERVICE_BIN_DIR                   = "/sbin"
@@ -57,12 +42,7 @@ const (
 	LAYOUT_TOOLS_DIR                         = "/tools"
 	LAYOUT_FS_TOOLS_DIR                      = "/tools"
 	LAYOUT_MDSV2_CLIENT_DIR                  = "/mds-client" // change mdsv2-client to mds-client
-	LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR        = "chunkfilepool"
-	LAYOUT_CURVEBS_COPYSETS_DIR              = "copysets"
-	LAYOUT_CURVEBS_RECYCLER_DIR              = "recycler"
-	LAYOUT_CURVEBS_TOOLS_CONFIG_SYSTEM_PATH  = "/etc/dingo/tools.conf"
-	LAYOUT_CURVEFS_TOOLS_CONFIG_SYSTEM_PATH  = "/etc/dingofs/tools.conf" // v1 tools config path
-	LAYOUT_CURVE_TOOLS_V2_CONFIG_SYSTEM_PATH = "/etc/dingo/dingo.yaml"
+	LAYOUT_DINGO_TOOLS_V2_CONFIG_SYSTEM_PATH = "/etc/dingo/dingo.yaml"
 	// dingo-store coordinator
 	LAYOUT_DINGO_COOR_RAFT_DIR = "/coordinator1/data/raft" //TODO: need to be changed
 	LAYOUT_DINGO_COOR_DATA_DIR = "/coordinator1/data/db"   //TODO: need to be changed
@@ -89,9 +69,6 @@ const (
 
 	LAYOUT_CORE_SYSTEM_DIR = "/core"
 
-	BINARY_CURVEBS_TOOL     = "curvebs-tool"
-	BINARY_CURVEBS_FORMAT   = "curve_format"
-	BINARY_CURVEFS_TOOL     = "dingo-tool"
 	BINARY_DINGOFS_TOOLS    = "dingo"
 	BINARY_FS_MDS_CLIENT    = "dingo-mds-client"
 	METAFILE_CHUNKFILE_POOL = "chunkfilepool.meta"
@@ -99,8 +76,7 @@ const (
 )
 
 var (
-	DefaultCurveBSDeployConfig = &DeployConfig{kind: KIND_CURVEBS}
-	DefaultCurveFSDeployConfig = &DeployConfig{kind: KIND_DINGOFS}
+	DefaultDingoFSDeployConfig = &DeployConfig{kind: KIND_DINGOFS}
 
 	ServiceConfigs = map[string][]string{
 		ROLE_ETCD:             {"etcd.conf"},
@@ -314,43 +290,6 @@ func (dc *DeployConfig) GetDingoExecutorJavaOpts() map[string]interface{} {
 	return dc.getMap(CONFIG_DINGO_EXECUTOR_JAVA_OPTS)
 }
 
-//func (dc *DeployConfig) GetDingoServerNum() int {
-//	return dc.getInt(CONFIG_DINGO_SERVER_NUM)
-//}
-
-// (3): service project layout
-/* /curvebs
- *  ├── conf
- *  │   ├── chunkserver.conf
- *  │   ├── etcd.conf
- *  │   ├── mds.conf
- *  │   └── tools.conf
- *  ├── etcd
- *  │   ├── conf
- *  │   ├── data
- *  │   ├── log
- *  │   └── sbin
- *  ├── mds
- *  │   ├── conf
- *  │   ├── data
- *  │   ├── log
- *  │   └── sbin
- *  ├── chunkserver
- *  │   ├── conf
- *  │   ├── data
- *  │   ├── log
- *  │   └── sbin
- *  ├── snapshotclone
- *  │   ├── conf
- *  │   ├── data
- *  │   ├── log
- *  │   └── sbin
- *  └── tools
- *      ├── conf
- *      ├── data
- *      ├── log
- *      └── sbin
- */
 type (
 	ConfFile struct {
 		Name       string
@@ -360,30 +299,17 @@ type (
 
 	// Layout defines the service project container path layout
 	Layout struct {
-		// project: curvebs/curvefs
-		ProjectRootDir string // /curvebs
-
-		PlaygroundRootDir string // /curvebs/playground
+		ProjectRootDir string // /dingofs
 
 		// service
-		ServiceRootDir     string // /curvebs/mds
-		ServiceBinDir      string // /curvebs/mds/sbin
-		ServiceConfDir     string // /curvebs/mds/conf
-		ServiceLogDir      string // /curvebs/mds/logs
-		ServiceDataDir     string // /curvebs/mds/data
-		ServiceConfPath    string // /curvebs/mds/conf/mds.conf
-		ServiceConfSrcPath string // /curvebs/conf/mds.conf
+		ServiceRootDir     string // /dingofs/mds
+		ServiceBinDir      string // /dingofs/mds/sbin
+		ServiceConfDir     string // /dingofs/mds/conf
+		ServiceLogDir      string // /dingofs/mds/logs
+		ServiceDataDir     string // /dingofs/mds/data
+		ServiceConfPath    string // /dingofs/mds/conf/mds.conf
+		ServiceConfSrcPath string // /dingofs/conf/mds.conf
 		ServiceConfFiles   []ConfFile
-
-		// tools
-		ToolsRootDir        string // /curvebs/tools
-		ToolsBinDir         string // /curvebs/tools/sbin
-		ToolsDataDir        string // /curvebs/tools/data
-		ToolsConfDir        string // /curvebs/tools/conf
-		ToolsConfPath       string // /curvebs/tools/conf/tools.conf
-		ToolsConfSrcPath    string // /curvebs/conf/tools.conf
-		ToolsConfSystemPath string // /etc/dingofs/tools.conf
-		ToolsBinaryPath     string // /curvebs/tools/sbin/curvebs-tool
 
 		// dingofs-tools
 		FSToolsBinDir         string // /dingofs/tools/sbin
@@ -402,12 +328,6 @@ type (
 		// dingo-store coordinator.template.yaml
 		CoordinatorConfSrcPath string // /opt/dingo-store/conf/coordinator.template.yaml
 		StoreConfSrcPath       string // /opt/dingo-store/conf/store.template.yaml
-
-		// format
-		FormatBinaryPath      string // /curvebs/tools/sbin/curve_format
-		ChunkfilePoolRootDir  string // /curvebs/chunkserver/data
-		ChunkfilePoolDir      string // /curvebs/chunkserver/data/chunkfilepool
-		ChunkfilePoolMetaPath string // /curvebs/chunkserver/data/chunkfilepool.meta
 
 		// dingo-store
 		DingoStoreBinDir    string // /opt/dingo-store/build/bin
@@ -429,7 +349,6 @@ type (
 
 // GetProjectLayout return service project container path layout
 func (dc *DeployConfig) GetProjectLayout() Layout {
-	kind := dc.GetKind()
 	role := dc.GetRole()
 	// project
 	root := LAYOUT_DINGOFS_ROOT_DIR
@@ -475,21 +394,11 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		})
 	}
 
-	// tools, change 'dingofs' as root dir
-	toolsRootDir := root + LAYOUT_TOOLS_DIR
-	toolsBinDir := toolsRootDir + LAYOUT_SERVICE_BIN_DIR
-	toolsConfDir := toolsRootDir + LAYOUT_SERVICE_CONF_DIR
-	toolsBinaryName := utils.Choose(kind == KIND_CURVEBS, BINARY_CURVEBS_TOOL, BINARY_CURVEFS_TOOL)
-	toolsConfSystemPath := LAYOUT_CURVEFS_TOOLS_CONFIG_SYSTEM_PATH
-
 	// dingofs-tools
 	fsToolsRootDir := root + LAYOUT_FS_TOOLS_DIR
 	fsToolsBinDir := fsToolsRootDir + LAYOUT_SERVICE_BIN_DIR
 	fsToolsBinaryName := BINARY_DINGOFS_TOOLS
-	fsToolsConfSystemPath := LAYOUT_CURVE_TOOLS_V2_CONFIG_SYSTEM_PATH
-
-	// format
-	chunkserverDataDir := fmt.Sprintf("%s/%s%s", root, ROLE_CHUNKSERVER, LAYOUT_SERVICE_DATA_DIR)
+	fsToolsConfSystemPath := LAYOUT_DINGO_TOOLS_V2_CONFIG_SYSTEM_PATH
 
 	serviceLogDir := serviceRootDir + LAYOUT_SERVICE_LOGS_DIR
 	serviceDataDir := serviceRootDir + LAYOUT_SERVICE_DATA_DIR
@@ -533,9 +442,6 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		// project
 		ProjectRootDir: root,
 
-		// playground
-		PlaygroundRootDir: path.Join(root, LAYOUT_PLAYGROUND_ROOT_DIR),
-
 		// service
 		ServiceRootDir:     serviceRootDir,
 		ServiceBinDir:      serviceRootDir + LAYOUT_SERVICE_BIN_DIR,
@@ -545,16 +451,6 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		ServiceConfPath:    fmt.Sprintf("%s/%s.conf", serviceConfDir, role),
 		ServiceConfSrcPath: fmt.Sprintf("%s/%s.conf", confSrcDir, role),
 		ServiceConfFiles:   serviceConfFiles,
-
-		// tools
-		ToolsRootDir:        toolsRootDir,
-		ToolsBinDir:         toolsRootDir + LAYOUT_SERVICE_BIN_DIR,
-		ToolsDataDir:        toolsRootDir + LAYOUT_SERVICE_DATA_DIR,
-		ToolsConfDir:        toolsRootDir + LAYOUT_SERVICE_CONF_DIR,
-		ToolsConfPath:       fmt.Sprintf("%s/tools.conf", toolsConfDir),
-		ToolsConfSrcPath:    fmt.Sprintf("%s/tools.conf", confSrcDir),
-		ToolsConfSystemPath: toolsConfSystemPath,
-		ToolsBinaryPath:     fmt.Sprintf("%s/%s", toolsBinDir, toolsBinaryName),
 
 		// toolsv2
 		FSToolsBinDir:         fsToolsRootDir + LAYOUT_SERVICE_BIN_DIR,
@@ -569,12 +465,6 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		FSMdsCliConfDir:     root + LAYOUT_MDSV2_CLIENT_DIR + LAYOUT_SERVICE_CONF_DIR,
 		FSMdsCliConfSrcPath: fmt.Sprintf("%s/coor_list", root+LAYOUT_MDSV2_CLIENT_DIR+LAYOUT_SERVICE_CONF_DIR), // /dingofs/mds-client/conf/coor_list
 		FSMdsCliBinaryPath:  fmt.Sprintf("%s/%s", root+LAYOUT_MDSV2_CLIENT_DIR+LAYOUT_SERVICE_BIN_DIR, BINARY_FS_MDS_CLIENT),
-
-		// format
-		FormatBinaryPath:      fmt.Sprintf("%s/%s", toolsBinDir, BINARY_CURVEBS_FORMAT),
-		ChunkfilePoolRootDir:  chunkserverDataDir,
-		ChunkfilePoolDir:      fmt.Sprintf("%s/%s", chunkserverDataDir, LAYOUT_CURVEBS_CHUNKFILE_POOL_DIR),
-		ChunkfilePoolMetaPath: fmt.Sprintf("%s/%s", chunkserverDataDir, METAFILE_CHUNKFILE_POOL),
 
 		// dingo-store
 		DingoStoreBinDir:    LAYOUT_DINGOSTORE_BIN_DIR,
@@ -599,10 +489,6 @@ func GetProjectLayout(kind, role string) Layout {
 	return dc.GetProjectLayout()
 }
 
-func GetCurveBSProjectLayout() Layout {
-	return DefaultCurveBSDeployConfig.GetProjectLayout()
-}
-
 func GetDingoFSProjectLayout() Layout {
-	return DefaultCurveFSDeployConfig.GetProjectLayout()
+	return DefaultDingoFSDeployConfig.GetProjectLayout()
 }

@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,17 +14,6 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
-
 package dingoadm
 
 import (
@@ -39,19 +27,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-/*
- * [defaults]
- * log_level = error
- * sudo_alias = "sudo"
- * timeout = 180
- *
- * [ssh_connections]
- * retries = 3
- * timeout = 10
- *
- * [database]
- * url = "sqlite:///home/curve/.curveadm/data/curveadm.db"
- */
 const (
 	KEY_LOG_LEVEL    = "log_level"
 	KEY_SUDO_ALIAS   = "sudo_alias"
@@ -63,7 +38,7 @@ const (
 	KEY_DB_URL       = "url"
 
 	// rqlite://127.0.0.1:4000
-	// sqlite:///home/curve/.curveadm/data/curveadm.db
+	// sqlite:///home/dingofs/.dingo/data/dingoadm.db
 	REGEX_DB_URL = "^(sqlite|rqlite)://(.+)$"
 	DB_SQLITE    = "sqlite"
 	DB_RQLITE    = "rqlite"
@@ -256,7 +231,7 @@ type sectionParser struct {
 func ParseDingoAdmConfig(filename string) (*DingoAdmConfig, error) {
 	cfg := newDefault()
 	if !utils.PathExist(filename) {
-		build.DEBUG(build.DEBUG_CURVEADM_CONFIGURE, cfg)
+		build.DEBUG(build.DEBUG_CONFIGURE, cfg)
 		return cfg, nil
 	}
 
@@ -287,7 +262,7 @@ func ParseDingoAdmConfig(filename string) (*DingoAdmConfig, error) {
 		}
 	}
 
-	build.DEBUG(build.DEBUG_CURVEADM_CONFIGURE, cfg)
+	build.DEBUG(build.DEBUG_CONFIGURE, cfg)
 	return cfg, nil
 }
 

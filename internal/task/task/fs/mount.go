@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,17 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- * Modified Date: 2025-06-20
- * Modified By: Dongwei
  */
 
 package fs
@@ -48,8 +36,6 @@ import (
 
 const (
 	FORMAT_MOUNT_OPTION = "type=bind,source=%s,target=%s,bind-propagation=rshared"
-
-	KEY_CURVEBS_CLUSTER = "curvebs.cluster"
 )
 
 type (
@@ -164,30 +150,6 @@ func newMutate(cc *configure.ClientConfig, delimiter string) step.Mutate {
 	}
 }
 
-func newToolsMutate(cc *configure.ClientConfig, delimiter string) step.Mutate {
-	clientConfig := cc.GetServiceConfig()
-	tools2client := map[string]string{
-		"mdsAddr":       "mdsOpt.rpcRetryOpt.addrs",
-		"volumeCluster": KEY_CURVEBS_CLUSTER,
-	}
-	return func(in, key, value string) (out string, err error) {
-		if len(key) == 0 {
-			out = in
-			return
-		}
-		replaceKey := key
-		if tools2client[key] != "" {
-			replaceKey = tools2client[key]
-		}
-		v, ok := clientConfig[strings.ToLower(replaceKey)]
-		if ok {
-			value = v
-		}
-		out = fmt.Sprintf("%s%s%s", key, delimiter, value)
-		return
-	}
-}
-
 func newFSToolsMutate(cc *configure.ClientConfig, delimiter string, fstype string) step.Mutate {
 	clientConfig := cc.GetServiceConfig()
 	mdsAddrKey := "mdsOpt.rpcRetryOpt.addrs"
@@ -253,9 +215,9 @@ func getEnvironments(cc *configure.ClientConfig) []string {
 
 func (s *step2InsertClient) Execute(ctx *context.Context) error {
 	config := s.config
-	curveadm := s.dingoadm
+	dingoadm := s.dingoadm
 	options := s.options
-	fsId := curveadm.GetFilesystemId(options.Host, options.MountPoint)
+	fsId := dingoadm.GetFilesystemId(options.Host, options.MountPoint)
 
 	auxInfo := &AuxInfo{
 		FSName:     options.MountFSName,
@@ -263,16 +225,16 @@ func (s *step2InsertClient) Execute(ctx *context.Context) error {
 	}
 	bytes, err := json.Marshal(auxInfo)
 	if err != nil {
-		return errno.ERR_ENCODE_VOLUME_INFO_TO_JSON_FAILED.E(err)
+		return errno.ERR_ENCODE_INFO_TO_JSON_FAILED.E(err)
 	}
 
-	err = curveadm.Storage().InsertClient(fsId, config.GetKind(),
+	err = dingoadm.Storage().InsertClient(fsId, config.GetKind(),
 		options.Host, *s.containerId, string(bytes))
 	if err != nil {
 		return errno.ERR_INSERT_CLIENT_FAILED.E(err)
 	}
 
-	err = curveadm.Storage().InsertClientConfig(fsId, config.GetData())
+	err = dingoadm.Storage().InsertClientConfig(fsId, config.GetData())
 	if err != nil {
 		return errno.ERR_INSERT_CLIENT_CONFIG_FAILED.E(err)
 	}
@@ -395,15 +357,6 @@ func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.T
 		Mutate:            newMutate(cc, comm.CLIENT_CONFIG_DELIMITER),
 		ExecOptions:       dingoadm.ExecOptions(),
 	})
-	//t.AddStep(&step.SyncFile{ // sync tools config
-	//	ContainerSrcId:    &containerId,
-	//	ContainerSrcPath:  fmt.Sprintf("%s/conf/tools.conf", root),
-	//	ContainerDestId:   &containerId,
-	//	ContainerDestPath: topology.GetCurveFSProjectLayout().ToolsConfSystemPath,
-	//	KVFieldSplit:      comm.CLIENT_CONFIG_DELIMITER,
-	//	Mutate:            newToolsMutate(cc, comm.CLIENT_CONFIG_DELIMITER),
-	//	ExecOptions:       curveadm.ExecOptions(),
-	//})
 	t.AddStep(&step.TrySyncFile{ // sync dingofs-tools config
 		ContainerSrcId:    &containerId,
 		ContainerSrcPath:  fetchDingoConfigPath(useNewDingo, root),

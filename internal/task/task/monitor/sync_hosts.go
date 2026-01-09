@@ -14,11 +14,6 @@
 *  limitations under the License.
  */
 
-/*
-* Project: Dingoadm
-* Author: jackblack369 (Dongwei)
- */
-
 package monitor
 
 import (

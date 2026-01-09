@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-01-09
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package configure
@@ -49,7 +39,6 @@ const (
 	KEY_CORE_DIR                   = "core_dir"
 	KEY_CACHE_DIR                  = "mount_dirs"
 	KEY_PROVISIONING_DIR           = "provisioning_dir"
-	KEY_CURVEBS_LISTEN_MDS_ADDRS   = "mds.listen.addr"
 	KEY_DINGOFS_LISTEN_MDS_ADDRS   = "mdsOpt.rpcRetryOpt.addrs"
 	KEY_DINGOFS_LISTEN_MDSV2_ADDRS = "mds.addr"
 	KEY_CONTAINER_PID              = "container_pid"
@@ -73,7 +62,6 @@ const (
 )
 
 const (
-	DEFAULT_CURVEBS_CLIENT_CONTAINER_IMAGE = "opencurvedocker/curvebs:v1.2"
 	DEFAULT_DINGOFS_CLIENT_CONTAINER_IMAGE = "dingodatabase/dingofs:latest"
 )
 
@@ -88,7 +76,6 @@ var (
 		KEY_ENVIRONMENT:     true,
 	}
 
-	LAYOUT_CURVEBS_ROOT_DIR = topology.GetCurveBSProjectLayout().ProjectRootDir
 	LAYOUT_DINGOFS_ROOT_DIR = topology.GetDingoFSProjectLayout().ProjectRootDir
 )
 
@@ -133,8 +120,7 @@ func NewClientConfig(config map[string]interface{}, mountFSType string) (*Client
 	}
 
 	kind := cc.GetKind()
-	field := utils.Choose(kind == topology.KIND_CURVEBS,
-		KEY_CURVEBS_LISTEN_MDS_ADDRS, KEY_DINGOFS_LISTEN_MDS_ADDRS)
+	field := KEY_DINGOFS_LISTEN_MDS_ADDRS
 	if kind != topology.KIND_DINGOFS {
 		return nil, errno.ERR_UNSUPPORT_CLIENT_CONFIGURE_KIND.
 			F("kind: %s", kind)
@@ -240,9 +226,7 @@ func (cc *ClientConfig) GetVariables() *variable.Variables   { return cc.variabl
 func (cc *ClientConfig) GetContainerImage() string {
 	containerImage := cc.getString(KEY_CONTAINER_IMAGE)
 	if len(containerImage) == 0 {
-		containerImage = utils.Choose(cc.GetKind() == topology.KIND_CURVEBS,
-			DEFAULT_CURVEBS_CLIENT_CONTAINER_IMAGE,
-			DEFAULT_DINGOFS_CLIENT_CONTAINER_IMAGE)
+		containerImage = DEFAULT_DINGOFS_CLIENT_CONTAINER_IMAGE
 	}
 	return containerImage
 }
@@ -254,13 +238,9 @@ func (cc *ClientConfig) GetClusterMDSAddr(mountFSType string) string {
 	return cc.getString(KEY_DINGOFS_LISTEN_MDS_ADDRS)
 }
 
-// wrapper interface: curvefs client related
+// wrapper interface: dingofs client related
 func GetFSProjectRoot() string {
 	return LAYOUT_DINGOFS_ROOT_DIR
-}
-
-func GetBSProjectRoot() string {
-	return LAYOUT_CURVEBS_ROOT_DIR
 }
 
 func GetFSClientPrefix() string {

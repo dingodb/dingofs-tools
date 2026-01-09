@@ -1,6 +1,5 @@
 /*
-*  Copyright (c) 2023 NetEase Inc.
-*  Copyright (c) 2025 dingodb.com.
+* Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
 *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
- */
-
-/*
-* Project: Curveadm
-* Created Date: 2023-04-17
-* Author: wanghai (SeanHai)
-*
-* Project: dingoadm
-* Author: dongwei (jackblack369)
  */
 
 package monitor
@@ -64,7 +54,7 @@ type deployOptions struct {
 
 /*
  * Deploy Steps:
- *   1) pull images(curvebs, node_exporter, prometheus, grafana)
+ *   1) pull images(dingofs, node_exporter, prometheus, grafana)
  *   2) create container
  *   3) sync config
  *   4) start container

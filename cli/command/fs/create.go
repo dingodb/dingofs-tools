@@ -93,13 +93,6 @@ func NewFsCreateCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				return fmt.Errorf("invalid blocksize: %s", blocksizeStr)
 			}
 			options.blocksize = blocksize
-			// chunk size
-			chunksizeStr := utils.GetStringFlag(cmd, utils.DINGOFS_CHUNKSIZE)
-			chunksize, err := humanize.ParseBytes(chunksizeStr)
-			if err != nil {
-				return fmt.Errorf("invalid chunksize: %s", chunksize)
-			}
-			options.chunksize = chunksize
 			//storage type
 			storagetypeStr := strings.ToUpper(utils.GetStringFlag(cmd, utils.DINGOFS_STORAGETYPE))
 			switch storagetypeStr {

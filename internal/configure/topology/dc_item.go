@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-12-24
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package topology
 
@@ -43,7 +31,6 @@ const (
 
 	// default value
 	DEFAULT_REPORT_USAGE                    = false
-	DEFAULT_CURVEBS_CONTAINER_IMAGE         = "opencurvedocker/curvebs:latest"
 	DEFAULT_DINGOFS_CONTAINER_IMAGE         = "dingodatabase/dingofs:latest"
 	DEFAULT_ETCD_LISTEN_PEER_PORT           = 2380
 	DEFAULT_ETCD_LISTEN_CLIENT_PORT         = 2379
@@ -168,9 +155,6 @@ var (
 		REQUIRE_STRING,
 		true,
 		func(dc *DeployConfig) interface{} {
-			if dc.GetKind() == KIND_CURVEBS {
-				return DEFAULT_CURVEBS_CONTAINER_IMAGE
-			}
 			return DEFAULT_DINGOFS_CONTAINER_IMAGE
 		},
 	)

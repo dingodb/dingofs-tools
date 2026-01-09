@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package topology
 
@@ -57,41 +45,6 @@ type Var struct {
 	resolved bool
 }
 
-/*
- * built-in variables:
- *
- * service:
- *   ${prefix}                     "/curvebs/{etcd,mds,chunkserver}"
- *   ${service_id}                 "c690bde11d1a"
- *   ${service_role}               "mds"
- *   ${service_host}               "10.0.0.1"
- *   ${service_host_sequence}      "1"
- *   ${service_instances_sequence} "1"
- *   ${format_instances_sequence}  "01"
- *   ${service_addr}               "10.0.0.1"
- *   ${service_port}               "6666"
- *   ${service_client_port}        "2379" (etcd)
- *   ${service_dummy_port}         "6667" (snapshotclone/mds)
- *   ${service_proxy_port}         "8080" (snapshotclone)
- *   ${service_external_addr}      "10.0.10.1" (chunkserver/metaserver)
- *   ${service_external_port}      "7800" (metaserver)
- *   ${log_dir}                    "/data/logs"
- *   ${data_dir}                   "/data"
- *   ${random_uuid}                "6fa8f01c411d7655d0354125c36847bb"
- *
- * cluster:
- *   ${cluster_etcd_http_addr}                "etcd1=http://10.0.10.1:2380,etcd2=http://10.0.10.2:2380,etcd3=http://10.0.10.3:2380"
- *   ${cluster_etcd_addr}                     "10.0.10.1:2380,10.0.10.2:2380,10.0.10.3:2380"
- *   ${cluster_mds_addr}                      "10.0.10.1:6666,10.0.10.2:6666,10.0.10.3:6666"
- *   ${cluster_mds_dummy_addr}                "10.0.10.1:6667,10.0.10.2:6667,10.0.10.3:6667"
- *   ${cluster_mds_dummy_port}                "6667,6668,6669"
- *   ${cluster_chunkserver_addr}              "10.0.10.1:6800,10.0.10.2:6800,10.0.10.3:6800"
- *   ${cluster_snapshotclone_addr}            "10.0.10.1:5555,10.0.10.2:5555,10.0.10.3:5555"
- *   ${cluster_snapshotclone_proxy_addr}      "10.0.10.1:8080,10.0.10.2:8080,10.0.10.3:8083"
- *   ${cluster_snapshotclone_dummy_port}      "8081,8082,8083"
- *   ${cluster_snapshotclone_nginx_upstream}  "server 10.0.0.1:5555; server 10.0.0.3:5555; server 10.0.0.3:5555;"
- *   ${cluster_metaserver_addr}               "10.0.10.1:6701,10.0.10.2:6701,10.0.10.3:6701"
- */
 var (
 	serviceVars = []Var{
 		{name: "prefix"},

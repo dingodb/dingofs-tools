@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-14
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package checker
@@ -56,15 +46,15 @@ func step2Pre(start *int64) step.LambdaType {
 	}
 }
 
-func newIfNil(curveadm *cli.DingoAdm) map[string]Time {
-	m := curveadm.MemStorage().Get(comm.KEY_ALL_HOST_DATE)
+func newIfNil(dingoadm *cli.DingoAdm) map[string]Time {
+	m := dingoadm.MemStorage().Get(comm.KEY_ALL_HOST_DATE)
 	if m != nil {
 		return m.(map[string]Time)
 	}
 	return map[string]Time{}
 }
 
-func step2Post(curveadm *cli.DingoAdm, dc *topology.DeployConfig, start *int64, out *string) step.LambdaType {
+func step2Post(dingoadm *cli.DingoAdm, dc *topology.DeployConfig, start *int64, out *string) step.LambdaType {
 	return func(ctx *context.Context) error {
 		if len(*out) == 0 {
 			return errno.ERR_INVALID_DATE_FORMAT.
@@ -77,15 +67,15 @@ func step2Post(curveadm *cli.DingoAdm, dc *topology.DeployConfig, start *int64, 
 				F("date: %s", *out)
 		}
 
-		m := newIfNil(curveadm)
+		m := newIfNil(dingoadm)
 		m[dc.GetHost()] = Time{dc.GetHost(), int64(time)}
-		curveadm.MemStorage().Set(comm.KEY_ALL_HOST_DATE, m)
+		dingoadm.MemStorage().Set(comm.KEY_ALL_HOST_DATE, m)
 		return nil
 	}
 }
 
-func NewGetHostDate(curveadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := curveadm.GetHost(dc.GetHost())
+func NewGetHostDate(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingoadm.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -101,10 +91,10 @@ func NewGetHostDate(curveadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Ta
 	t.AddStep(&step.Date{
 		Format:      "+%s",
 		Out:         &out,
-		ExecOptions: curveadm.ExecOptions(),
+		ExecOptions: dingoadm.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
-		Lambda: step2Post(curveadm, dc, &start, &out),
+		Lambda: step2Post(dingoadm, dc, &start, &out),
 	})
 
 	return t, nil
@@ -135,10 +125,10 @@ func checkDate(dingoadm *cli.DingoAdm) step.LambdaType {
 	}
 }
 
-func NewCheckDate(curveadm *cli.DingoAdm, c interface{}) (*task.Task, error) {
+func NewCheckDate(dingoadm *cli.DingoAdm, c interface{}) (*task.Task, error) {
 	t := task.NewTask("Check Host Date <date>", "", nil)
 	t.AddStep(&step.Lambda{
-		Lambda: checkDate(curveadm),
+		Lambda: checkDate(dingoadm),
 	})
 	return t, nil
 }

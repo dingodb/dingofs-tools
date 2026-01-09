@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the Licensele().
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package storage
@@ -39,8 +29,6 @@ var (
 	ErrInvalidDBUrl = fmt.Errorf("invalid database url")
 )
 
-// rqlite://127.0.0.1:4000
-// sqlite:///home/curve/.curveadm/data/curveadm.db
 const (
 	REGEX_DB_URL = "^(sqlite|rqlite)://(.+)$"
 )

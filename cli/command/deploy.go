@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package command
@@ -46,14 +36,7 @@ const (
 	CREATE_CONTAINER           = playbook.CREATE_CONTAINER
 	CREATE_MDSV2_CLI_CONTAINER = playbook.CREATE_MDSV2_CLI_CONTAINER
 	SYNC_CONFIG                = playbook.SYNC_CONFIG
-	START_ETCD                 = playbook.START_ETCD
-	ENABLE_ETCD_AUTH           = playbook.ENABLE_ETCD_AUTH
 	START_MDS                  = playbook.START_MDS
-	CREATE_PHYSICAL_POOL       = playbook.CREATE_PHYSICAL_POOL
-	START_CHUNKSERVER          = playbook.START_CHUNKSERVER
-	CREATE_LOGICAL_POOL        = playbook.CREATE_LOGICAL_POOL
-	START_SNAPSHOTCLONE        = playbook.START_SNAPSHOTCLONE
-	START_METASERVER           = playbook.START_METASERVER
 	BALANCE_LEADER             = playbook.BALANCE_LEADER
 	START_MDSV2                = playbook.START_FS_MDS
 	START_COORDINATOR          = playbook.START_COORDINATOR
@@ -73,11 +56,6 @@ const (
 	START_DINGODB_WEB      = playbook.START_DINGODB_WEB
 
 	// role
-	ROLE_ETCD = topology.ROLE_ETCD
-	// ROLE_MDS_V1           = topology.ROLE_MDS_V1
-	ROLE_CHUNKSERVER      = topology.ROLE_CHUNKSERVER
-	ROLE_SNAPSHOTCLONE    = topology.ROLE_SNAPSHOTCLONE
-	ROLE_METASERVER       = topology.ROLE_METASERVER
 	ROLE_FS_MDS           = topology.ROLE_FS_MDS
 	ROLE_COORDINATOR      = topology.ROLE_COORDINATOR
 	ROLE_STORE            = topology.ROLE_STORE
@@ -88,31 +66,10 @@ const (
 	ROLE_DINGODB_EXECUTOR = topology.ROLE_DINGODB_EXECUTOR
 	ROLE_DINGODB_WEB      = topology.ROLE_DINGODB_WEB
 	ROLE_DINGODB_PROXY    = topology.ROLE_DINGODB_PROXY
+	ROLE_ALT              = "ALT"
 )
 
 var (
-	DINGOFS_DEPLOY_STEPS = []int{
-		CLEAN_PRECHECK_ENVIRONMENT,
-		PULL_IMAGE,
-		CREATE_CONTAINER,
-		SYNC_CONFIG,
-		START_ETCD,
-		ENABLE_ETCD_AUTH,
-		START_MDS,
-		CREATE_LOGICAL_POOL,
-		START_METASERVER,
-	}
-
-	DINGOFS_MDS_DEPLOY_STEPS = []int{
-		CLEAN_PRECHECK_ENVIRONMENT,
-		PULL_IMAGE,
-		CREATE_CONTAINER,
-		SYNC_CONFIG,
-		START_ETCD,
-		ENABLE_ETCD_AUTH,
-		START_MDS,
-	}
-
 	DINGOFS_MDSV2_ONLY_DEPLOY_STEPS = []int{
 		CLEAN_PRECHECK_ENVIRONMENT,
 		PULL_IMAGE,
@@ -167,14 +124,7 @@ var (
 	}
 
 	DEPLOY_FILTER_ROLE = map[int]string{
-		START_ETCD:                 ROLE_ETCD,
-		ENABLE_ETCD_AUTH:           ROLE_ETCD,
 		START_MDS:                  ROLE_FS_MDS,
-		START_CHUNKSERVER:          ROLE_CHUNKSERVER,
-		START_SNAPSHOTCLONE:        ROLE_SNAPSHOTCLONE,
-		START_METASERVER:           ROLE_METASERVER,
-		CREATE_PHYSICAL_POOL:       ROLE_FS_MDS,
-		CREATE_LOGICAL_POOL:        ROLE_FS_MDS,
 		BALANCE_LEADER:             ROLE_FS_MDS,
 		START_MDSV2:                ROLE_FS_MDS,
 		START_COORDINATOR:          ROLE_COORDINATOR,
@@ -194,10 +144,7 @@ var (
 
 	// DEPLOY_LIMIT_SERVICE is used to limit the number of services
 	DEPLOY_LIMIT_SERVICE = map[int]int{
-		CREATE_PHYSICAL_POOL:       1,
-		CREATE_LOGICAL_POOL:        1,
 		BALANCE_LEADER:             1,
-		ENABLE_ETCD_AUTH:           1,
 		CREATE_META_TABLES:         1,
 		CREATE_MDSV2_CLI_CONTAINER: 1,
 		CHECK_STORE_HEALTH:         1,
@@ -205,7 +152,7 @@ var (
 	}
 
 	CAN_SKIP_ROLES = []string{
-		ROLE_SNAPSHOTCLONE,
+		ROLE_ALT,
 	}
 )
 
@@ -268,12 +215,7 @@ func skipServiceRole(deployConfigs []*topology.DeployConfig, options deployOptio
 
 func skipDeploySteps(dcs []*topology.DeployConfig, deploySteps []int, options deployOptions) []int {
 	steps := []int{}
-	skipped := utils.Slice2Map(options.skip)
 	for _, step := range deploySteps {
-		if (step == START_SNAPSHOTCLONE && skipped[ROLE_SNAPSHOTCLONE]) ||
-			(step == ENABLE_ETCD_AUTH && len(dcs) > 0 && !dcs[0].GetEtcdAuthEnable()) {
-			continue
-		}
 		steps = append(steps, step)
 	}
 	return steps
@@ -288,9 +230,7 @@ func precheckBeforeDeploy(dingoadm *cli.DingoAdm,
 	}
 
 	// 2) generate precheck playbook
-	pb, err := genPrecheckPlaybook(dingoadm, dcs, precheckOptions{
-		skipSnapshotClone: utils.Slice2Map(options.skip)[ROLE_SNAPSHOTCLONE],
-	})
+	pb, err := genPrecheckPlaybook(dingoadm, dcs, precheckOptions{})
 	if err != nil {
 		return err
 	}
@@ -308,11 +248,6 @@ func precheckBeforeDeploy(dingoadm *cli.DingoAdm,
 	time.Sleep(time.Duration(3) * time.Second)
 	dingoadm.WriteOutln("\n")
 	return nil
-}
-
-func calcNumOfChunkserver(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) int {
-	services := dingoadm.FilterDeployConfigByRole(dcs, topology.ROLE_CHUNKSERVER)
-	return len(services)
 }
 
 func genDeployPlaybook(dingoadm *cli.DingoAdm,
@@ -335,10 +270,6 @@ func genDeployPlaybook(dingoadm *cli.DingoAdm,
 			}
 		} else if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
 			steps = DINGOFS_MDSV2_ONLY_DEPLOY_STEPS
-		} else if !utils.Contains(roles, topology.ROLE_METASERVER) {
-			steps = DINGOFS_MDS_DEPLOY_STEPS
-		} else {
-			steps = DINGOFS_DEPLOY_STEPS
 		}
 	case topology.KIND_DINGOSTORE:
 		steps = DINGOSTORE_DEPLOY_STEPS
@@ -445,20 +376,6 @@ func displayDeployTitle(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) {
 	dingoadm.WriteOutln("")
 }
 
-/*
- * Deploy Steps:
- *   1) pull image
- *   2) create container
- *   3) sync config
- *   4) start container
- *     4.1) start etcd container
- *     4.2) start mds container
- *     4.3) create physical pool(curvebs)
- *     4.3) start chunkserver(curvebs) / metaserver(dingofs) container
- *     4.4) start snapshotserver(curvebs) container
- *   5) create logical pool
- *   6) balance leader rapidly
- */
 func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	// 1) parse cluster topology
 	dcs, err := dingoadm.ParseTopology()

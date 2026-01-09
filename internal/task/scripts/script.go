@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,18 +14,6 @@
  *  limitations under the License.
  */
 
-/*
- * Project: CurveAdm
- * Created Date: 2021-11-25
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- *
- * Project: Dingoadm
- * Author: Dongwei (jackblack369)
- */
-
 package scripts
 
 import (
@@ -38,36 +25,15 @@ var (
 
 	//go:embed shell/wait.sh
 	WAIT string
-	//go:embed shell/report.sh
-	REPORT string
 
-	// CurveBS
-
-	//go:embed shell/format.sh
-	FORMAT string
-	//go:embed shell/wait_chunkserver.sh
-	WAIT_CHUNKSERVERS string
 	//go:embed shell/start_nginx.sh
 	START_NGINX string
-	//go:embed shell/create_volume.sh
-	CREATE_VOLUME string
-	//go:embed shell/map.sh
-	MAP string
-	//go:embed shell/target.sh
-	TARGET string
-	//go:embed shell/recycle.sh
-	RECYCLE string
-
-	// DingoFS
 
 	//go:embed shell/mount_fs.sh
 	MOUNT_FS string
 
 	//go:embed shell/mount_client.sh
 	MOUNT_CLIENT string
-
-	//go:embed shell/start_gateway.sh
-	START_GATEWAY string
 
 	// DingoFS MdsV2
 	//go:embed shell/create_mdsv2_tables.sh

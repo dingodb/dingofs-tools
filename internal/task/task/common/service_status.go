@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2021-10-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package common
 
@@ -46,7 +34,6 @@ import (
 
 const (
 	SIGNATURE_LEADER          = "leader"
-	URL_CURVEBS_METRIC_LEADER = "http://%s:%d/vars/mds_status?console=1"
 	URL_DINGOFS_METRIC_LEADER = "http://%s:%d/vars/dingofs_mds_status?console=1"
 	COMMAND_CURL_MDS          = "curl %s --connect-timeout 1 --max-time 3"
 )
@@ -206,8 +193,7 @@ func (s *step2GetLeader) Execute(ctx *context.Context) error {
 		return nil
 	}
 
-	url := utils.Choose(dc.GetKind() == topology.KIND_CURVEBS,
-		URL_CURVEBS_METRIC_LEADER, URL_DINGOFS_METRIC_LEADER)
+	url := URL_DINGOFS_METRIC_LEADER
 	url = fmt.Sprintf(url, dc.GetListenIp(), dc.GetListenDummyPort())
 	command := fmt.Sprintf(COMMAND_CURL_MDS, url)
 	cmd := ctx.Module().DockerCli().ContainerExec(s.containerId, command)

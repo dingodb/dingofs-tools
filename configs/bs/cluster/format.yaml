@@ -1,8 +1,0 @@
-host:
-  - server-host1
-  - server-host2
-  - server-host3
-disk:
-  - /dev/sda:/data/chunkserver0:90  # device:mount_path:format_percent%
-  - /dev/sdb:/data/chunkserver1:90
-  - /dev/sdc:/data/chunkserver2:90

@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-11
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package command
@@ -86,7 +76,6 @@ var (
 		playbook.CHECK_NETWORK_FIREWALL:      CHECK_ITEM_NERWORK,
 		playbook.GET_HOST_DATE:               CHECK_ITEM_DATE,
 		playbook.CHECK_HOST_DATE:             CHECK_ITEM_DATE,
-		playbook.CHECK_CHUNKFILE_POOL:        CHECK_ITEM_SERVICE,
 		playbook.CHECK_S3:                    CHECK_ITEM_SERVICE,
 	}
 
@@ -102,9 +91,8 @@ var (
 )
 
 type precheckOptions struct {
-	skipSnapshotClone bool
-	skip              []string
-	useLocalImage     bool
+	skip          []string
+	useLocalImage bool
 	//only              []string
 }
 
@@ -187,21 +175,18 @@ func genPrecheckPlaybook(dingoadm *cli.DingoAdm,
 			configs = configs[:1] // any deploy config
 		case playbook.CHECK_KERNEL_VERSION:
 			// TODO:
-			configs = dingoadm.FilterDeployConfigByRole(dcs, ROLE_CHUNKSERVER)
+			configs = dingoadm.FilterDeployConfigByRole(dcs, ROLE_ALT)
 		case playbook.CHECK_HOST_DATE:
 			configs = configs[:1]
-		case playbook.CHECK_CHUNKFILE_POOL:
-			configs = dingoadm.FilterDeployConfigByRole(dcs, ROLE_CHUNKSERVER)
 		}
 
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
 			Configs: configs,
 			Options: map[string]interface{}{
-				comm.KEY_ALL_DEPLOY_CONFIGS:       dcs,
-				comm.KEY_CHECK_WITH_WEAK:          false,
-				comm.KEY_CHECK_SKIP_SNAPSHOECLONE: options.skipSnapshotClone,
-				comm.KEY_SKIP_CHECKS_ROLES:        skipRoles,
+				comm.KEY_ALL_DEPLOY_CONFIGS: dcs,
+				comm.KEY_CHECK_WITH_WEAK:    false,
+				comm.KEY_SKIP_CHECKS_ROLES:  skipRoles,
 			},
 			ExecOptions: playbook.ExecOptions{
 				SilentSubBar: step == playbook.CHECK_HOST_DATE,

@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-15
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package errno
 
@@ -167,7 +155,6 @@ func (e *ErrorCode) Error() string {
  * 4xx: common
  *   40*: hosts
  *   41*: services command
- *   42*: curvebs client
  *   43*: dingofs client
  *   44*: polarfs
  *   45*: playground
@@ -202,7 +189,7 @@ var (
 	ERR_OK = EC(000000, "success")
 	// 000: init dingoadm
 	ERR_GET_USER_HOME_DIR_FAILED            = EC(000001, "get user home dir failed")
-	ERR_CREATE_CURVEADM_SUBDIRECTORY_FAILED = EC(000002, "create dingoadm subdirectory failed")
+	ERR_CREATE_DINGOADM_SUBDIRECTORY_FAILED = EC(000002, "create dingoadm subdirectory failed")
 	ERR_INIT_LOGGER_FAILED                  = EC(000003, "init logger failed")
 
 	// 100: database/SQL (init failed)
@@ -253,7 +240,6 @@ var (
 
 	// 210: command options (cluster)
 	ERR_ID_NOT_FOUND                   = EC(210000, "id not found")
-	ERR_UNSUPPORT_CURVEBS_ROLE         = EC(210001, "unsupport curvebs role (etcd/mds/chunkserver/snapshotclone)")
 	ERR_UNSUPPORT_DINGOFS_ROLE         = EC(210002, "unsupport dingofs role (etcd/mds/metaserver/coordinator/store/mdsv2/executor)")
 	ERR_UNSUPPORT_SKIPPED_SERVICE_ROLE = EC(210003, "unsupport skipped service role")
 	ERR_UNSUPPORT_SKIPPED_CHECK_ITEM   = EC(210004, "unsupport skipped check item")
@@ -281,12 +267,6 @@ var (
 	ERR_VOLUME_BLOCKSIZE_BE_MULTIPLE_OF_512        = EC(221011, "volume block size be a multiple of 512B, like 1KiB, 2KiB, 3KiB...")
 	// 222: command options (client/fs)
 	ERR_FS_MOUNTPOINT_REQUIRE_ABSOLUTE_PATH = EC(222000, "mount point must be an absolute path")
-
-	// 230: command options (playground)
-	ERR_UNSUPPORT_PLAYGROUND_KIND                      = EC(230000, "unsupport playground kind")
-	ERR_MUST_SPECIFY_MOUNTPOINT_FOR_CURVEFS_PLAYGROUND = EC(230001, "you must specify mountpoint for dingofs playground")
-	ERR_PLAYGROUND_MOUNTPOINT_REQUIRE_ABSOLUTE_PATH    = EC(230002, "mount point must be an absolute path")
-	ERR_PLAYGROUND_MOUNTPOINT_NOT_EXIST                = EC(230003, "mount point not exist")
 
 	// 301: configure (common: invalid configure value)
 	ERR_UNSUPPORT_CONFIGURE_VALUE_TYPE = EC(301000, "unsupport configure value type")
@@ -324,11 +304,9 @@ var (
 	ERR_HOSTNAME_REQUIRES_VALID_IP_ADDRESS       = EC(321008, "hostname requires valid IP address")
 
 	// 322: configure (monitor.yaml: parse failed)
-	ERR_PARSE_MONITOR_CONFIGURE_FAILED   = EC(322000, "parse monitor configure failed")
-	ERR_READ_MONITOR_FILE_FAILED         = EC(322001, "read monitor file failed")
-	ERR_PARSE_PROMETHEUS_TARGET_FAILED   = EC(322002, "parse prometheus targets failed")
-	ERR_PARSE_CURVE_MANAGER_CONF_FAILED  = EC(322003, "parse curve-manager configure failed")
-	ERR_UPDATE_CURVE_MANAGER_CONF_FAILED = EC(322004, "update curve-manager configure failed")
+	ERR_PARSE_MONITOR_CONFIGURE_FAILED = EC(322000, "parse monitor configure failed")
+	ERR_READ_MONITOR_FILE_FAILED       = EC(322001, "read monitor file failed")
+	ERR_PARSE_PROMETHEUS_TARGET_FAILED = EC(322002, "parse prometheus targets failed")
 
 	// 330: configure (topology.yaml: parse failed)
 	ERR_TOPOLOGY_FILE_NOT_FOUND         = EC(330000, "topology file not found")
@@ -377,8 +355,7 @@ var (
 	// 351: configure (client.yaml: invalid configure value)
 	ERR_UNSUPPORT_CLIENT_CONFIGURE_KIND            = EC(351000, "unsupport client configure kind")
 	ERR_UNSUPPORT_CLIENT_CONFIGURE_VALUE_TYPE      = EC(351001, "unsupport client configure value type")
-	ERR_REQUIRE_CURVEBS_KIND_CLIENT_CONFIGURE_FILE = EC(351002, "require curvebs kind client configure file")
-	ERR_REQUIRE_CURVEFS_KIND_CLIENT_CONFIGURE_FILE = EC(351003, "require dingofs kind client configure file")
+	ERR_REQUIRE_DINGOFS_KIND_CLIENT_CONFIGURE_FILE = EC(351003, "require dingofs kind client configure file")
 	ERR_INVALID_CLUSTER_LISTEN_MDS_ADDRESS         = EC(351004, "invalid cluster MDS listen address")
 
 	// 360: configure (gateway.yaml: parse failed)
@@ -413,22 +390,12 @@ var (
 	ERR_CLIENT_ID_NOT_FOUND                  = EC(410022, "client id not found")
 	ERR_ENABLE_ETCD_AUTH_FAILED              = EC(410023, "enable etcd auth failed")
 
-	// 420: common (curvebs client)
-	ERR_VOLUME_ALREADY_MAPPED             = EC(420000, "volume already mapped")
-	ERR_VOLUME_CONTAINER_LOSED            = EC(420001, "volume container is losed")
-	ERR_VOLUME_CONTAINER_ABNORMAL         = EC(420002, "volume container is abnormal")
-	ERR_CREATE_VOLUME_FAILED              = EC(420003, "create volume failed")
-	ERR_MAP_VOLUME_FAILED                 = EC(420004, "map volume to NBD device failed")
-	ERR_ENCODE_VOLUME_INFO_TO_JSON_FAILED = EC(420005, "encode volume info to json failed")
-	ERR_UNMAP_VOLUME_FAILED               = EC(420006, "unmap volume failed")
-	ERR_OLD_TARGET_DAEMON_IS_ABNORMAL     = EC(420007, "old target daemon is abnormal")
-	ERR_TARGET_DAEMON_IS_ABNORMAL         = EC(420008, "target daemon is abnormal")
-
 	// 430: common (dingofs client)
-	ERR_FS_PATH_ALREADY_MOUNTED  = EC(430000, "path already mounted")
-	ERR_CREATE_FILESYSTEM_FAILED = EC(430001, "create filesystem failed")
-	ERR_MOUNT_FILESYSTEM_FAILED  = EC(430002, "mount filesystem failed")
-	ERR_UMOUNT_FILESYSTEM_FAILED = EC(430003, "umount filesystem failed")
+	ERR_FS_PATH_ALREADY_MOUNTED    = EC(430000, "path already mounted")
+	ERR_CREATE_FILESYSTEM_FAILED   = EC(430001, "create filesystem failed")
+	ERR_MOUNT_FILESYSTEM_FAILED    = EC(430002, "mount filesystem failed")
+	ERR_UMOUNT_FILESYSTEM_FAILED   = EC(430003, "umount filesystem failed")
+	ERR_ENCODE_INFO_TO_JSON_FAILED = EC(420004, "encode info to json failed")
 
 	// 440: common (polarfs)
 	ERR_GET_OS_REELASE_FAILED       = EC(440000, "get os release failed")
@@ -490,10 +457,10 @@ var (
 	ERR_CHUNKFILE_POOL_NOT_EXIST = EC(560000, "there is no chunkfile pool in data directory")
 
 	// 570: checker (client)
-	ERR_INVALID_CURVEFS_CLIENT_S3_ACCESS_KEY  = EC(570000, "invalid dingofs client S3 access key")
-	ERR_INVALID_CURVEFS_CLIENT_S3_SECRET_KEY  = EC(570001, "invalid dingofs client S3 secret key")
-	ERR_INVALID_CURVEFS_CLIENT_S3_ADDRESS     = EC(570002, "invalid dingofs client S3 address")
-	ERR_INVALID_CURVEFS_CLIENT_S3_BUCKET_NAME = EC(570003, "invalid dingofs client S3 bucket name")
+	ERR_INVALID_DINGOFS_CLIENT_S3_ACCESS_KEY  = EC(570000, "invalid dingofs client S3 access key")
+	ERR_INVALID_DINGOFS_CLIENT_S3_SECRET_KEY  = EC(570001, "invalid dingofs client S3 secret key")
+	ERR_INVALID_DINGOFS_CLIENT_S3_ADDRESS     = EC(570002, "invalid dingofs client S3 address")
+	ERR_INVALID_DINGOFS_CLIENT_S3_BUCKET_NAME = EC(570003, "invalid dingofs client S3 bucket name")
 
 	// 590: checker (others)
 	ERR_CONTAINER_ENGINE_NOT_INSTALLED = EC(590000, "container engine docker/podman not installed")

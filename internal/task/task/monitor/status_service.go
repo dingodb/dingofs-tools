@@ -1,6 +1,5 @@
 /*
-*  Copyright (c) 2023 NetEase Inc.
-*  Copyright (c) 2025 dingodb.com.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -13,16 +12,7 @@
 *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
- */
-
-/*
-* Project: Curveadm
-* Created Date: 2023-04-27
-* Author: wanghai (SeanHai)
-*
-* Project: Dingoadm
-* Author: jackblack369 (Dongwei)
- */
+*/
 
 package monitor
 
@@ -121,9 +111,9 @@ func (s *step2FormatMonitorStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewInitMonitorStatusTask(curveadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := curveadm.GetServiceId(cfg.GetId())
-	containerId, err := curveadm.GetContainerId(serviceId)
+func NewInitMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingoadm.GetServiceId(cfg.GetId())
+	containerId, err := dingoadm.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF}) {
 		return nil, nil
 	} else if err != nil {
@@ -138,21 +128,21 @@ func NewInitMonitorStatusTask(curveadm *cli.DingoAdm, cfg *configure.MonitorConf
 		mc:          cfg,
 		serviceId:   serviceId,
 		containerId: containerId,
-		memStorage:  curveadm.MemStorage(),
+		memStorage:  dingoadm.MemStorage(),
 	})
 
 	return t, nil
 }
 
-func NewGetMonitorStatusTask(curveadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := curveadm.GetServiceId(cfg.GetId())
-	containerId, err := curveadm.GetContainerId(serviceId)
+func NewGetMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingoadm.GetServiceId(cfg.GetId())
+	containerId, err := dingoadm.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF}) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := curveadm.GetHost(cfg.GetHost())
+	hc, err := dingoadm.GetHost(cfg.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +160,7 @@ func NewGetMonitorStatusTask(curveadm *cli.DingoAdm, cfg *configure.MonitorConfi
 		Format:      `"{{.Status}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &status,
-		ExecOptions: curveadm.ExecOptions(),
+		ExecOptions: dingoadm.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.TrimContainerStatus(&status),
@@ -181,7 +171,7 @@ func NewGetMonitorStatusTask(curveadm *cli.DingoAdm, cfg *configure.MonitorConfi
 		containerId: containerId,
 		ports:       &ports,
 		status:      &status,
-		memStorage:  curveadm.MemStorage(),
+		memStorage:  dingoadm.MemStorage(),
 	})
 	return t, nil
 }

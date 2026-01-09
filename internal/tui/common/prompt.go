@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2021 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,17 +13,6 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-01-14
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
- */
-
-// __SIGN_BY_WINE93__
 
 package common
 
@@ -53,26 +41,12 @@ const (
   - Clean items : [{{.items}}]
 `
 
-	PROMPT_COLLECT_SERVICE = `FYI:
-  > We will collect service logs for troubleshooting, 
-  > and send these logs to the curve center.
-  > Please don't worry about the data security,
-  > we guarantee that all logs are encrypted
-  > and only you have the secret key.
-`
-
 	PROMPT_TOPOLOGY_CHANGE_NOTICE = `
 NOTICE: If you have modified the configuration of some services while 
 {{.operation}} and you want make these configurations effect, you 
 should reload the corresponding services after the {{.operation}} success.
 `
 
-	PROMPT_FORMAT = `
-NOTICE: Now we run all formating container successfully and it will
-format disk in the background, please make sure that the formatting 
-all done before deploy cluster, you can use the "curveadm format --status" 
-to watch the formatting progress.
-`
 	PROMPT_CANCEL_OPERATION = `[x] {{.operation}} canceled`
 
 	PROMPT_FORCE_OPERATION = `[!] {{.operation}} will be forced`
@@ -135,10 +109,6 @@ func PromptRenameCluster(clusterOldName string, clusterNewName string) string {
 	prompt.data["warning"] = fmt.Sprintf("WARNING: cluster '%s' will be renamed to '%s'",
 		clusterOldName, clusterNewName)
 	return prompt.Build()
-}
-
-func PromptFormat() string {
-	return color.YellowString(PROMPT_FORMAT)
 }
 
 func PromptScaleOut() string {
@@ -207,11 +177,6 @@ func PromptCleanService(role, host string, items []string) string {
 	return prompt.Build()
 }
 
-func PromptCollectService() string {
-	prompt := NewPrompt(color.YellowString(PROMPT_COLLECT_SERVICE) + DEFAULT_CONFIRM_PROMPT)
-	return prompt.Build()
-}
-
 func prettyClue(clue string) string {
 	items := strings.Split(clue, "\n")
 	for {
@@ -236,7 +201,6 @@ func PromptErrorCode(code int, description, clue, logpath string) string {
 	if len(logpath) > 0 {
 		prompt.data["logpath"] = logpath
 	}
-	//prompt.data["wechat"] = "opencurve_bot"
 
 	return prompt.Build()
 }

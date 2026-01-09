@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2022 NetEase Inc.
- * 	Copyright (c) 2024 dingodb.com Inc.
+ * Copyright (c) 2026 dingodb.com, Inc. All Rights Reserved
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,15 +12,6 @@
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
- */
-
-/*
- * Project: CurveAdm
- * Created Date: 2022-07-26
- * Author: Jingli Chen (Wine93)
- *
- * Project: dingoadm
- * Author: dongwei (jackblack369)
  */
 
 package client
@@ -49,7 +39,7 @@ type statusOptions struct {
 	verbose bool
 }
 
-func NewStatusCommand(curveadm *cli.DingoAdm) *cobra.Command {
+func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	var options statusOptions
 
 	cmd := &cobra.Command{
@@ -57,7 +47,7 @@ func NewStatusCommand(curveadm *cli.DingoAdm) *cobra.Command {
 		Short: "Display client status",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStatus(curveadm, options)
+			return runStatus(dingoadm, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -68,7 +58,7 @@ func NewStatusCommand(curveadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStatusPlaybook(curveadm *cli.DingoAdm,
+func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	clients []storage.Client,
 	options statusOptions) (*playbook.Playbook, error) {
 	config := []interface{}{}
@@ -77,7 +67,7 @@ func genStatusPlaybook(curveadm *cli.DingoAdm,
 	}
 
 	steps := GET_STATUS_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(curveadm)
+	pb := playbook.NewPlaybook(dingoadm)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -95,9 +85,9 @@ func genStatusPlaybook(curveadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func displayStatus(curveadm *cli.DingoAdm, clients []storage.Client, options statusOptions) {
+func displayStatus(dingoadm *cli.DingoAdm, clients []storage.Client, options statusOptions) {
 	statuses := []task.ClientStatus{}
-	v := curveadm.MemStorage().Get(comm.KEY_ALL_CLIENT_STATUS)
+	v := dingoadm.MemStorage().Get(comm.KEY_ALL_CLIENT_STATUS)
 	if v != nil {
 		m := v.(map[string]task.ClientStatus)
 		for _, status := range m {
@@ -107,9 +97,9 @@ func displayStatus(curveadm *cli.DingoAdm, clients []storage.Client, options sta
 
 	output := tui.FormatStatus(statuses, options.verbose)
 	if len(clients) > 0 {
-		curveadm.WriteOutln("")
+		dingoadm.WriteOutln("")
 	}
-	curveadm.WriteOut(output)
+	dingoadm.WriteOut(output)
 }
 
 func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
