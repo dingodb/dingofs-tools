@@ -90,7 +90,7 @@ func newDefault() *DingoAdmConfig {
 		AutoUpgrade: true,
 		SSHRetries:  3,
 		SSHTimeout:  10,
-		DBUrl:       fmt.Sprintf("sqlite://%s/.dingoadm/data/dingoadm.db", home),
+		DBUrl:       fmt.Sprintf("sqlite://%s/.dingo/data/dingoadm.db", home),
 	}
 	return cfg
 }
