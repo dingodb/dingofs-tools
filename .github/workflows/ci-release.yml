@@ -53,8 +53,7 @@ jobs:
         if: ${{ github.event_name == 'push'}}
         with:
           files: |
-            sbin/dingo
-            sbin/daemon
+            bin/dingo
           name: ${{ env.BRANCH_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           token: ${{ secrets.GH_TOKEN }}
