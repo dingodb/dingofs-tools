@@ -84,7 +84,7 @@ func NewDingoAdm() (*DingoAdm, error) {
 		return nil, errno.ERR_GET_USER_HOME_DIR_FAILED.E(err)
 	}
 
-	rootDir := fmt.Sprintf("%s/.dingoadm", home)
+	rootDir := fmt.Sprintf("%s/.dingo", home)
 	dingoadm := &DingoAdm{
 		rootDir:   rootDir,
 		dataDir:   path.Join(rootDir, "data"),

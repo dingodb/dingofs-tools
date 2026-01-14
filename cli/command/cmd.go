@@ -40,14 +40,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var dingoadmExample = `Examples:
-  $ dingoadm playground run --kind dingofs  # Run a dingoFS playground quickly
-  $ dingoadm cluster add c1                 # Add a cluster named 'c1'
-  $ dingoadm deploy                         # Deploy current cluster
-  $ dingoadm stop                           # Stop current cluster service
-  $ dingoadm clean                          # Clean current cluster
-  $ dingoadm enter 6ff561598c6f             # Enter specified service container
-  $ dingoadm -u                             # Upgrade dingoadm itself to the latest version`
+var dingoExample = `Examples:
+  $ dingo playground run --kind dingofs  # Run a dingoFS playground quickly
+  $ dingo cluster add c1                 # Add a cluster named 'c1'
+  $ dingo deploy                         # Deploy current cluster
+  $ dingo stop                           # Stop current cluster service
+  $ dingo clean                          # Clean current cluster
+  $ dingo enter 6ff561598c6f             # Enter specified service container
+  $ dingo -u                             # Upgrade dingo itself to the latest version`
 
 type rootOptions struct {
 	debug   bool
@@ -108,11 +108,11 @@ func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	var options rootOptions
 
 	cmd := &cobra.Command{
-		Use:   "dingoadm [OPTIONS] COMMAND [ARGS...]",
+		Use:   "dingo [OPTIONS] COMMAND [ARGS...]",
 		Short: "Deploy and manage dingoFS cluster",
 		// Version: fmt.Sprintf("dingoadm v%s, build %s", cli.Version, cli.CommitId),
 		Version: fmt.Sprintf("%s (commit: %s) \nBuild Date: %s", cli.Version, cli.CommitId, cli.BuildTime),
-		Example: dingoadmExample,
+		Example: dingoExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if options.debug {
 				return errno.List()
@@ -122,8 +122,8 @@ func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				return cliutil.ShowHelp(dingoadm.Err())(cmd, args)
 			}
 
-			return fmt.Errorf("dingoadm: '%s' is not a dingoadm command.\n"+
-				"See 'dingoadm --help'", args[0])
+			return fmt.Errorf("dingo: '%s' is not a dingo command.\n"+
+				"See 'dingo --help'", args[0])
 		},
 		SilenceUsage:          true, // silence usage when an error occurs
 		DisableFlagsInUseLine: true,
@@ -132,7 +132,7 @@ func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
 	cmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	cmd.Flags().BoolVarP(&options.debug, "debug", "d", false, "Print debug information")
-	cmd.Flags().BoolVarP(&options.upgrade, "upgrade", "u", false, "Upgrade dingoadm itself to the latest version")
+	cmd.Flags().BoolVarP(&options.upgrade, "upgrade", "u", false, "Upgrade dingo itself to the latest version")
 
 	addSubCommands(cmd, dingoadm)
 	setupRootCommand(cmd, dingoadm)
