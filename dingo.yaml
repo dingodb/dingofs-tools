@@ -1,0 +1,21 @@
+global:
+  rpctimeout: 30s
+  rpcretrytimes: 5
+
+dingofs:
+  mdsaddr: 127.0.0.1:6700,127.0.0.1:6701,127.0.0.1:6702
+  storagetype: s3  # s3 or rados
+  s3:
+    ak: ak
+    sk: sk
+    endpoint: http://localhost:9000
+    bucketname: bucketname
+    blocksize: 4 mib
+    chunksize: 64 mib
+  rados:
+    username: client.dingofs-rgw
+    key: AQANAExo/ihMLBAAPL8AXgqfxwdraw8uoWyJig==
+    mon: 10.220.69.5:3300,10.220.69.6:3300,10.220.69.8:3300
+    poolname: rados.dingofs.data
+    blocksize: 4 mib
+    chunksize: 64 mib

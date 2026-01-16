@@ -1,55 +1,35 @@
-## dingo tool 
+DingoCli
+---
 
-dingo工具是 Dingo 团队为了提高系统的易用性，解决旧工具种类多输出繁琐等问题而设计的工具，
-主要用于对Dingo文件存储集群进行运维的工具。
+DingoCli is a tool for deploy and manage DingoFS cluster, it's easy to use and with rich features.
 
-## Build dingo-tools
+Documentation
+---
 
-### Dependencies
-
-#### Download dep
-
-```sh
-cd dingocli
-git submodule sync
-git submodule update --init --recursive
-```
-#### Install protobuf
-
-```sh
-PB_REL="https://github.com/protocolbuffers/protobuf/releases"
-curl -LO $PB_REL/download/v25.1/protoc-25.1-linux-x86_64.zip
-unzip protoc-25.1-linux-x86_64.zip -d $HOME/.local
-export PATH="$PATH:$HOME/.local/bin"
-```
-#### Install gcc
-##### Rocky 8.9/9.3
-```sh
-sudo dnf install -y epel-release
-sudo dnf install -y gcc-toolset-13*
-source /opt/rh/gcc-toolset-13/enable
-```
-##### Ubuntu 22.04/24.04
-```sh
-sudo apt update
-sudo apt install -y  gcc g++
-```
-
-#### Install golang
+* [简体中文][docs]
+ 
+Installation
+---
 
 ```shell
-wget https://go.dev/dl/go1.24.3.linux-amd64.tar.gz
-tar -C /usr/local -xzf go1.24.3.linux-amd64.tar.gz
-export PATH=$PATH:/usr/local/go/bin
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/dingodb/dingocli/master/scripts/install_dingo.sh)"
 ```
 
-### Build 
-```sh
-cd dingocli
+Usage
+---
 
-make build
-```
+Run `dingocli -h` for more informations.
 
-### User Guide
+Contributing
+---
 
-[用户使用指南](./docs/userguide.md)
+Contributions of code, tests, documentation and bugs are welcome,
+you can see [CONTRIBUTING][contributing] for details.
+
+License
+---
+
+DingoCli is under the Apache 2.0 license. See the [LICENSE](LICENSE) file for details.
+
+[docs]: https://github.com/dingodb/dingocli/wiki
+[contributing]: https://github.com/dingodb/dingocli/wiki/others#参与-dingocli-的开发
