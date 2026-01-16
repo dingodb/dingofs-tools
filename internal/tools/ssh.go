@@ -23,9 +23,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (
@@ -37,9 +37,9 @@ const (
 	TEMPLATE_COMMAND_EXEC_CONTAINER_NOATTACH = `{{.sudo}} {{.engine}} exec -t {{.container_id}} /bin/bash -c "{{.command}}"`
 )
 
-func prepareOptions(dingoadm *cli.DingoAdm, host string, become bool, extra map[string]interface{}) (map[string]interface{}, error) {
+func prepareOptions(dingocli *cli.DingoCli, host string, become bool, extra map[string]interface{}) (map[string]interface{}, error) {
 	options := map[string]interface{}{}
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func prepareOptions(dingoadm *cli.DingoAdm, host string, become bool, extra map[
 	return options, nil
 }
 
-func newCommand(dingoadm *cli.DingoAdm, text string, options map[string]interface{}) (*exec.Cmd, error) {
+func newCommand(dingocli *cli.DingoCli, text string, options map[string]interface{}) (*exec.Cmd, error) {
 	tmpl := template.Must(template.New(utils.MD5Sum(text)).Parse(text))
 	buffer := bytes.NewBufferString("")
 	if err := tmpl.Execute(buffer, options); err != nil {
@@ -80,19 +80,19 @@ func newCommand(dingoadm *cli.DingoAdm, text string, options map[string]interfac
 	return exec.Command(items[0], items[1:]...), nil
 }
 
-func runCommand(dingoadm *cli.DingoAdm, text string, options map[string]interface{}) error {
-	cmd, err := newCommand(dingoadm, text, options)
+func runCommand(dingocli *cli.DingoCli, text string, options map[string]interface{}) error {
+	cmd, err := newCommand(dingocli, text, options)
 	if err != nil {
 		return err
 	}
-	cmd.Stdout = dingoadm.Out()
-	cmd.Stderr = dingoadm.Err()
-	cmd.Stdin = dingoadm.In()
+	cmd.Stdout = dingocli.Out()
+	cmd.Stderr = dingocli.Err()
+	cmd.Stdin = dingocli.In()
 	return cmd.Run()
 }
 
-func runCommandOutput(dingoadm *cli.DingoAdm, text string, options map[string]interface{}) (string, error) {
-	cmd, err := newCommand(dingoadm, text, options)
+func runCommandOutput(dingocli *cli.DingoCli, text string, options map[string]interface{}) (string, error) {
+	cmd, err := newCommand(dingocli, text, options)
 	if err != nil {
 		return "", err
 	}
@@ -100,37 +100,37 @@ func runCommandOutput(dingoadm *cli.DingoAdm, text string, options map[string]in
 	return string(out), err
 }
 
-func ssh(dingoadm *cli.DingoAdm, options map[string]interface{}) error {
-	err := runCommand(dingoadm, TEMPLATE_SSH_ATTACH, options)
+func ssh(dingocli *cli.DingoCli, options map[string]interface{}) error {
+	err := runCommand(dingocli, TEMPLATE_SSH_ATTACH, options)
 	if err != nil && !strings.HasPrefix(err.Error(), "exit status") {
 		return errno.ERR_CONNECT_REMOTE_HOST_WITH_INTERACT_BY_SSH_FAILED.E(err)
 	}
 	return nil
 }
 
-func scp(dingoadm *cli.DingoAdm, options map[string]interface{}) error {
+func scp(dingocli *cli.DingoCli, options map[string]interface{}) error {
 	// TODO: added error code
-	_, err := runCommandOutput(dingoadm, TEMPLATE_SCP, options)
+	_, err := runCommandOutput(dingocli, TEMPLATE_SCP, options)
 	return err
 }
 
-func execute(dingoadm *cli.DingoAdm, options map[string]interface{}) (string, error) {
-	return runCommandOutput(dingoadm, TEMPLATE_SSH_COMMAND, options)
+func execute(dingocli *cli.DingoCli, options map[string]interface{}) (string, error) {
+	return runCommandOutput(dingocli, TEMPLATE_SSH_COMMAND, options)
 }
 
-func AttachRemoteHost(dingoadm *cli.DingoAdm, host string, become bool) error {
-	options, err := prepareOptions(dingoadm, host, become,
+func AttachRemoteHost(dingocli *cli.DingoCli, host string, become bool) error {
+	options, err := prepareOptions(dingocli, host, become,
 		map[string]interface{}{"command": "/bin/bash"})
 	if err != nil {
 		return err
 	}
-	return ssh(dingoadm, options)
+	return ssh(dingocli, options)
 }
 
-func AttachRemoteContainer(dingoadm *cli.DingoAdm, host, containerId, home string) error {
+func AttachRemoteContainer(dingocli *cli.DingoCli, host, containerId, home string) error {
 	data := map[string]interface{}{
-		"sudo":         dingoadm.Config().GetSudoAlias(),
-		"engine":       dingoadm.Config().GetEngine(),
+		"sudo":         dingocli.Config().GetSudoAlias(),
+		"engine":       dingocli.Config().GetEngine(),
 		"container_id": containerId,
 		"home_dir":     home,
 	}
@@ -141,18 +141,18 @@ func AttachRemoteContainer(dingoadm *cli.DingoAdm, host, containerId, home strin
 	}
 	command := buffer.String()
 
-	options, err := prepareOptions(dingoadm, host, true,
+	options, err := prepareOptions(dingocli, host, true,
 		map[string]interface{}{"command": command})
 	if err != nil {
 		return err
 	}
-	return ssh(dingoadm, options)
+	return ssh(dingocli, options)
 }
 
-func AttachLocalContainer(dingoadm *cli.DingoAdm, containerId string) error {
+func AttachLocalContainer(dingocli *cli.DingoCli, containerId string) error {
 	data := map[string]interface{}{
 		"container_id": containerId,
-		"engine":       dingoadm.Config().GetEngine(),
+		"engine":       dingocli.Config().GetEngine(),
 	}
 	tmpl := template.Must(template.New("command").Parse(TEMPLATE_LOCAL_EXEC_CONTAINER))
 	buffer := bytes.NewBufferString("")
@@ -160,13 +160,13 @@ func AttachLocalContainer(dingoadm *cli.DingoAdm, containerId string) error {
 		return errno.ERR_BUILD_TEMPLATE_FAILED.E(err)
 	}
 	command := buffer.String()
-	return runCommand(dingoadm, command, map[string]interface{}{})
+	return runCommand(dingocli, command, map[string]interface{}{})
 }
 
-func ExecCmdInRemoteContainer(dingoadm *cli.DingoAdm, host, containerId, cmd string) error {
+func ExecCmdInRemoteContainer(dingocli *cli.DingoCli, host, containerId, cmd string) error {
 	data := map[string]interface{}{
-		"sudo":         dingoadm.Config().GetSudoAlias(),
-		"engine":       dingoadm.Config().GetEngine(),
+		"sudo":         dingocli.Config().GetSudoAlias(),
+		"engine":       dingocli.Config().GetEngine(),
 		"container_id": containerId,
 		"command":      cmd,
 	}
@@ -177,16 +177,16 @@ func ExecCmdInRemoteContainer(dingoadm *cli.DingoAdm, host, containerId, cmd str
 	}
 	command := buffer.String()
 
-	options, err := prepareOptions(dingoadm, host, true,
+	options, err := prepareOptions(dingocli, host, true,
 		map[string]interface{}{"command": command})
 	if err != nil {
 		return err
 	}
-	return ssh(dingoadm, options)
+	return ssh(dingocli, options)
 }
 
-func Scp(dingoadm *cli.DingoAdm, host, source, target string) error {
-	options, err := prepareOptions(dingoadm, host, false,
+func Scp(dingocli *cli.DingoCli, host, source, target string) error {
+	options, err := prepareOptions(dingocli, host, false,
 		map[string]interface{}{
 			"source": source,
 			"target": target,
@@ -194,14 +194,14 @@ func Scp(dingoadm *cli.DingoAdm, host, source, target string) error {
 	if err != nil {
 		return err
 	}
-	return scp(dingoadm, options)
+	return scp(dingocli, options)
 }
 
-func ExecuteRemoteCommand(dingoadm *cli.DingoAdm, host, command string) (string, error) {
-	options, err := prepareOptions(dingoadm, host, true,
+func ExecuteRemoteCommand(dingocli *cli.DingoCli, host, command string) (string, error) {
+	options, err := prepareOptions(dingocli, host, true,
 		map[string]interface{}{"command": command})
 	if err != nil {
 		return "", err
 	}
-	return execute(dingoadm, options)
+	return execute(dingocli, options)
 }

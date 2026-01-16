@@ -17,9 +17,9 @@
 package config
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ type showOptions struct {
 	showPool bool
 }
 
-func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewShowCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options showOptions
 
 	cmd := &cobra.Command{
@@ -35,7 +35,7 @@ func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Show cluster topology",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShow(dingoadm, options)
+			return runShow(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -46,15 +46,15 @@ func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runShow(dingoadm *cli.DingoAdm, options showOptions) error {
+func runShow(dingocli *cli.DingoCli, options showOptions) error {
 	// 1) check whether cluster exist
-	if dingoadm.ClusterId() == -1 {
+	if dingocli.ClusterId() == -1 {
 		return errno.ERR_NO_CLUSTER_SPECIFIED
-	} else if len(dingoadm.ClusterTopologyData()) == 0 {
-		dingoadm.WriteOutln("<empty topology>")
+	} else if len(dingocli.ClusterTopologyData()) == 0 {
+		dingocli.WriteOutln("<empty topology>")
 		return nil
 	}
 
-	dingoadm.WriteOut("%s", dingoadm.ClusterTopologyData())
+	dingocli.WriteOut("%s", dingocli.ClusterTopologyData())
 	return nil
 }

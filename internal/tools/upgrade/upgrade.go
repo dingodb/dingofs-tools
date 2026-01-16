@@ -25,15 +25,15 @@ import (
 	"sync"
 	"time"
 
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 	"github.com/go-resty/resty/v2"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"
 )
 
 const (
-	URL_LATEST_VERSION   = "https://github.com/dingodb/dingofs-tools/releases/download/latest/commit_id" // TODO replace url
-	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingoadm/master/scripts/install_dingoadm.sh"
+	URL_LATEST_VERSION   = "https://github.com/dingodb/dingocli/releases/download/latest/commit_id" // TODO replace url
+	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingocli/master/scripts/install_dingocli.sh"
 	ENV_DINGOADM_UPGRADE = "DINGOADM_UPGRADE"
 	ENV_DINGOADM_VERSION = "DINGOADM_VERSION"
 )
@@ -124,7 +124,7 @@ func Upgrade2Latest(currentCommit string) error {
 	checkBar.Abort(true)
 	p.Wait()
 
-	if pass := tui.ConfirmYes("Upgrade dingoadm to %s?", version); !pass {
+	if pass := tui.ConfirmYes("Upgrade dingocli to %s?", version); !pass {
 		return nil
 	}
 

@@ -71,8 +71,8 @@ var (
 	}, "\n")
 
 	PROMPT_AUTO_UPGRADE = strings.Join([]string{
-		color.MagentaString("dingoadm {{.version}} released, we recommend you to upgrade it."),
-		"Upgrade dingoadm to {{.version}}?",
+		color.MagentaString("dingocli {{.version}} released, we recommend you to upgrade it."),
+		"Upgrade dingocli to {{.version}}?",
 	}, "\n")
 )
 
@@ -197,7 +197,7 @@ func PromptErrorCode(code int, description, clue, logpath string) string {
 	if len(clue) > 0 {
 		prompt.data["clue"] = prettyClue(clue)
 	}
-	prompt.data["website"] = fmt.Sprintf("https://github.com/dingodb/dingofs-tools/wiki/errno%d#%06d", code/100000, code)
+	prompt.data["website"] = fmt.Sprintf("https://github.com/dingodb/dingocli/wiki/errno%d#%06d", code/100000, code)
 	if len(logpath) > 0 {
 		prompt.data["logpath"] = logpath
 	}

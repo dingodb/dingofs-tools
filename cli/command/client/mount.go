@@ -19,22 +19,22 @@ package client
 import (
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/task/task/fs"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/task/task/fs"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 const (
 	MOUNT_EXAMPLE = `Examples:
-  $ dingoadm mount fs1  /path/to/mount --host machine -c client.yaml   			   # Mount a classic s3 DingoFS 'fs1' to '/path/to/mount'
-  $ dingoadm mount fs2  /path/to/mount --host machine -c client.yaml --new-dingo   # Mount a support rados type DingoFS 'fs2' to '/path/to/mount'
+  $ dingocli mount fs1  /path/to/mount --host machine -c client.yaml   			   # Mount a classic s3 DingoFS 'fs1' to '/path/to/mount'
+  $ dingocli mount fs2  /path/to/mount --host machine -c client.yaml --new-dingo   # Mount a support rados type DingoFS 'fs2' to '/path/to/mount'
   `
 )
 
@@ -64,7 +64,7 @@ type mountOptions struct {
 	newDingo      bool // whether to create a new dingo which support rados fs type
 }
 
-func checkMountOptions(dingoadm *cli.DingoAdm, options mountOptions) error {
+func checkMountOptions(dingocli *cli.DingoCli, options mountOptions) error {
 	if !strings.HasPrefix(options.mountPoint, "/") {
 		return errno.ERR_FS_MOUNTPOINT_REQUIRE_ABSOLUTE_PATH.
 			F("mount point: %s", options.mountPoint)
@@ -72,7 +72,7 @@ func checkMountOptions(dingoadm *cli.DingoAdm, options mountOptions) error {
 	return nil
 }
 
-func NewMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options mountOptions
 
 	cmd := &cobra.Command{
@@ -83,12 +83,12 @@ func NewMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			options.mountFSName = args[0]
 			options.mountPoint = args[1]
-			return checkMountOptions(dingoadm, options)
+			return checkMountOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.mountFSName = args[0]
 			options.mountPoint = args[1]
-			return runMount(dingoadm, options)
+			return runMount(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -104,14 +104,14 @@ func NewMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genMountPlaybook(dingoadm *cli.DingoAdm,
+func genMountPlaybook(dingocli *cli.DingoCli,
 	ccs []*configure.ClientConfig,
 	options mountOptions) (*playbook.Playbook, error) {
 	steps := MOUNT_PLAYBOOK_S3_STEPS
 	if ccs[0].GetStorageType() == configure.STORAGE_TYPE_RADOS {
 		steps = MOUNT_PLAYBOOK_RADOS_STEPS
 	}
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		if step == playbook.CHECK_KERNEL_MODULE &&
 			options.insecure {
@@ -142,7 +142,7 @@ func genMountPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runMount(dingoadm *cli.DingoAdm, options mountOptions) error {
+func runMount(dingocli *cli.DingoCli, options mountOptions) error {
 	// 1) parse client configure
 	cc, err := configure.ParseClientConfig(options.filename, options.mountFSType)
 	if err != nil {
@@ -153,7 +153,7 @@ func runMount(dingoadm *cli.DingoAdm, options mountOptions) error {
 	}
 
 	// 2) generate mount playbook
-	pb, err := genMountPlaybook(dingoadm, []*configure.ClientConfig{cc}, options)
+	pb, err := genMountPlaybook(dingocli, []*configure.ClientConfig{cc}, options)
 	if err != nil {
 		return err
 	}
@@ -165,8 +165,8 @@ func runMount(dingoadm *cli.DingoAdm, options mountOptions) error {
 	}
 
 	// 4) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Mount %s to %s (%s) success ^_^"),
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Mount %s to %s (%s) success ^_^"),
 		options.mountFSName, options.mountPoint, options.host)
 	return nil
 }

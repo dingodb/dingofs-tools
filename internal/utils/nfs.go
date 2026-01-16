@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/pkg/module"
 	"golang.org/x/crypto/ssh"
 )
 

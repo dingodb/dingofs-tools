@@ -19,13 +19,13 @@ package fs
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/table"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/table"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
@@ -43,7 +43,7 @@ type usageOptions struct {
 	format   string
 }
 
-func NewFsUsageCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsUsageCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options usageOptions
 
 	cmd := &cobra.Command{
@@ -62,7 +62,7 @@ func NewFsUsageCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runUsage(cmd, dingoadm, options)
+			return runUsage(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -89,7 +89,7 @@ func NewFsUsageCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runUsage(cmd *cobra.Command, dingoadm *cli.DingoAdm, options usageOptions) error {
+func runUsage(cmd *cobra.Command, dingocli *cli.DingoCli, options usageOptions) error {
 
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,

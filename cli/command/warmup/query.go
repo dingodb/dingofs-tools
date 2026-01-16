@@ -24,10 +24,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/logger"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/logger"
 	"github.com/fatih/color"
 	"github.com/pkg/xattr"
 	"github.com/schollz/progressbar/v3"
@@ -44,7 +44,7 @@ type queryOptions struct {
 	path string
 }
 
-func NewWarmupQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewWarmupQueryCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options queryOptions
 
 	cmd := &cobra.Command{
@@ -57,7 +57,7 @@ func NewWarmupQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			options.path = args[0]
 
-			return runQuery(cmd, dingoadm, options)
+			return runQuery(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -68,7 +68,7 @@ func NewWarmupQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runQuery(cmd *cobra.Command, dingoadm *cli.DingoAdm, options queryOptions) error {
+func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) error {
 
 	logger.Infof("query warmup progress, file: %s", options.path)
 	filename := filepath.Base(options.path)

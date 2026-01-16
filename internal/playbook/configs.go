@@ -19,11 +19,11 @@ package playbook
 import (
 	"sort"
 
-	"github.com/dingodb/dingofs-tools/internal/build"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
+	"github.com/dingodb/dingocli/internal/build"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
 )
 
 const (

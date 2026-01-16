@@ -19,14 +19,14 @@ package fs
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/utils"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ type deleteOptions struct {
 	noConfirm bool
 }
 
-func NewFsDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options deleteOptions
 
 	cmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewFsDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runDelete(cmd, dingoadm, options)
+			return runDelete(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -81,7 +81,7 @@ func NewFsDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, dingoadm *cli.DingoAdm, options deleteOptions) error {
+func runDelete(cmd *cobra.Command, dingocli *cli.DingoCli, options deleteOptions) error {
 	// new rpc
 	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "DeleteFs")
 	if err != nil {

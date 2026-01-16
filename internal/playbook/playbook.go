@@ -17,8 +17,8 @@
 package playbook
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/tasks"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/tasks"
 )
 
 /*
@@ -48,7 +48,7 @@ type (
 	}
 
 	Playbook struct {
-		dingoadm  *cli.DingoAdm
+		dingocli  *cli.DingoCli
 		steps     []*PlaybookStep
 		postSteps []*PlaybookStep
 	}
@@ -56,9 +56,9 @@ type (
 	ExecOptions = tasks.ExecOptions
 )
 
-func NewPlaybook(dingoadm *cli.DingoAdm) *Playbook {
+func NewPlaybook(dingocli *cli.DingoCli) *Playbook {
 	return &Playbook{
-		dingoadm: dingoadm,
+		dingocli: dingocli,
 		steps:    []*PlaybookStep{},
 	}
 }
@@ -85,7 +85,7 @@ func (p *Playbook) run(steps []*PlaybookStep) error {
 
 		isLast := (i == len(steps)-1)
 		if !step.ExecOptions.SilentMainBar && !isLast {
-			p.dingoadm.WriteOutln("")
+			p.dingocli.WriteOutln("")
 		}
 	}
 	return nil
@@ -96,7 +96,7 @@ func (p *Playbook) Run() error {
 		if len(p.postSteps) == 0 {
 			return
 		}
-		p.dingoadm.WriteOutln("")
+		p.dingocli.WriteOutln("")
 		p.run(p.postSteps)
 	}()
 

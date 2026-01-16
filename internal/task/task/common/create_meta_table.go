@@ -18,24 +18,24 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 // NewCreateMetaTablesTask create meta tables in dingo-store
-func NewCreateMetaTablesTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+func NewCreateMetaTablesTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func NewCreateMetaTablesTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: CheckContainerExist(dc.GetHost(), dc.GetRole(), containerId, &out),
@@ -63,7 +63,7 @@ func NewCreateMetaTablesTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		ContainerId: &containerId,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	t.AddStep(&step.Lambda{

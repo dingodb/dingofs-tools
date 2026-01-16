@@ -19,10 +19,10 @@ package export
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/logger"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/logger"
+	"github.com/dingodb/dingocli/pkg/module"
 
 	"github.com/spf13/cobra"
 )
@@ -38,7 +38,7 @@ type removeOptions struct {
 	exportPath  string
 }
 
-func NewExportRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewExportRemoveCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options removeOptions
 
 	cmd := &cobra.Command{
@@ -49,7 +49,7 @@ func NewExportRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.exportPath = args[0]
 
-			return runRemove(cmd, dingoadm, options)
+			return runRemove(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -60,7 +60,7 @@ func NewExportRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runRemove(cmd *cobra.Command, dingoadm *cli.DingoAdm, options removeOptions) error {
+func runRemove(cmd *cobra.Command, dingocli *cli.DingoCli, options removeOptions) error {
 
 	options.shell = module.NewShell(nil)
 	options.execOptions = module.ExecOptions{ExecWithSudo: true, ExecInLocal: true, ExecTimeoutSec: 10}

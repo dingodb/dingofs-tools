@@ -22,12 +22,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	confHost "github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/pkg/variable"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	confHost "github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/pkg/variable"
 	"github.com/mitchellh/hashstructure/v2"
 	"github.com/spf13/viper"
 )
@@ -294,8 +294,8 @@ func parsePrometheusTarget(dcs []*topology.DeployConfig) (string, error) {
 	return string(target), nil
 }
 
-func parseHosts(dingoadm *cli.DingoAdm) ([]string, []string, []*topology.DeployConfig, error) {
-	dcs, err := dingoadm.ParseTopology()
+func parseHosts(dingocli *cli.DingoCli) ([]string, []string, []*topology.DeployConfig, error) {
+	dcs, err := dingocli.ParseTopology()
 	if err != nil || len(dcs) == 0 {
 		return nil, nil, nil, err
 	}
@@ -316,13 +316,13 @@ func parseHosts(dingoadm *cli.DingoAdm) ([]string, []string, []*topology.DeployC
 	return hosts, hostIps, dcs, nil
 }
 
-func ParseMonitor(dingoadm *cli.DingoAdm) ([]*MonitorConfig, error) {
-	return ParseMonitorInfo(dingoadm, dingoadm.Monitor().Monitor, INFO_TYPE_DATA)
+func ParseMonitor(dingocli *cli.DingoCli) ([]*MonitorConfig, error) {
+	return ParseMonitorInfo(dingocli, dingocli.Monitor().Monitor, INFO_TYPE_DATA)
 }
 
 // ParseMonitorFile parses monitor configuration from a file or from existing monitor data. infoType can be "file" or "data".
-func ParseMonitorInfo(dingoadm *cli.DingoAdm, info string, infoType string) ([]*MonitorConfig, error) {
-	hosts, hostIps, dcs, err := parseHosts(dingoadm)
+func ParseMonitorInfo(dingocli *cli.DingoCli, info string, infoType string) ([]*MonitorConfig, error) {
+	hosts, hostIps, dcs, err := parseHosts(dingocli)
 	if err != nil {
 		return nil, err
 	}
@@ -356,7 +356,7 @@ func ParseMonitorInfo(dingoadm *cli.DingoAdm, info string, infoType string) ([]*
 
 	// get host -> hostname(ip)
 	ctx := topology.NewContext()
-	hcs, err := confHost.ParseHosts(dingoadm.Hosts())
+	hcs, err := confHost.ParseHosts(dingocli.Hosts())
 	if err != nil {
 		return nil, err
 	}
@@ -456,14 +456,14 @@ func ParseMonitorInfo(dingoadm *cli.DingoAdm, info string, infoType string) ([]*
 	return ret, nil
 }
 
-func FilterMonitorConfig(dingoadm *cli.DingoAdm, mcs []*MonitorConfig,
+func FilterMonitorConfig(dingocli *cli.DingoCli, mcs []*MonitorConfig,
 	options FilterMonitorOption) []*MonitorConfig {
 	ret := []*MonitorConfig{}
 	for _, mc := range mcs {
 		mcId := mc.GetId()
 		role := mc.GetRole()
 		host := mc.GetHost()
-		serviceId := dingoadm.GetServiceId(mcId)
+		serviceId := dingocli.GetServiceId(mcId)
 		if (options.Id == "*" || options.Id == serviceId) &&
 			(options.Role == "*" || options.Role == role) &&
 			(options.Host == "*" || options.Host == host) {
@@ -475,19 +475,19 @@ func FilterMonitorConfig(dingoadm *cli.DingoAdm, mcs []*MonitorConfig,
 
 // DiffMonitor compares two monitor configuration data and returns the differences.
 // data1: existing monitor configuration, data2: new monitor configuration.
-func DiffMonitor(dingoadm *cli.DingoAdm, data1, data2 string) ([]MonitorDiff, error) {
+func DiffMonitor(dingocli *cli.DingoCli, data1, data2 string) ([]MonitorDiff, error) {
 	if len(data1) == 0 {
 		return nil, errno.ERR_EMPTY_CLUSTER_TOPOLOGY
 	}
 
-	mcs, err := ParseMonitorInfo(dingoadm, data1, INFO_TYPE_DATA)
+	mcs, err := ParseMonitorInfo(dingocli, data1, INFO_TYPE_DATA)
 	if err != nil {
 		return nil, err // err is error code
 	}
 	if len(mcs) == 0 {
 		return nil, errno.ERR_NO_SERVICES_IN_TOPOLOGY
 	}
-	return diffMonitor(dingoadm, data1, data2)
+	return diffMonitor(dingocli, data1, data2)
 }
 
 // return ids which belong to ids1, but not belong to ids2
@@ -520,16 +520,16 @@ func same(mc1, mc2 *MonitorConfig) (bool, error) {
 	return hash1 == hash2, nil
 }
 
-func diffMonitor(dingoadm *cli.DingoAdm, data1, data2 string) ([]MonitorDiff, error) {
+func diffMonitor(dingocli *cli.DingoCli, data1, data2 string) ([]MonitorDiff, error) {
 	var mcs1, mcs2 []*MonitorConfig
 	var err error
 
-	mcs1, err = ParseMonitorInfo(dingoadm, data1, INFO_TYPE_DATA)
+	mcs1, err = ParseMonitorInfo(dingocli, data1, INFO_TYPE_DATA)
 	if err != nil {
 		return nil, err
 	}
 
-	mcs2, err = ParseMonitorInfo(dingoadm, data2, INFO_TYPE_DATA)
+	mcs2, err = ParseMonitorInfo(dingocli, data2, INFO_TYPE_DATA)
 	if err != nil {
 		return nil, err
 	}

@@ -17,14 +17,14 @@
 package command
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -62,7 +62,7 @@ type upgradeOptions struct {
 	useLocalImage bool
 }
 
-func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewUpgradeCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options upgradeOptions
 
 	cmd := &cobra.Command{
@@ -70,10 +70,10 @@ func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Upgrade service",
 		Args:  cliutil.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return checkCommonOptions(dingoadm, options.id, options.role, options.host)
+			return checkCommonOptions(dingocli, options.id, options.role, options.host)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpgrade(dingoadm, options)
+			return runUpgrade(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -88,10 +88,10 @@ func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genUpgradePlaybook(dingoadm *cli.DingoAdm,
+func genUpgradePlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options upgradeOptions) (*playbook.Playbook, error) {
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -100,7 +100,7 @@ func genUpgradePlaybook(dingoadm *cli.DingoAdm,
 		return nil, errno.ERR_NO_SERVICES_MATCHED
 	}
 	steps := UPGRADE_PLAYBOOK_STEPS
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 	if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) {
 		// upgrade mds v2
 		steps = UPGRADE_STORE_FS_STEPS
@@ -115,14 +115,14 @@ func genUpgradePlaybook(dingoadm *cli.DingoAdm,
 			}
 		}
 	}
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 
 		// fliter deploy config according filte rule
 		stepDcs := dcs
 		if len(DEPLOY_FILTER_ROLE[step]) > 0 {
 			role := DEPLOY_FILTER_ROLE[step]
-			stepDcs = dingoadm.FilterDeployConfigByRole(stepDcs, role)
+			stepDcs = dingocli.FilterDeployConfigByRole(stepDcs, role)
 			if len(stepDcs) == 0 {
 				continue // no deploy config matched
 			}
@@ -147,22 +147,22 @@ func genUpgradePlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func displayTitle(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options upgradeOptions) {
+func displayTitle(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options upgradeOptions) {
 	total := len(dcs)
 	if options.force {
-		dingoadm.WriteOutln(color.YellowString("Upgrade %d services at once", total))
+		dingocli.WriteOutln(color.YellowString("Upgrade %d services at once", total))
 	} else {
-		dingoadm.WriteOutln(color.YellowString("Upgrade %d services one by one", total))
+		dingocli.WriteOutln(color.YellowString("Upgrade %d services one by one", total))
 	}
-	dingoadm.WriteOutln(color.YellowString("Upgrade services: %s", serviceStats(dingoadm, dcs)))
+	dingocli.WriteOutln(color.YellowString("Upgrade services: %s", serviceStats(dingocli, dcs)))
 }
 
-func upgradeAtOnce(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options upgradeOptions) error {
+func upgradeAtOnce(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options upgradeOptions) error {
 	// 1) display upgrade title
-	displayTitle(dingoadm, dcs, options)
+	displayTitle(dingocli, dcs, options)
 
 	// 2) generate upgrade playbook
-	pb, err := genUpgradePlaybook(dingoadm, dcs, options)
+	pb, err := genUpgradePlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -174,29 +174,29 @@ func upgradeAtOnce(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options
 	}
 
 	// 4) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Upgrade %d services success :)", len(dcs)))
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Upgrade %d services success :)", len(dcs)))
 	return nil
 }
 
-func upgradeOneByOne(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options upgradeOptions) error {
+func upgradeOneByOne(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options upgradeOptions) error {
 	// 1) display upgrade title
-	displayTitle(dingoadm, dcs, options)
+	displayTitle(dingocli, dcs, options)
 
 	// 2) upgrade service one by one
 	total := len(dcs)
 	for i, dc := range dcs {
 		// 2.1) confirm by user
-		dingoadm.WriteOutln("")
-		dingoadm.WriteOutln("Upgrade %s service:", color.BlueString("%d/%d", i+1, total))
-		dingoadm.WriteOutln("  + host=%s  role=%s  image=%s", dc.GetHost(), dc.GetRole(), dc.GetContainerImage())
+		dingocli.WriteOutln("")
+		dingocli.WriteOutln("Upgrade %s service:", color.BlueString("%d/%d", i+1, total))
+		dingocli.WriteOutln("  + host=%s  role=%s  image=%s", dc.GetHost(), dc.GetRole(), dc.GetContainerImage())
 		if pass := tui.ConfirmYes(tui.DEFAULT_CONFIRM_PROMPT); !pass {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("upgrade service"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("upgrade service"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 
 		// 2.2) generate upgrade playbook
-		pb, err := genUpgradePlaybook(dingoadm, []*topology.DeployConfig{dc}, options)
+		pb, err := genUpgradePlaybook(dingocli, []*topology.DeployConfig{dc}, options)
 		if err != nil {
 			return err
 		}
@@ -208,21 +208,21 @@ func upgradeOneByOne(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, optio
 		}
 
 		// 2.4) print success prompt
-		dingoadm.WriteOutln("")
-		dingoadm.WriteOutln(color.GreenString("Upgrade %d/%d sucess :)"), i+1, total)
+		dingocli.WriteOutln("")
+		dingocli.WriteOutln(color.GreenString("Upgrade %d/%d sucess :)"), i+1, total)
 	}
 	return nil
 }
 
-func runUpgrade(dingoadm *cli.DingoAdm, options upgradeOptions) error {
+func runUpgrade(dingocli *cli.DingoCli, options upgradeOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) filter deploy config
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -233,9 +233,9 @@ func runUpgrade(dingoadm *cli.DingoAdm, options upgradeOptions) error {
 
 	// 3.1) upgrade service at once
 	if options.force {
-		return upgradeAtOnce(dingoadm, dcs, options)
+		return upgradeAtOnce(dingocli, dcs, options)
 	}
 
 	// 3.2) OR upgrade service one by one
-	return upgradeOneByOne(dingoadm, dcs, options)
+	return upgradeOneByOne(dingocli, dcs, options)
 }

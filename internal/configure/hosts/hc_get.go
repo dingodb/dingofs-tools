@@ -17,10 +17,10 @@
 package hosts
 
 import (
-	comm "github.com/dingodb/dingofs-tools/internal/configure/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/dingoadm"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	comm "github.com/dingodb/dingocli/internal/configure/common"
+	"github.com/dingodb/dingocli/internal/configure/dingocli"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/module"
 )
 
 func (hc *HostConfig) get(i *comm.Item) interface{} {
@@ -97,7 +97,7 @@ func (hc *HostConfig) GetSSHConfig() *module.SSHConfig {
 		BecomeMethod:      "sudo",
 		BecomeFlags:       "-iu",
 		BecomeUser:        hc.GetBecomeUser(),
-		ConnectTimeoutSec: dingoadm.GlobalDingoAdmConfig.GetSSHTimeout(),
-		ConnectRetries:    dingoadm.GlobalDingoAdmConfig.GetSSHRetries(),
+		ConnectTimeoutSec: dingocli.GlobalDingoCliConfig.GetSSHTimeout(),
+		ConnectRetries:    dingocli.GlobalDingoCliConfig.GetSSHRetries(),
 	}
 }

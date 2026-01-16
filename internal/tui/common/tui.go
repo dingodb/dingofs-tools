@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 type DecorateMessage struct {

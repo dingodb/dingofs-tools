@@ -1,4 +1,4 @@
-module github.com/dingodb/dingofs-tools
+module github.com/dingodb/dingocli
 
 go 1.22
 

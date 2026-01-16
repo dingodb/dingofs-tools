@@ -3,22 +3,22 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
-func NewSyncJavaOptsTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+func NewSyncJavaOptsTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func NewSyncJavaOptsTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: CheckContainerExist(host, role, containerId, &out),
@@ -45,7 +45,7 @@ func NewSyncJavaOptsTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 
 	//t.AddStep(&step.StartContainer{
 	//	ContainerId: &containerId,
-	//	ExecOptions: dingoadm.ExecOptions(),
+	//	ExecOptions: dingocli.ExecOptions(),
 	//})
 	//t.AddStep(&step.Lambda{
 	//	Lambda: WaitContainerStart(3),
@@ -57,7 +57,7 @@ func NewSyncJavaOptsTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 		Command:     fmt.Sprintf("bash %s/%s %s/%s", dc.GetProjectLayout().DingoExecutorBinDir, topology.SCRIPT_SYNC_JAVA_OPTS, dc.GetProjectLayout().DingoExecutorBinDir, topology.SCRIPT_START_EXECUTOR),
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	return t, nil

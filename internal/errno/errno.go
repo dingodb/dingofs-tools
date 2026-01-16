@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 	"github.com/fatih/color"
 )
 
@@ -116,7 +116,7 @@ func (e *ErrorCode) Error() string {
 }
 
 /*
- * 0xx: init dingoadm
+ * 0xx: init dingocli
  *
  * 1xx: database/SQL
  *   100: init failed
@@ -134,7 +134,7 @@ func (e *ErrorCode) Error() string {
  *   21*: cluster
  *   22*: client
  *
- * 3xx: configure (dingoadm.cfg, hosts.yaml, topology.yaml, format.yaml...)
+ * 3xx: configure (dingocli.cfg, hosts.yaml, topology.yaml, format.yaml...)
  *   300: common
  *   31*: curvreadm.cfg
  *     * 310: parse failed
@@ -187,9 +187,9 @@ func (e *ErrorCode) Error() string {
 var (
 	// OK
 	ERR_OK = EC(000000, "success")
-	// 000: init dingoadm
+	// 000: init dingocli
 	ERR_GET_USER_HOME_DIR_FAILED            = EC(000001, "get user home dir failed")
-	ERR_CREATE_DINGOADM_SUBDIRECTORY_FAILED = EC(000002, "create dingoadm subdirectory failed")
+	ERR_CREATE_DINGOADM_SUBDIRECTORY_FAILED = EC(000002, "create dingocli subdirectory failed")
 	ERR_INIT_LOGGER_FAILED                  = EC(000003, "init logger failed")
 
 	// 100: database/SQL (init failed)
@@ -280,12 +280,12 @@ var (
 	ERR_UNSUPPORT_VARIABLE_VALUE_TYPE             = EC(301100, "unsupport variable value type")
 	ERR_INVALID_VARIABLE_VALUE                    = EC(301101, "invalid variable value")
 
-	// 310: configure (dingoadm.cfg: parse failed)
-	ERR_PARSE_DINGOADM_CONFIGURE_FAILED = EC(310000, "parse dingoadm configure failed")
-	// 311: configure (dingoadm.cfg: invalid configure value)
-	ERR_UNSUPPORT_DINGOADM_LOG_LEVEL      = EC(311000, "unsupport dingoadm log level")
-	ERR_UNSUPPORT_DINGOADM_CONFIGURE_ITEM = EC(311001, "unsupport dingoadm configure item")
-	ERR_UNSUPPORT_DINGOADM_DATABASE_URL   = EC(311002, "unsupport dingoadm database url")
+	// 310: configure (dingocli.cfg: parse failed)
+	ERR_PARSE_DINGOADM_CONFIGURE_FAILED = EC(310000, "parse dingocli configure failed")
+	// 311: configure (dingocli.cfg: invalid configure value)
+	ERR_UNSUPPORT_DINGOADM_LOG_LEVEL      = EC(311000, "unsupport dingocli log level")
+	ERR_UNSUPPORT_DINGOADM_CONFIGURE_ITEM = EC(311001, "unsupport dingocli configure item")
+	ERR_UNSUPPORT_DINGOADM_DATABASE_URL   = EC(311002, "unsupport dingocli database url")
 
 	// 320: configure (hosts.yaml: parse failed)
 	ERR_HOSTS_FILE_NOT_FOUND   = EC(320000, "hosts file not found")

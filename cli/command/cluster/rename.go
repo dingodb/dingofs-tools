@@ -17,11 +17,11 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ type renameOptions struct {
 	force          bool
 }
 
-func NewRenameCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewRenameCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options renameOptions
 
 	cmd := &cobra.Command{
@@ -42,7 +42,7 @@ func NewRenameCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			options.clusterOldName = args[0]
 			options.clusterNewName = args[1]
 
-			return runRename(dingoadm, options)
+			return runRename(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -53,9 +53,9 @@ func NewRenameCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runRename(dingoadm *cli.DingoAdm, options renameOptions) error {
+func runRename(dingocli *cli.DingoCli, options renameOptions) error {
 	// 1) get cluster by name
-	storage := dingoadm.Storage()
+	storage := dingocli.Storage()
 	clusterOldName := options.clusterOldName
 	clusterNewName := options.clusterNewName
 	clusters, err := storage.GetClusters(clusterOldName) // Get all clusters
@@ -70,19 +70,19 @@ func runRename(dingoadm *cli.DingoAdm, options renameOptions) error {
 
 	// rename cluster name
 	if options.force {
-		dingoadm.WriteOut(tui.PromptRenameCluster(clusterOldName, clusterNewName))
+		dingocli.WriteOut(tui.PromptRenameCluster(clusterOldName, clusterNewName))
 	} else {
 		if !tui.ConfirmYes(tui.PromptRenameCluster(clusterOldName, clusterNewName)) {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("rename cluster"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("rename cluster"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}
 
-	if err := dingoadm.Storage().RenameClusterName(clusterOldName, clusterNewName); err != nil {
+	if err := dingocli.Storage().RenameClusterName(clusterOldName, clusterNewName); err != nil {
 		return errno.ERR_RENAME_CLUSTER_FAILED.E(err)
 	}
 
 	// 3) print success prompt
-	dingoadm.WriteOutln("Rename cluster '%s' to '%s'", clusterOldName, clusterNewName)
+	dingocli.WriteOutln("Rename cluster '%s' to '%s'", clusterOldName, clusterNewName)
 	return nil
 }

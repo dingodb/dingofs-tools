@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
 )
 
 const (
@@ -135,9 +135,9 @@ func getEnvironments(cfg *configure.MonitorConfig) []string {
 	return []string{}
 }
 
-func NewCreateContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
+func NewCreateContainerTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
 	host := cfg.GetHost()
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
@@ -148,19 +148,19 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig
 
 	// add step to task
 	var oldContainerId, containerId string
-	clusterId := dingoadm.ClusterId()
+	clusterId := dingocli.ClusterId()
 	mcId := cfg.GetId()
-	serviceId := dingoadm.GetServiceId(mcId)
+	serviceId := dingocli.GetServiceId(mcId)
 	kind := cfg.GetKind()
 	role := cfg.GetRole()
 	hostname := fmt.Sprintf("%s-%s-%s", kind, role, serviceId)
-	options := dingoadm.ExecOptions()
+	options := dingocli.ExecOptions()
 	options.ExecWithSudo = false
 
 	t.AddStep(&common.Step2GetService{ // if service exist, break task
 		ServiceId:   serviceId,
 		ContainerId: &oldContainerId,
-		Storage:     dingoadm.Storage(),
+		Storage:     dingocli.Storage(),
 	})
 	paths := []string{cfg.GetDataDir()}
 	switch role {
@@ -180,7 +180,7 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig
 		AddHost:     []string{fmt.Sprintf("%s:127.0.0.1", hostname)},
 		Envs:        getEnvironments(cfg),
 		Hostname:    hostname,
-		Init:        dingoadm.Engine() == ENGINE_DOCKER,
+		Init:        dingocli.Engine() == ENGINE_DOCKER,
 		Name:        hostname,
 		Privileged:  true,
 		User:        "0:0",
@@ -189,7 +189,7 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig
 		Ulimits:     []string{"core=-1"},
 		Volumes:     getMountVolumes(cfg),
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.TrimContainerId(&containerId),
@@ -199,7 +199,7 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig
 		ServiceId:      serviceId,
 		ContainerId:    &containerId,
 		OldContainerId: &oldContainerId,
-		Storage:        dingoadm.Storage(),
+		Storage:        dingocli.Storage(),
 	})
 	return t, nil
 }

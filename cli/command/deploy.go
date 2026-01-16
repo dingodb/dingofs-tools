@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	utils "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	utils "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -175,7 +175,7 @@ func checkDeployOptions(options deployOptions) error {
 	return nil
 }
 
-func NewDeployCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewDeployCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options deployOptions
 
 	cmd := &cobra.Command{
@@ -186,7 +186,7 @@ func NewDeployCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			return checkDeployOptions(options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeploy(dingoadm, options)
+			return runDeploy(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -221,7 +221,7 @@ func skipDeploySteps(dcs []*topology.DeployConfig, deploySteps []int, options de
 	return steps
 }
 
-func precheckBeforeDeploy(dingoadm *cli.DingoAdm,
+func precheckBeforeDeploy(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options deployOptions) error {
 	// 1) skip precheck
@@ -230,7 +230,7 @@ func precheckBeforeDeploy(dingoadm *cli.DingoAdm,
 	}
 
 	// 2) generate precheck playbook
-	pb, err := genPrecheckPlaybook(dingoadm, dcs, precheckOptions{})
+	pb, err := genPrecheckPlaybook(dingocli, dcs, precheckOptions{})
 	if err != nil {
 		return err
 	}
@@ -242,22 +242,22 @@ func precheckBeforeDeploy(dingoadm *cli.DingoAdm,
 	}
 
 	// 4) printf success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Congratulations!!! all precheck passed :)"))
-	dingoadm.WriteOut(color.GreenString("Now we start to deploy cluster, sleep 3 seconds..."))
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Congratulations!!! all precheck passed :)"))
+	dingocli.WriteOut(color.GreenString("Now we start to deploy cluster, sleep 3 seconds..."))
 	time.Sleep(time.Duration(3) * time.Second)
-	dingoadm.WriteOutln("\n")
+	dingocli.WriteOutln("\n")
 	return nil
 }
 
-func genDeployPlaybook(dingoadm *cli.DingoAdm,
+func genDeployPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options deployOptions) (*playbook.Playbook, error) {
 	var steps []int
 	kind := dcs[0].GetKind()
 
 	// extract all deloy configs's role and deduplicate same role
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 
 	switch kind {
 	case topology.KIND_DINGOFS:
@@ -290,13 +290,13 @@ func genDeployPlaybook(dingoadm *cli.DingoAdm,
 	}
 	steps = skipDeploySteps(dcs, steps, options) // not necessary
 
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		// configs
 		config := dcs
 		if len(DEPLOY_FILTER_ROLE[step]) > 0 {
 			role := DEPLOY_FILTER_ROLE[step]
-			config = dingoadm.FilterDeployConfigByRole(config, role)
+			config = dingocli.FilterDeployConfigByRole(config, role)
 		}
 		//n := len(config)
 		if DEPLOY_LIMIT_SERVICE[step] > 0 {
@@ -324,7 +324,7 @@ func statistics(dcs []*topology.DeployConfig) map[string]int {
 	return count
 }
 
-func serviceStats(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) string {
+func serviceStats(dingocli *cli.DingoCli, dcs []*topology.DeployConfig) string {
 	count := statistics(dcs)
 	netcd := count[topology.ROLE_ETCD]
 	nmds := count[topology.ROLE_FS_MDS]
@@ -334,7 +334,7 @@ func serviceStats(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) string {
 	kind := dcs[0].GetKind()
 	switch kind {
 	case topology.KIND_DINGOFS:
-		roles := dingoadm.GetRoles(dcs)
+		roles := dingocli.GetRoles(dcs)
 		if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) {
 			// mds v2
 			ncoordinator := count[topology.ROLE_COORDINATOR]
@@ -369,16 +369,16 @@ func serviceStats(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) string {
 	return serviceStats
 }
 
-func displayDeployTitle(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig) {
-	dingoadm.WriteOutln("Cluster Name    : %s", dingoadm.ClusterName())
-	dingoadm.WriteOutln("Cluster Kind    : %s", dcs[0].GetKind())
-	dingoadm.WriteOutln("Cluster Services: %s", serviceStats(dingoadm, dcs))
-	dingoadm.WriteOutln("")
+func displayDeployTitle(dingocli *cli.DingoCli, dcs []*topology.DeployConfig) {
+	dingocli.WriteOutln("Cluster Name    : %s", dingocli.ClusterName())
+	dingocli.WriteOutln("Cluster Kind    : %s", dcs[0].GetKind())
+	dingocli.WriteOutln("Cluster Services: %s", serviceStats(dingocli, dcs))
+	dingocli.WriteOutln("")
 }
 
-func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
+func runDeploy(dingocli *cli.DingoCli, options deployOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
@@ -387,19 +387,19 @@ func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	dcs = skipServiceRole(dcs, options)
 
 	// 3) precheck before deploy
-	err = precheckBeforeDeploy(dingoadm, dcs, options)
+	err = precheckBeforeDeploy(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
 
 	// 4) generate deploy playbook
-	pb, err := genDeployPlaybook(dingoadm, dcs, options)
+	pb, err := genDeployPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
 
 	// 5) display title
-	displayDeployTitle(dingoadm, dcs)
+	displayDeployTitle(dingocli, dcs)
 
 	// 6) run playground
 	if err = pb.Run(); err != nil {
@@ -407,7 +407,7 @@ func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	}
 
 	// 7) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Cluster '%s' successfully deployed ^_^."), dingoadm.ClusterName())
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Cluster '%s' successfully deployed ^_^."), dingocli.ClusterName())
 	return nil
 }

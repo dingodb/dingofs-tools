@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 func TrimContainerId(containerId *string) step.LambdaType {
@@ -37,9 +37,9 @@ func TrimContainerId(containerId *string) step.LambdaType {
 	}
 }
 
-func NewCreateDingoFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
-	options := dingoadm.MemStorage().Get(common.KEY_MOUNT_OPTIONS).(MountOptions)
-	hc, err := dingoadm.GetHost(options.Host)
+func NewCreateDingoFSTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
+	options := dingocli.MemStorage().Get(common.KEY_MOUNT_OPTIONS).(MountOptions)
+	hc, err := dingocli.GetHost(options.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func NewCreateDingoFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*
 		//--ulimit core=-1: Sets the core dump file size limit to -1, meaning there’s no restriction on the core dump size.
 		//--ulimit nofile=65535:65535: Sets both the soft and hard limits for the number of open files to 65535.
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: TrimContainerId(&containerId),
@@ -71,11 +71,11 @@ func NewCreateDingoFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*
 		Command:     fmt.Sprintf("bash %s/create_dingofs.sh %s %s %s %s"),
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.StopContainer{
 		ContainerId: containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	return t, nil

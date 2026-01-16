@@ -19,12 +19,12 @@ package command
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ type stopOptions struct {
 	force bool
 }
 
-func NewStopCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStopCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options stopOptions
 
 	cmd := &cobra.Command{
@@ -49,10 +49,10 @@ func NewStopCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Stop service",
 		Args:  cliutil.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return checkCommonOptions(dingoadm, options.id, options.role, options.host)
+			return checkCommonOptions(dingocli, options.id, options.role, options.host)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStop(dingoadm, options)
+			return runStop(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -66,10 +66,10 @@ func NewStopCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStopPlaybook(dingoadm *cli.DingoAdm,
+func genStopPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options stopOptions) (*playbook.Playbook, error) {
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -79,7 +79,7 @@ func genStopPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := STOP_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -89,15 +89,15 @@ func genStopPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runStop(dingoadm *cli.DingoAdm, options stopOptions) error {
+func runStop(dingocli *cli.DingoCli, options stopOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) generate stop playbook
-	pb, err := genStopPlaybook(dingoadm, dcs, options)
+	pb, err := genStopPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func runStop(dingoadm *cli.DingoAdm, options stopOptions) error {
 	// 3) confirm by user
 	pass := tui.ConfirmYes(tui.PromptStopService(options.id, options.role, options.host))
 	if !pass {
-		dingoadm.WriteOut(tui.PromptCancelOpetation("stop service"))
+		dingocli.WriteOut(tui.PromptCancelOpetation("stop service"))
 		return errno.ERR_CANCEL_OPERATION
 	}
 

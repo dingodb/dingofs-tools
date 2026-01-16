@@ -19,14 +19,14 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
-func NewPullImageTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewPullImageTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func NewPullImageTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.
 	// add step to task
 	t.AddStep(&step.PullImage{
 		Image:       dc.GetContainerImage(),
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	return t, nil

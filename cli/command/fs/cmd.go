@@ -17,13 +17,13 @@
 package fs
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	fsquota "github.com/dingodb/dingofs-tools/cli/command/fs/quota"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	fsquota "github.com/dingodb/dingocli/cli/command/fs/quota"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewFSCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "fs",
 		Short: "Manage filesystem",
@@ -31,15 +31,15 @@ func NewFSCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewFsCreateCommand(dingoadm),
-		NewFsDeleteCommand(dingoadm),
-		NewFsListCommand(dingoadm),
-		NewFsQueryCommand(dingoadm),
-		NewFsMountpointCommand(dingoadm),
-		NewFsUsageCommand(dingoadm),
-		NewFsUmountCommand(dingoadm),
-		NewFsMountCommand(dingoadm),
-		fsquota.NewQuotaCommand(dingoadm),
+		NewFsCreateCommand(dingocli),
+		NewFsDeleteCommand(dingocli),
+		NewFsListCommand(dingocli),
+		NewFsQueryCommand(dingocli),
+		NewFsMountpointCommand(dingocli),
+		NewFsUsageCommand(dingocli),
+		NewFsUmountCommand(dingocli),
+		NewFsMountCommand(dingocli),
+		fsquota.NewQuotaCommand(dingocli),
 	)
 
 	return cmd

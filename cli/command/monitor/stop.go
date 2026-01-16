@@ -17,12 +17,12 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -39,14 +39,14 @@ type stopOptions struct {
 	force bool
 }
 
-func NewStopCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStopCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options stopOptions
 	cmd := &cobra.Command{
 		Use:   "stop [OPTIONS]",
 		Short: "Stop monitor service",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStop(dingoadm, options)
+			return runStop(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -60,10 +60,10 @@ func NewStopCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStopPlaybook(dingoadm *cli.DingoAdm,
+func genStopPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options stopOptions) (*playbook.Playbook, error) {
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -73,7 +73,7 @@ func genStopPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := MONITOR_STOP_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -83,15 +83,15 @@ func genStopPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runStop(dingoadm *cli.DingoAdm, options stopOptions) error {
+func runStop(dingocli *cli.DingoCli, options stopOptions) error {
 	// 1) parse monitor config
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) generate stop playbook
-	pb, err := genStopPlaybook(dingoadm, mcs, options)
+	pb, err := genStopPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func runStop(dingoadm *cli.DingoAdm, options stopOptions) error {
 		// 3) confirm by user
 		pass := tui.ConfirmYes(tui.PromptStopService(options.id, options.role, options.host))
 		if !pass {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("stop monitor service"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("stop monitor service"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}

@@ -14,16 +14,16 @@
  *  limitations under the License.
  */
 
-package dingoadm
+package dingocli
 
 import (
 	"fmt"
 	"os"
 	"regexp"
 
-	"github.com/dingodb/dingofs-tools/internal/build"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/internal/build"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/viper"
 )
 
@@ -38,7 +38,7 @@ const (
 	KEY_DB_URL       = "url"
 
 	// rqlite://127.0.0.1:4000
-	// sqlite:///home/dingofs/.dingo/data/dingoadm.db
+	// sqlite:///home/dingofs/.dingo/data/dingocli.db
 	REGEX_DB_URL = "^(sqlite|rqlite)://(.+)$"
 	DB_SQLITE    = "sqlite"
 	DB_RQLITE    = "rqlite"
@@ -47,7 +47,7 @@ const (
 )
 
 type (
-	DingoAdmConfig struct {
+	DingoCliConfig struct {
 		LogLevel    string
 		SudoAlias   string
 		Engine      string
@@ -58,7 +58,7 @@ type (
 		DBUrl       string
 	}
 
-	DingoAdm struct {
+	DingoCli struct {
 		Defaults       map[string]interface{} `mapstructure:"defaults"`
 		SSHConnections map[string]interface{} `mapstructure:"ssh_connections"`
 		DataBase       map[string]interface{} `mapstructure:"database"`
@@ -66,7 +66,7 @@ type (
 )
 
 var (
-	GlobalDingoAdmConfig *DingoAdmConfig
+	GlobalDingoCliConfig *DingoCliConfig
 
 	SUPPORT_LOG_LEVEL = map[string]bool{
 		"debug": true,
@@ -76,13 +76,13 @@ var (
 	}
 )
 
-func ReplaceGlobals(cfg *DingoAdmConfig) {
-	GlobalDingoAdmConfig = cfg
+func ReplaceGlobals(cfg *DingoCliConfig) {
+	GlobalDingoCliConfig = cfg
 }
 
-func newDefault() *DingoAdmConfig {
+func newDefault() *DingoCliConfig {
 	home, _ := os.UserHomeDir()
-	cfg := &DingoAdmConfig{
+	cfg := &DingoCliConfig{
 		LogLevel:    "error",
 		SudoAlias:   "sudo",
 		Engine:      "docker",
@@ -90,7 +90,7 @@ func newDefault() *DingoAdmConfig {
 		AutoUpgrade: true,
 		SSHRetries:  3,
 		SSHTimeout:  10,
-		DBUrl:       fmt.Sprintf("sqlite://%s/.dingo/data/dingoadm.db", home),
+		DBUrl:       fmt.Sprintf("sqlite://%s/.dingo/data/dingocli.db", home),
 	}
 	return cfg
 }
@@ -117,7 +117,7 @@ func requirePositiveBool(k string, v interface{}) (bool, error) {
 	return yes, nil
 }
 
-func parseDefaultsSection(cfg *DingoAdmConfig, defaults map[string]interface{}) error {
+func parseDefaultsSection(cfg *DingoCliConfig, defaults map[string]interface{}) error {
 	if defaults == nil {
 		return nil
 	}
@@ -165,7 +165,7 @@ func parseDefaultsSection(cfg *DingoAdmConfig, defaults map[string]interface{}) 
 	return nil
 }
 
-func parseConnectionSection(cfg *DingoAdmConfig, connection map[string]interface{}) error {
+func parseConnectionSection(cfg *DingoCliConfig, connection map[string]interface{}) error {
 	if connection == nil {
 		return nil
 	}
@@ -197,7 +197,7 @@ func parseConnectionSection(cfg *DingoAdmConfig, connection map[string]interface
 	return nil
 }
 
-func parseDatabaseSection(cfg *DingoAdmConfig, database map[string]interface{}) error {
+func parseDatabaseSection(cfg *DingoCliConfig, database map[string]interface{}) error {
 	if database == nil {
 		return nil
 	}
@@ -224,18 +224,18 @@ func parseDatabaseSection(cfg *DingoAdmConfig, database map[string]interface{}) 
 }
 
 type sectionParser struct {
-	parser  func(*DingoAdmConfig, map[string]interface{}) error
+	parser  func(*DingoCliConfig, map[string]interface{}) error
 	section map[string]interface{}
 }
 
-func ParseDingoAdmConfig(filename string) (*DingoAdmConfig, error) {
+func ParseDingoCliConfig(filename string) (*DingoCliConfig, error) {
 	cfg := newDefault()
 	if !utils.PathExist(filename) {
 		build.DEBUG(build.DEBUG_CONFIGURE, cfg)
 		return cfg, nil
 	}
 
-	// parse dingoadm config
+	// parse dingocli config
 	parser := viper.New()
 	parser.SetConfigFile(filename)
 	parser.SetConfigType("ini")
@@ -244,7 +244,7 @@ func ParseDingoAdmConfig(filename string) (*DingoAdmConfig, error) {
 		return nil, errno.ERR_PARSE_DINGOADM_CONFIGURE_FAILED.E(err)
 	}
 
-	global := &DingoAdm{}
+	global := &DingoCli{}
 	err = parser.Unmarshal(global)
 	if err != nil {
 		return nil, errno.ERR_PARSE_DINGOADM_CONFIGURE_FAILED.E(err)
@@ -266,24 +266,24 @@ func ParseDingoAdmConfig(filename string) (*DingoAdmConfig, error) {
 	return cfg, nil
 }
 
-func (cfg *DingoAdmConfig) GetLogLevel() string  { return cfg.LogLevel }
-func (cfg *DingoAdmConfig) GetTimeout() int      { return cfg.Timeout }
-func (cfg *DingoAdmConfig) GetAutoUpgrade() bool { return cfg.AutoUpgrade }
-func (cfg *DingoAdmConfig) GetSSHRetries() int   { return cfg.SSHRetries }
-func (cfg *DingoAdmConfig) GetSSHTimeout() int   { return cfg.SSHTimeout }
-func (cfg *DingoAdmConfig) GetEngine() string    { return cfg.Engine }
-func (cfg *DingoAdmConfig) GetSudoAlias() string {
+func (cfg *DingoCliConfig) GetLogLevel() string  { return cfg.LogLevel }
+func (cfg *DingoCliConfig) GetTimeout() int      { return cfg.Timeout }
+func (cfg *DingoCliConfig) GetAutoUpgrade() bool { return cfg.AutoUpgrade }
+func (cfg *DingoCliConfig) GetSSHRetries() int   { return cfg.SSHRetries }
+func (cfg *DingoCliConfig) GetSSHTimeout() int   { return cfg.SSHTimeout }
+func (cfg *DingoCliConfig) GetEngine() string    { return cfg.Engine }
+func (cfg *DingoCliConfig) GetSudoAlias() string {
 	if len(cfg.SudoAlias) == 0 {
 		return WITHOUT_SUDO
 	}
 	return cfg.SudoAlias
 }
 
-func (cfg *DingoAdmConfig) GetDBUrl() string {
+func (cfg *DingoCliConfig) GetDBUrl() string {
 	return cfg.DBUrl
 }
 
-func (cfg *DingoAdmConfig) GetDBPath() string {
+func (cfg *DingoCliConfig) GetDBPath() string {
 	pattern := regexp.MustCompile(REGEX_DB_URL)
 	mu := pattern.FindStringSubmatch(cfg.DBUrl)
 	if len(mu) == 0 || mu[1] != DB_SQLITE {

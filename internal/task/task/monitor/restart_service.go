@@ -19,23 +19,23 @@ package monitor
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
-func NewRestartServiceTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewRestartServiceTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF}) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(cfg.GetHost())
+	hc, err := dingocli.GetHost(cfg.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -54,14 +54,14 @@ func NewRestartServiceTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig)
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.CheckContainerExist(host, role, containerId, &out),
 	})
 	t.AddStep(&step.RestartContainer{
 		ContainerId: containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.WaitContainerStart(3),
@@ -71,7 +71,7 @@ func NewRestartServiceTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig)
 		ContainerId: containerId,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	return t, nil

@@ -17,14 +17,14 @@
 package hosts
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 type showOptions struct{}
 
-func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewShowCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options showOptions
 
 	cmd := &cobra.Command{
@@ -32,7 +32,7 @@ func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Show hosts",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShow(dingoadm, options)
+			return runShow(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -40,12 +40,12 @@ func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runShow(dingoadm *cli.DingoAdm, options showOptions) error {
-	hosts := dingoadm.Hosts()
+func runShow(dingocli *cli.DingoCli, options showOptions) error {
+	hosts := dingocli.Hosts()
 	if len(hosts) == 0 {
-		dingoadm.WriteOutln("<empty hosts>")
+		dingocli.WriteOutln("<empty hosts>")
 	} else {
-		dingoadm.WriteOut(hosts)
+		dingocli.WriteOut(hosts)
 	}
 	return nil
 }

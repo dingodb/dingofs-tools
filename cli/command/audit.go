@@ -17,10 +17,10 @@
 package command
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/tui"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/tui"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ type auditOptions struct {
 	verbose bool
 }
 
-func NewAuditCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewAuditCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options auditOptions
 
 	cmd := &cobra.Command{
@@ -37,7 +37,7 @@ func NewAuditCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Show audit log of operation",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runAudit(dingoadm, options)
+			return runAudit(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -49,8 +49,8 @@ func NewAuditCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runAudit(dingoadm *cli.DingoAdm, options auditOptions) error {
-	auditLogs, err := dingoadm.Storage().GetAuditLogs()
+func runAudit(dingocli *cli.DingoCli, options auditOptions) error {
+	auditLogs, err := dingocli.Storage().GetAuditLogs()
 	if err != nil {
 		return errno.ERR_GET_AUDIT_LOGS_FAILE.E(err)
 	}
@@ -60,6 +60,6 @@ func runAudit(dingoadm *cli.DingoAdm, options auditOptions) error {
 		auditLogs = auditLogs[len(auditLogs)-tail:]
 	}
 	output := tui.FormatAuditLogs(auditLogs, options.verbose)
-	dingoadm.WriteOut(output)
+	dingocli.WriteOut(output)
 	return nil
 }

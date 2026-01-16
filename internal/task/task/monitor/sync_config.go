@@ -22,15 +22,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/scripts"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/pkg/variable"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/scripts"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/pkg/variable"
 )
 
 const (
@@ -44,7 +44,7 @@ const (
 	ORIGIN_MONITOR_PATH            = "/dingofs/monitor"
 )
 
-func syncPrometheusUid(cfg *configure.MonitorConfig, dingoadm cli.DingoAdm) step.LambdaType {
+func syncPrometheusUid(cfg *configure.MonitorConfig, dingocli cli.DingoCli) step.LambdaType {
 	return func(ctx *context.Context) error {
 		var prometheusInfo string
 		// fetch prometheus info retry 10 times
@@ -54,7 +54,7 @@ func syncPrometheusUid(cfg *configure.MonitorConfig, dingoadm cli.DingoAdm) step
 				Insecure:    true,
 				Out:         &prometheusInfo,
 				Silent:      true,
-				ExecOptions: dingoadm.ExecOptions(),
+				ExecOptions: dingocli.ExecOptions(),
 			}
 			curlStep.Execute(ctx)
 			if len(prometheusInfo) > 0 {
@@ -65,7 +65,7 @@ func syncPrometheusUid(cfg *configure.MonitorConfig, dingoadm cli.DingoAdm) step
 						// *prometheusUid = v
 						sedStep := &step.Command{
 							Command:     combineSedCMD(cfg, v),
-							ExecOptions: dingoadm.ExecOptions(),
+							ExecOptions: dingocli.ExecOptions(),
 						}
 						sedStep.Execute(ctx)
 						return nil
@@ -109,9 +109,9 @@ func getNodeExporterAddrs(hosts []string, port int) string {
 	return fmt.Sprintf("[%s]", strings.Join(endpoint, ","))
 }
 
-func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewSyncConfigTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF, ROLE_NODE_EXPORTER}) {
 		return nil, nil
 	} else if err != nil {
@@ -119,7 +119,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 	}
 
 	role, host := cfg.GetRole(), cfg.GetHost()
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
@@ -135,14 +135,14 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.CheckContainerExist(cfg.GetHost(), cfg.GetRole(), containerId, &out),
 	})
 
-	// confServiceId = dingoadm.GetServiceId(fmt.Sprintf("%s_%s", ROLE_MONITOR_SYNC, cfg.GetHost()))
-	// confContainerId, err := dingoadm.GetContainerId(serviceId)
+	// confServiceId = dingocli.GetServiceId(fmt.Sprintf("%s_%s", ROLE_MONITOR_SYNC, cfg.GetHost()))
+	// confContainerId, err := dingocli.GetContainerId(serviceId)
 
 	switch role {
 	case ROLE_PROMETHEUS:
@@ -151,7 +151,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 		t.AddStep(&step.Command{
 			Command:     sedCMD,
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 
 		// replace node exporter addrs
@@ -163,13 +163,13 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 		t.AddStep(&step.InstallFile{
 			HostDestPath: fmt.Sprintf("%s/sync_prometheus.sh", cfg.GetConfDir()),
 			Content:      &scripts.SYNC_PROMETHEUS,
-			ExecOptions:  dingoadm.ExecOptions(),
+			ExecOptions:  dingocli.ExecOptions(),
 		})
 
 		t.AddStep(&step.Command{
 			Command:     fmt.Sprintf("bash %s/sync_prometheus.sh %s/prometheus.yml %s", cfg.GetConfDir(), cfg.GetConfDir(), nodeExporterAddrs),
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 
 	case ROLE_GRAFANA:
@@ -179,26 +179,26 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 		t.AddStep(&step.Command{
 			Command:     sedPortCMD,
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 
 	case ROLE_MONITOR_SYNC:
 
 		confID := cfg.GetServiceConfig()[configure.KEY_ORIGIN_CONFIG_ID].(string)
-		confServiceId := dingoadm.GetServiceId(confID)
-		confContainerId, err := dingoadm.GetContainerId(confServiceId)
+		confServiceId := dingocli.GetServiceId(confID)
+		confContainerId, err := dingocli.GetContainerId(confServiceId)
 		if err != nil {
 			return nil, err
 		}
 
-		t.AddStep(&step.TrySyncFile{ // sync dingofs-tools config
+		t.AddStep(&step.TrySyncFile{ // sync dingocli config
 			ContainerSrcId:    &confContainerId,
 			ContainerSrcPath:  DINGO_TOOL_DEST_PATH,
 			ContainerDestId:   &containerId,
 			ContainerDestPath: DINGO_TOOL_DEST_PATH,
 			KVFieldSplit:      common.CONFIG_DELIMITER_COLON,
 			Mutate:            MutateTool(cfg.GetVariables(), common.CONFIG_DELIMITER_COLON),
-			ExecOptions:       dingoadm.ExecOptions(),
+			ExecOptions:       dingocli.ExecOptions(),
 		})
 
 		hostMonitorDir := cfg.GetDataDir()
@@ -207,27 +207,27 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*t
 			Files:         &[]string{ORIGIN_MONITOR_PATH},
 			HostDestDir:   hostMonitorDir,
 			ExcludeParent: true,
-			ExecOptions:   dingoadm.ExecOptions(),
+			ExecOptions:   dingocli.ExecOptions(),
 		})
 
 		t.AddStep(&step.InstallFile{ // install start_monitor_sync script
 			HostDestPath: hostMonitorDir + "/start_monitor_sync.sh",
 			Content:      &scripts.START_MONITOR_SYNC,
-			ExecOptions:  dingoadm.ExecOptions(),
+			ExecOptions:  dingocli.ExecOptions(),
 		})
 
 		t.AddStep(&step.Command{
 			Command:     fmt.Sprintf("chmod +x %s/start_monitor_sync.sh", hostMonitorDir),
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 	}
 	return t, nil
 }
 
-func NewSyncGrafanaDashboardTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewSyncGrafanaDashboardTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF, ROLE_NODE_EXPORTER}) {
 		return nil, nil
 	} else if err != nil {
@@ -235,7 +235,7 @@ func NewSyncGrafanaDashboardTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorC
 	}
 
 	_, host := cfg.GetRole(), cfg.GetHost()
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func NewSyncGrafanaDashboardTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorC
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.CheckContainerExist(cfg.GetHost(), cfg.GetRole(), containerId, &out),
@@ -260,13 +260,13 @@ func NewSyncGrafanaDashboardTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorC
 	t.AddStep(&step.InstallFile{ // install server_metric_zh.json
 		HostDestPath: fmt.Sprintf("%s/dashboards/%s", cfg.GetProvisionDir(), "server_metric_zh.json"),
 		Content:      &scripts.GRAFANA_SERVER_METRIC,
-		ExecOptions:  dingoadm.ExecOptions(),
+		ExecOptions:  dingocli.ExecOptions(),
 	})
 
 	// wait for grafana service started
 	t.AddStep(&step.Lambda{
 		//Lambda: wait(30),
-		Lambda: syncPrometheusUid(cfg, *dingoadm),
+		Lambda: syncPrometheusUid(cfg, *dingocli),
 	})
 
 	return t, nil

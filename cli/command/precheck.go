@@ -20,22 +20,22 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	utils "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	utils "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 const (
 	PRECHECK_EXAMPLE = `Examples:
-  $ dingoadm precheck                         # Check all items
-  $ dingoadm precheck --skip topology         # Check all items except topology
-  $ dingoadm precheck --skip topology,kernel  # Check all items except topology and kernel`
+  $ dingocli precheck                         # Check all items
+  $ dingocli precheck --skip topology         # Check all items except topology
+  $ dingocli precheck --skip topology,kernel  # Check all items except topology and kernel`
 )
 
 const (
@@ -106,7 +106,7 @@ func checkPrecheckOptions(options precheckOptions) error {
 	return nil
 }
 
-func NewPrecheckCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewPrecheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options precheckOptions
 
 	cmd := &cobra.Command{
@@ -118,7 +118,7 @@ func NewPrecheckCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			return checkPrecheckOptions(options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPrecheck(dingoadm, options)
+			return runPrecheck(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -155,19 +155,19 @@ func skipPrecheckSteps(precheckSteps []int, options precheckOptions) []int {
 	return out
 }
 
-func genPrecheckPlaybook(dingoadm *cli.DingoAdm,
+func genPrecheckPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options precheckOptions) (*playbook.Playbook, error) {
 	kind := dcs[0].GetKind()
 	steps := DINGOFS_PRECHECK_STEPS
 
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 	skipRoles := topology.FetchSkipRoles(kind, dcs, roles)
 
 	steps = skipPrecheckSteps(steps, options)
 
 	// add playbook step
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		configs := dcs
 		switch step {
@@ -175,7 +175,7 @@ func genPrecheckPlaybook(dingoadm *cli.DingoAdm,
 			configs = configs[:1] // any deploy config
 		case playbook.CHECK_KERNEL_VERSION:
 			// TODO:
-			configs = dingoadm.FilterDeployConfigByRole(dcs, ROLE_ALT)
+			configs = dingocli.FilterDeployConfigByRole(dcs, ROLE_ALT)
 		case playbook.CHECK_HOST_DATE:
 			configs = configs[:1]
 		}
@@ -209,15 +209,15 @@ func genPrecheckPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runPrecheck(dingoadm *cli.DingoAdm, options precheckOptions) error {
+func runPrecheck(dingocli *cli.DingoCli, options precheckOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) generate precheck playbook
-	pb, err := genPrecheckPlaybook(dingoadm, dcs, options)
+	pb, err := genPrecheckPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -229,7 +229,7 @@ func runPrecheck(dingoadm *cli.DingoAdm, options precheckOptions) error {
 	}
 
 	// 4) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Congratulations!!! all precheck passed :)"))
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Congratulations!!! all precheck passed :)"))
 	return nil
 }

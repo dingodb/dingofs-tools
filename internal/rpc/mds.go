@@ -3,8 +3,8 @@ package rpc
 import (
 	"context"
 
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"google.golang.org/grpc"
 )
 

@@ -21,15 +21,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/module"
 )
 
 const (
@@ -232,10 +232,10 @@ func (s *step2FormatServiceStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewInitServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+func NewInitServiceStatusTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -249,7 +249,7 @@ func NewInitServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig)
 		dc:          dc,
 		serviceId:   serviceId,
 		containerId: containerId,
-		memStorage:  dingoadm.MemStorage(),
+		memStorage:  dingocli.MemStorage(),
 	})
 
 	return t, nil
@@ -263,15 +263,15 @@ func TrimContainerStatus(status *string) step.LambdaType {
 	}
 }
 
-func NewGetServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+func NewGetServiceStatusTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +290,7 @@ func NewGetServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		Format:      `"{{.Status}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &status,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: TrimContainerStatus(&status),
@@ -299,14 +299,14 @@ func NewGetServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		ContainerId: containerId,
 		Status:      &status,
 		Ports:       &ports,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2GetLeader{
 		dc:          dc,
 		containerId: containerId,
 		status:      &status,
 		isLeader:    &isLeader,
-		execOptions: dingoadm.ExecOptions(),
+		execOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2FormatServiceStatus{
 		dc:          dc,
@@ -315,7 +315,7 @@ func NewGetServiceStatusTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		isLeader:    &isLeader,
 		ports:       &ports,
 		status:      &status,
-		memStorage:  dingoadm.MemStorage(),
+		memStorage:  dingocli.MemStorage(),
 	})
 
 	return t, nil

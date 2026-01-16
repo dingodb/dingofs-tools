@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dingodb/dingofs-tools/internal/build"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
-	"github.com/dingodb/dingofs-tools/pkg/variable"
+	"github.com/dingodb/dingocli/internal/build"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
+	"github.com/dingodb/dingocli/pkg/variable"
 )
 
 const (

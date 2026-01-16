@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
+	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/spf13/cobra"
 )
 
-func NewCompletionCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCompletionCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var completionCmd = &cobra.Command{
 		Use:   "completion [bash|zsh|fish|powershell]",
 		Short: "Generate completion script",
@@ -66,7 +66,7 @@ PowerShell:
   # To load completions for every new session, run:
   PS> %[1]s completion powershell > %[1]s.ps1
   # and source this file from your PowerShell profile.
-`, "dingoadm"),
+`, "dingocli"),
 		DisableFlagsInUseLine: true,
 		ValidArgs:             []string{"bash", "zsh", "fish", "powershell"},
 		Args:                  cobra.ExactValidArgs(1),

@@ -19,24 +19,24 @@ package command
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/command/export"
-	"github.com/dingodb/dingofs-tools/cli/command/fs"
-	"github.com/dingodb/dingofs-tools/cli/command/mds"
-	"github.com/dingodb/dingofs-tools/cli/command/quota"
-	"github.com/dingodb/dingofs-tools/cli/command/stats"
-	"github.com/dingodb/dingofs-tools/cli/command/subpath"
-	"github.com/dingodb/dingofs-tools/cli/command/warmup"
+	"github.com/dingodb/dingocli/cli/command/export"
+	"github.com/dingodb/dingocli/cli/command/fs"
+	"github.com/dingodb/dingocli/cli/command/mds"
+	"github.com/dingodb/dingocli/cli/command/quota"
+	"github.com/dingodb/dingocli/cli/command/stats"
+	"github.com/dingodb/dingocli/cli/command/subpath"
+	"github.com/dingodb/dingocli/cli/command/warmup"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/cli/command/cache"
-	"github.com/dingodb/dingofs-tools/cli/command/client"
-	"github.com/dingodb/dingofs-tools/cli/command/cluster"
-	"github.com/dingodb/dingofs-tools/cli/command/config"
-	"github.com/dingodb/dingofs-tools/cli/command/hosts"
-	"github.com/dingodb/dingofs-tools/cli/command/monitor"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	tools "github.com/dingodb/dingofs-tools/internal/tools/upgrade"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/cli/command/cache"
+	"github.com/dingodb/dingocli/cli/command/client"
+	"github.com/dingodb/dingocli/cli/command/cluster"
+	"github.com/dingodb/dingocli/cli/command/config"
+	"github.com/dingodb/dingocli/cli/command/hosts"
+	"github.com/dingodb/dingocli/cli/command/monitor"
+	"github.com/dingodb/dingocli/internal/errno"
+	tools "github.com/dingodb/dingocli/internal/tools/upgrade"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -54,45 +54,45 @@ type rootOptions struct {
 	upgrade bool
 }
 
-func addSubCommands(cmd *cobra.Command, dingoadm *cli.DingoAdm) {
+func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
 	cmd.AddCommand(
-		client.NewClientCommand(dingoadm),   // dingoadm client
-		cluster.NewClusterCommand(dingoadm), // dingoadm cluster ...
-		config.NewConfigCommand(dingoadm),   // dingoadm config ...
-		hosts.NewHostsCommand(dingoadm),     // dingoadm hosts ...
-		monitor.NewMonitorCommand(dingoadm), // dingoadm monitor ...
-		fs.NewFSCommand(dingoadm),           // dingoadm fs ...
-		subpath.NewSubpathCommand(dingoadm), // dingoadm subpath ...
-		// cachegroup.NewCacheGroupCommand(dingoadm),   // dingoadm cachegroup ...
-		// cachemember.NewCacheMemberCommand(dingoadm), // dingoadm cachemember...
-		cache.NewCacheCommand(dingoadm),   // dingoadm cache ...
-		stats.NewStatsCommand(dingoadm),   // dingoadm stats...
-		warmup.NewWarmupCommand(dingoadm), //dingoadm warmup...
-		export.NewExportCommand(dingoadm), //dingoadm export...
-		quota.NewQuotaCommand(dingoadm),   // dingoadm quota ...
-		mds.NewMDSCommand(dingoadm),       // dingoadm mds ...
+		client.NewClientCommand(dingocli),   // dingocli client
+		cluster.NewClusterCommand(dingocli), // dingocli cluster ...
+		config.NewConfigCommand(dingocli),   // dingocli config ...
+		hosts.NewHostsCommand(dingocli),     // dingocli hosts ...
+		monitor.NewMonitorCommand(dingocli), // dingocli monitor ...
+		fs.NewFSCommand(dingocli),           // dingocli fs ...
+		subpath.NewSubpathCommand(dingocli), // dingocli subpath ...
+		// cachegroup.NewCacheGroupCommand(dingocli),   // dingocli cachegroup ...
+		// cachemember.NewCacheMemberCommand(dingocli), // dingocli cachemember...
+		cache.NewCacheCommand(dingocli),   // dingocli cache ...
+		stats.NewStatsCommand(dingocli),   // dingocli stats...
+		warmup.NewWarmupCommand(dingocli), //dingocli warmup...
+		export.NewExportCommand(dingocli), //dingocli export...
+		quota.NewQuotaCommand(dingocli),   // dingocli quota ...
+		mds.NewMDSCommand(dingocli),       // dingocli mds ...
 
-		NewAuditCommand(dingoadm),      // dingoadm audit
-		NewCleanCommand(dingoadm),      // dingoadm clean
-		NewCompletionCommand(dingoadm), // dingoadm completion
-		NewDeployCommand(dingoadm),     // dingoadm deploy
-		NewEnterCommand(dingoadm),      // dingoadm enter
-		NewExecCommand(dingoadm),       // dingoadm exec
-		NewPrecheckCommand(dingoadm),   // dingoadm precheck
-		NewRestartCommand(dingoadm),    // dingoadm restart
-		NewStartCommand(dingoadm),      // dingoadm start
-		NewStatusCommand(dingoadm),     // dingoadm status
-		NewStopCommand(dingoadm),       // dingoadm stop
-		NewUpgradeCommand(dingoadm),    // dingoadm upgrade
+		NewAuditCommand(dingocli),      // dingocli audit
+		NewCleanCommand(dingocli),      // dingocli clean
+		NewCompletionCommand(dingocli), // dingocli completion
+		NewDeployCommand(dingocli),     // dingocli deploy
+		NewEnterCommand(dingocli),      // dingocli enter
+		NewExecCommand(dingocli),       // dingocli exec
+		NewPrecheckCommand(dingocli),   // dingocli precheck
+		NewRestartCommand(dingocli),    // dingocli restart
+		NewStartCommand(dingocli),      // dingocli start
+		NewStatusCommand(dingocli),     // dingocli status
+		NewStopCommand(dingocli),       // dingocli stop
+		NewUpgradeCommand(dingocli),    // dingocli upgrade
 		// commonly used shorthands
-		hosts.NewSSHCommand(dingoadm),      // dingoadm ssh
-		hosts.NewPlaybookCommand(dingoadm), // dingoadm playbook
-		client.NewMountCommand(dingoadm),   // dingoadm mount
-		client.NewUmountCommand(dingoadm),  // dingoadm umount
+		hosts.NewSSHCommand(dingocli),      // dingocli ssh
+		hosts.NewPlaybookCommand(dingocli), // dingocli playbook
+		client.NewMountCommand(dingocli),   // dingocli mount
+		client.NewUmountCommand(dingocli),  // dingocli umount
 	)
 }
 
-func setupRootCommand(cmd *cobra.Command, dingoadm *cli.DingoAdm) {
+func setupRootCommand(cmd *cobra.Command, dingocli *cli.DingoCli) {
 	cmd.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "Version %s" .Version}}
 Copyright 2025 dingodb.com Inc.
 Licensed under the Apache License, Version 2.0
@@ -101,16 +101,16 @@ http://www.apache.org/licenses/LICENSE-2.0
 	cliutil.SetFlagErrorFunc(cmd)
 	cliutil.SetHelpTemplate(cmd)
 	cliutil.SetUsageTemplate(cmd)
-	cliutil.SetErr(cmd, dingoadm)
+	cliutil.SetErr(cmd, dingocli)
 }
 
-func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewDingoCliCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options rootOptions
 
 	cmd := &cobra.Command{
 		Use:   "dingo [OPTIONS] COMMAND [ARGS...]",
 		Short: "Deploy and manage dingoFS cluster",
-		// Version: fmt.Sprintf("dingoadm v%s, build %s", cli.Version, cli.CommitId),
+		// Version: fmt.Sprintf("dingocli v%s, build %s", cli.Version, cli.CommitId),
 		Version: fmt.Sprintf("%s (commit: %s) \nBuild Date: %s", cli.Version, cli.CommitId, cli.BuildTime),
 		Example: dingoExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -119,7 +119,7 @@ func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			} else if options.upgrade {
 				return tools.Upgrade2Latest(cli.CommitId)
 			} else if len(args) == 0 {
-				return cliutil.ShowHelp(dingoadm.Err())(cmd, args)
+				return cliutil.ShowHelp(dingocli.Err())(cmd, args)
 			}
 
 			return fmt.Errorf("dingo: '%s' is not a dingo command.\n"+
@@ -134,8 +134,8 @@ func NewDingoAdmCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	cmd.Flags().BoolVarP(&options.debug, "debug", "d", false, "Print debug information")
 	cmd.Flags().BoolVarP(&options.upgrade, "upgrade", "u", false, "Upgrade dingo itself to the latest version")
 
-	addSubCommands(cmd, dingoadm)
-	setupRootCommand(cmd, dingoadm)
+	addSubCommands(cmd, dingocli)
+	setupRootCommand(cmd, dingocli)
 
 	return cmd
 }

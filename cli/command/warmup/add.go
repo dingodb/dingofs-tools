@@ -23,9 +23,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/utils"
 	"golang.org/x/sys/unix"
 
 	"github.com/spf13/cobra"
@@ -49,7 +49,7 @@ type addOptions struct {
 	single   bool
 }
 
-func NewWarmupAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewWarmupAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options addOptions
 
 	cmd := &cobra.Command{
@@ -75,7 +75,7 @@ func NewWarmupAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runAdd(cmd, dingoadm, options)
+			return runAdd(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -90,7 +90,7 @@ func NewWarmupAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runAdd(cmd *cobra.Command, dingoadm *cli.DingoAdm, options addOptions) error {
+func runAdd(cmd *cobra.Command, dingocli *cli.DingoCli, options addOptions) error {
 
 	// check has dingofs mountpoint
 	mountpoints, err := utils.GetDingoFSMountPoints()
@@ -155,7 +155,7 @@ func runAdd(cmd *cobra.Command, dingoadm *cli.DingoAdm, options addOptions) erro
 		options := queryOptions{
 			path: options.filepath,
 		}
-		runQuery(cmd, dingoadm, options)
+		runQuery(cmd, dingocli, options)
 	} else {
 		fmt.Printf("Successfully run warmup in background, you can run \"dingocli warmup query %s\" to query progress\n", options.filepath)
 	}

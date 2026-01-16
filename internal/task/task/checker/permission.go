@@ -20,12 +20,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 const (
@@ -103,8 +103,8 @@ func CheckEngineInfo(host, engine string, success *bool, out *string) step.Lambd
 	}
 }
 
-func NewCheckPermissionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckPermissionTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func NewCheckPermissionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 	var out, hostname string
 	var success bool
 	dirs := getServiceDirectorys(dc)
-	options := dingoadm.ExecOptions()
+	options := dingocli.ExecOptions()
 	options.ExecWithSudo = false // the directory belong user
 
 	// (1) check `become_user`
@@ -132,14 +132,14 @@ func NewCheckPermissionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 	// (2) check whether hostname resolved
 	t.AddStep(&step.Hostname{
 		Out:         &hostname,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Ping{
 		Destination: &hostname,
 		Count:       1,
 		Timeout:     1,
 		Success:     &success,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkHostname(&hostname, &success),
@@ -160,10 +160,10 @@ func NewCheckPermissionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 	t.AddStep(&step.EngineInfo{
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
-		Lambda: CheckEngineInfo(dc.GetHost(), dingoadm.ExecOptions().ExecWithEngine, &success, &out),
+		Lambda: CheckEngineInfo(dc.GetHost(), dingocli.ExecOptions().ExecWithEngine, &success, &out),
 	})
 
 	return t, nil

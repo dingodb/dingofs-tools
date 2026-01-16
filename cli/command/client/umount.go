@@ -19,14 +19,14 @@ package client
 import (
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/task/task/fs"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	utils "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/task/task/fs"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	utils "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ type umountOptions struct {
 	mountPoint string
 }
 
-func checkUmountOptions(dingoadm *cli.DingoAdm, options umountOptions) error {
+func checkUmountOptions(dingocli *cli.DingoCli, options umountOptions) error {
 	if !strings.HasPrefix(options.mountPoint, "/") {
 		return errno.ERR_FS_MOUNTPOINT_REQUIRE_ABSOLUTE_PATH.
 			F("mount point: %s", options.mountPoint)
@@ -49,7 +49,7 @@ func checkUmountOptions(dingoadm *cli.DingoAdm, options umountOptions) error {
 	return nil
 }
 
-func NewUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewUmountCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options umountOptions
 
 	cmd := &cobra.Command{
@@ -58,11 +58,11 @@ func NewUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:  cliutil.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			options.mountPoint = args[0]
-			return checkUmountOptions(dingoadm, options)
+			return checkUmountOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.mountPoint = args[0]
-			return runUmount(dingoadm, options)
+			return runUmount(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -73,11 +73,11 @@ func NewUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genUnmountPlaybook(dingoadm *cli.DingoAdm,
+func genUnmountPlaybook(dingocli *cli.DingoCli,
 	ccs []*configure.ClientConfig,
 	options umountOptions) (*playbook.Playbook, error) {
 	steps := UMOUNT_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -93,9 +93,9 @@ func genUnmountPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runUmount(dingoadm *cli.DingoAdm, options umountOptions) error {
+func runUmount(dingocli *cli.DingoCli, options umountOptions) error {
 	// 1) generate unmap playbook
-	pb, err := genUnmountPlaybook(dingoadm, nil, options)
+	pb, err := genUnmountPlaybook(dingocli, nil, options)
 	if err != nil {
 		return err
 	}

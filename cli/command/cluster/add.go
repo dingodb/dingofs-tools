@@ -17,22 +17,22 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
 
 const (
 	ADD_EXAMPLE = `Examples:
-  $ dingoadm add my-cluster                            # Add a cluster named 'my-cluster'
-  $ dingoadm add my-cluster -m "deploy for test"       # Add a cluster with description
-  $ dingoadm add my-cluster -f /path/to/topology.yaml  # Add a cluster with specified topology`
+  $ dingocli add my-cluster                            # Add a cluster named 'my-cluster'
+  $ dingocli add my-cluster -m "deploy for test"       # Add a cluster with description
+  $ dingocli add my-cluster -f /path/to/topology.yaml  # Add a cluster with specified topology`
 )
 
 var (
@@ -48,7 +48,7 @@ type addOptions struct {
 	allowAbsent bool
 }
 
-func NewAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options addOptions
 
 	cmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Example: ADD_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.name = args[0]
-			return runAdd(dingoadm, options)
+			return runAdd(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -86,16 +86,16 @@ func readTopology(filename string) (string, error) {
 	return data, nil
 }
 
-func genCheckTopologyPlaybook(dingoadm *cli.DingoAdm,
+func genCheckTopologyPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options addOptions) (*playbook.Playbook, error) {
 	steps := CHECK_TOPOLOGY_PLAYBOOK_STEPS
 
 	kind := dcs[0].GetKind()
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 
 	skipRoles := topology.FetchSkipRoles(kind, dcs, roles)
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -117,27 +117,27 @@ func genCheckTopologyPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func checkTopology(dingoadm *cli.DingoAdm, data string, options addOptions) error {
+func checkTopology(dingocli *cli.DingoCli, data string, options addOptions) error {
 	if len(options.filename) == 0 {
 		return nil
 	}
 
-	dcs, err := dingoadm.ParseTopologyData(data)
+	dcs, err := dingocli.ParseTopologyData(data)
 	if err != nil {
 		return err
 	}
 
-	pb, err := genCheckTopologyPlaybook(dingoadm, dcs, options)
+	pb, err := genCheckTopologyPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
 	return pb.Run()
 }
 
-func runAdd(dingoadm *cli.DingoAdm, options addOptions) error {
+func runAdd(dingocli *cli.DingoCli, options addOptions) error {
 	// 1) check wether cluster already exist
 	name := options.name
-	storage := dingoadm.Storage()
+	storage := dingocli.Storage()
 	clusters, err := storage.GetClusters(name)
 	if err != nil {
 		log.Error("Get clusters failed",
@@ -156,7 +156,7 @@ func runAdd(dingoadm *cli.DingoAdm, options addOptions) error {
 	}
 
 	// 3) check topology
-	err = checkTopology(dingoadm, data, options)
+	err = checkTopology(dingocli, data, options)
 	if err != nil {
 		return err
 	}
@@ -169,6 +169,6 @@ func runAdd(dingoadm *cli.DingoAdm, options addOptions) error {
 	}
 
 	// 5) print success prompt
-	dingoadm.WriteOutln("Added cluster '%s'", name)
+	dingocli.WriteOutln("Added cluster '%s'", name)
 	return nil
 }

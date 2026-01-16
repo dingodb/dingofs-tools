@@ -25,22 +25,22 @@ import (
 	"strings"
 	"time"
 
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	configure "github.com/dingodb/dingofs-tools/internal/configure/dingoadm"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	tools "github.com/dingodb/dingofs-tools/internal/tools/upgrade"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
-	"github.com/dingodb/dingofs-tools/pkg/logger"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	comm "github.com/dingodb/dingocli/internal/common"
+	configure "github.com/dingodb/dingocli/internal/configure/dingocli"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/storage"
+	tools "github.com/dingodb/dingocli/internal/tools/upgrade"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
+	"github.com/dingodb/dingocli/pkg/logger"
+	"github.com/dingodb/dingocli/pkg/module"
 )
 
-type DingoAdm struct {
+type DingoCli struct {
 	// project layout
 	rootDir   string
 	dataDir   string
@@ -48,7 +48,7 @@ type DingoAdm struct {
 	logDir    string
 	tempDir   string
 	logpath   string
-	config    *configure.DingoAdmConfig
+	config    *configure.DingoCliConfig
 
 	// data pipeline
 	in         io.Reader
@@ -70,22 +70,22 @@ type DingoAdm struct {
 }
 
 /*
- * $HOME/.dingoadm
- *   - dingoadm.cfg
- *   - /bin/dingoadm
- *   - /data/dingoadm.db
+ * $HOME/.dingocli
+ *   - dingocli.cfg
+ *   - /bin/dingocli
+ *   - /data/dingocli.db
  *   - /plugins/{shell,file,polarfs}
  *   - /logs/2006-01-02_15-04-05.log
  *   - /temp/
  */
-func NewDingoAdm() (*DingoAdm, error) {
+func NewDingoCli() (*DingoCli, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, errno.ERR_GET_USER_HOME_DIR_FAILED.E(err)
 	}
 
 	rootDir := fmt.Sprintf("%s/.dingo", home)
-	dingoadm := &DingoAdm{
+	dingocli := &DingoCli{
 		rootDir:   rootDir,
 		dataDir:   path.Join(rootDir, "data"),
 		pluginDir: path.Join(rootDir, "plugins"),
@@ -93,22 +93,22 @@ func NewDingoAdm() (*DingoAdm, error) {
 		tempDir:   path.Join(rootDir, "temp"),
 	}
 
-	err = dingoadm.init()
+	err = dingocli.init()
 	if err != nil {
 		return nil, err
 	}
 
-	return dingoadm, nil
+	return dingocli, nil
 }
 
-func (dingoadm *DingoAdm) init() error {
+func (dingocli *DingoCli) init() error {
 	// (1) Create directory
 	dirs := []string{
-		dingoadm.rootDir,
-		dingoadm.dataDir,
-		dingoadm.pluginDir,
-		dingoadm.logDir,
-		dingoadm.tempDir,
+		dingocli.rootDir,
+		dingocli.dataDir,
+		dingocli.pluginDir,
+		dingocli.logDir,
+		dingocli.tempDir,
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
@@ -116,9 +116,9 @@ func (dingoadm *DingoAdm) init() error {
 		}
 	}
 
-	// (2) Parse dingoadm.cfg
-	confpath := fmt.Sprintf("%s/dingoadm.cfg", dingoadm.rootDir)
-	config, err := configure.ParseDingoAdmConfig(confpath)
+	// (2) Parse dingocli.cfg
+	confpath := fmt.Sprintf("%s/dingocli.cfg", dingocli.rootDir)
+	config, err := configure.ParseDingoCliConfig(confpath)
 	if err != nil {
 		return err
 	}
@@ -126,7 +126,7 @@ func (dingoadm *DingoAdm) init() error {
 
 	// (3) Init logger
 	now := time.Now().Format("2006-01-02_15-04-05")
-	logpath := fmt.Sprintf("%s/dingoadm-%s.log", dingoadm.logDir, now)
+	logpath := fmt.Sprintf("%s/dingocli-%s.log", dingocli.logDir, now)
 	if err := log.Init(config.GetLogLevel(), logpath); err != nil {
 		return errno.ERR_INIT_LOGGER_FAILED.E(err)
 	} else {
@@ -188,21 +188,21 @@ func (dingoadm *DingoAdm) init() error {
 		return errno.ERR_GET_MONITOR_FAILED.E(err)
 	}
 
-	dingoadm.logpath = logpath
-	dingoadm.config = config
-	dingoadm.in = os.Stdin
-	dingoadm.out = os.Stdout
-	dingoadm.err = os.Stderr
-	dingoadm.storage = s
-	dingoadm.memStorage = utils.NewSafeMap()
-	dingoadm.hosts = hosts.Data
-	dingoadm.clusterId = cluster.Id
-	dingoadm.clusterUUId = cluster.UUId
-	dingoadm.clusterName = cluster.Name
-	dingoadm.clusterTopologyData = cluster.Topology
-	dingoadm.clusterPoolData = cluster.Pool
-	dingoadm.monitor = monitor
-	dingoadm.dingoLogger = logger.InitGlobalLogger(logger.WithLogFile(fmt.Sprintf("%s/dingo.log", dingoadm.logDir)))
+	dingocli.logpath = logpath
+	dingocli.config = config
+	dingocli.in = os.Stdin
+	dingocli.out = os.Stdout
+	dingocli.err = os.Stderr
+	dingocli.storage = s
+	dingocli.memStorage = utils.NewSafeMap()
+	dingocli.hosts = hosts.Data
+	dingocli.clusterId = cluster.Id
+	dingocli.clusterUUId = cluster.UUId
+	dingocli.clusterName = cluster.Name
+	dingocli.clusterTopologyData = cluster.Topology
+	dingocli.clusterPoolData = cluster.Pool
+	dingocli.monitor = monitor
+	dingocli.dingoLogger = logger.InitGlobalLogger(logger.WithLogFile(fmt.Sprintf("%s/dingo.log", dingocli.logDir)))
 
 	return nil
 }
@@ -221,12 +221,12 @@ func getActivatedClusterFromEnv() string {
 	return ""
 }
 
-func (dingoadm *DingoAdm) Upgrade() (bool, error) {
-	if dingoadm.config.GetAutoUpgrade() == false {
+func (dingocli *DingoCli) Upgrade() (bool, error) {
+	if dingocli.config.GetAutoUpgrade() == false {
 		return false, nil
 	}
 
-	versions, err := dingoadm.Storage().GetVersions()
+	versions, err := dingocli.Storage().GetVersions()
 	if err != nil || len(versions) == 0 {
 		return false, nil
 	}
@@ -245,7 +245,7 @@ func (dingoadm *DingoAdm) Upgrade() (bool, error) {
 		return false, nil
 	}
 
-	dingoadm.Storage().SetVersion(latestVersion, day)
+	dingocli.Storage().SetVersion(latestVersion, day)
 	pass := tui.ConfirmYes(tui.PromptAutoUpgrade(latestVersion))
 	if !pass {
 		return false, errno.ERR_CANCEL_OPERATION
@@ -258,35 +258,35 @@ func (dingoadm *DingoAdm) Upgrade() (bool, error) {
 	return true, nil
 }
 
-func (dingoadm *DingoAdm) RootDir() string                   { return dingoadm.rootDir }
-func (dingoadm *DingoAdm) DataDir() string                   { return dingoadm.dataDir }
-func (dingoadm *DingoAdm) PluginDir() string                 { return dingoadm.pluginDir }
-func (dingoadm *DingoAdm) LogDir() string                    { return dingoadm.logDir }
-func (dingoadm *DingoAdm) TempDir() string                   { return dingoadm.tempDir }
-func (dingoadm *DingoAdm) LogPath() string                   { return dingoadm.logpath }
-func (dingoadm *DingoAdm) Config() *configure.DingoAdmConfig { return dingoadm.config }
-func (dingoadm *DingoAdm) SudoAlias() string                 { return dingoadm.config.GetSudoAlias() }
-func (dingoadm *DingoAdm) SSHTimeout() int                   { return dingoadm.config.GetSSHTimeout() }
-func (dingoadm *DingoAdm) Engine() string                    { return dingoadm.config.GetEngine() }
-func (dingoadm *DingoAdm) In() io.Reader                     { return dingoadm.in }
-func (dingoadm *DingoAdm) Out() io.Writer                    { return dingoadm.out }
-func (dingoadm *DingoAdm) Err() io.Writer                    { return dingoadm.err }
-func (dingoadm *DingoAdm) Storage() *storage.Storage         { return dingoadm.storage }
-func (dingoadm *DingoAdm) MemStorage() *utils.SafeMap        { return dingoadm.memStorage }
-func (dingoadm *DingoAdm) Hosts() string                     { return dingoadm.hosts }
-func (dingoadm *DingoAdm) ClusterId() int                    { return dingoadm.clusterId }
-func (dingoadm *DingoAdm) ClusterUUId() string               { return dingoadm.clusterUUId }
-func (dingoadm *DingoAdm) ClusterName() string               { return dingoadm.clusterName }
-func (dingoadm *DingoAdm) ClusterTopologyData() string       { return dingoadm.clusterTopologyData }
-func (dingoadm *DingoAdm) ClusterPoolData() string           { return dingoadm.clusterPoolData }
-func (dingoadm *DingoAdm) Monitor() storage.Monitor          { return dingoadm.monitor }
+func (dingocli *DingoCli) RootDir() string                   { return dingocli.rootDir }
+func (dingocli *DingoCli) DataDir() string                   { return dingocli.dataDir }
+func (dingocli *DingoCli) PluginDir() string                 { return dingocli.pluginDir }
+func (dingocli *DingoCli) LogDir() string                    { return dingocli.logDir }
+func (dingocli *DingoCli) TempDir() string                   { return dingocli.tempDir }
+func (dingocli *DingoCli) LogPath() string                   { return dingocli.logpath }
+func (dingocli *DingoCli) Config() *configure.DingoCliConfig { return dingocli.config }
+func (dingocli *DingoCli) SudoAlias() string                 { return dingocli.config.GetSudoAlias() }
+func (dingocli *DingoCli) SSHTimeout() int                   { return dingocli.config.GetSSHTimeout() }
+func (dingocli *DingoCli) Engine() string                    { return dingocli.config.GetEngine() }
+func (dingocli *DingoCli) In() io.Reader                     { return dingocli.in }
+func (dingocli *DingoCli) Out() io.Writer                    { return dingocli.out }
+func (dingocli *DingoCli) Err() io.Writer                    { return dingocli.err }
+func (dingocli *DingoCli) Storage() *storage.Storage         { return dingocli.storage }
+func (dingocli *DingoCli) MemStorage() *utils.SafeMap        { return dingocli.memStorage }
+func (dingocli *DingoCli) Hosts() string                     { return dingocli.hosts }
+func (dingocli *DingoCli) ClusterId() int                    { return dingocli.clusterId }
+func (dingocli *DingoCli) ClusterUUId() string               { return dingocli.clusterUUId }
+func (dingocli *DingoCli) ClusterName() string               { return dingocli.clusterName }
+func (dingocli *DingoCli) ClusterTopologyData() string       { return dingocli.clusterTopologyData }
+func (dingocli *DingoCli) ClusterPoolData() string           { return dingocli.clusterPoolData }
+func (dingocli *DingoCli) Monitor() storage.Monitor          { return dingocli.monitor }
 
-func (dingoadm *DingoAdm) GetHost(host string) (*hosts.HostConfig, error) {
-	if len(dingoadm.Hosts()) == 0 {
+func (dingocli *DingoCli) GetHost(host string) (*hosts.HostConfig, error) {
+	if len(dingocli.Hosts()) == 0 {
 		return nil, errno.ERR_HOST_NOT_FOUND.
 			F("host: %s", host)
 	}
-	hcs, err := hosts.ParseHosts(dingoadm.Hosts())
+	hcs, err := hosts.ParseHosts(dingocli.Hosts())
 	if err != nil {
 		return nil, err
 	}
@@ -300,9 +300,9 @@ func (dingoadm *DingoAdm) GetHost(host string) (*hosts.HostConfig, error) {
 		F("host: %s", host)
 }
 
-func (dingoadm *DingoAdm) ParseTopologyData(data string) ([]*topology.DeployConfig, error) {
+func (dingocli *DingoCli) ParseTopologyData(data string) ([]*topology.DeployConfig, error) {
 	ctx := topology.NewContext()
-	hcs, err := hosts.ParseHosts(dingoadm.Hosts())
+	hcs, err := hosts.ParseHosts(dingocli.Hosts())
 	if err != nil {
 		return nil, err
 	}
@@ -319,21 +319,21 @@ func (dingoadm *DingoAdm) ParseTopologyData(data string) ([]*topology.DeployConf
 	return dcs, err
 }
 
-func (dingoadm *DingoAdm) ParseTopology() ([]*topology.DeployConfig, error) {
-	if dingoadm.ClusterId() == -1 {
+func (dingocli *DingoCli) ParseTopology() ([]*topology.DeployConfig, error) {
+	if dingocli.ClusterId() == -1 {
 		return nil, errno.ERR_NO_CLUSTER_SPECIFIED
 	}
-	return dingoadm.ParseTopologyData(dingoadm.ClusterTopologyData())
+	return dingocli.ParseTopologyData(dingocli.ClusterTopologyData())
 }
 
-func (dingoadm *DingoAdm) FilterDeployConfig(deployConfigs []*topology.DeployConfig,
+func (dingocli *DingoCli) FilterDeployConfig(deployConfigs []*topology.DeployConfig,
 	options topology.FilterOption) []*topology.DeployConfig {
 	dcs := []*topology.DeployConfig{}
 	for _, dc := range deployConfigs {
 		dcId := dc.GetId()
 		role := dc.GetRole()
 		host := dc.GetHost()
-		serviceId := dingoadm.GetServiceId(dcId)
+		serviceId := dingocli.GetServiceId(dcId)
 		if (options.Id == "*" || options.Id == serviceId) &&
 			(options.Role == "*" || options.Role == role) &&
 			(options.Host == "*" || options.Host == host) {
@@ -344,7 +344,7 @@ func (dingoadm *DingoAdm) FilterDeployConfig(deployConfigs []*topology.DeployCon
 	return dcs
 }
 
-func (dingoadm *DingoAdm) FilterDeployConfigByGateway(deployConfigs []*topology.DeployConfig,
+func (dingocli *DingoCli) FilterDeployConfigByGateway(deployConfigs []*topology.DeployConfig,
 	options topology.FilterOption) *topology.DeployConfig {
 	for _, dc := range deployConfigs {
 		host := dc.GetHost()
@@ -356,19 +356,19 @@ func (dingoadm *DingoAdm) FilterDeployConfigByGateway(deployConfigs []*topology.
 	return nil
 }
 
-func (dingoadm *DingoAdm) FilterDeployConfigByRole(dcs []*topology.DeployConfig,
+func (dingocli *DingoCli) FilterDeployConfigByRole(dcs []*topology.DeployConfig,
 	role string) []*topology.DeployConfig {
 	options := topology.FilterOption{Id: "*", Role: role, Host: "*"}
-	return dingoadm.FilterDeployConfig(dcs, options)
+	return dingocli.FilterDeployConfig(dcs, options)
 }
 
-func (dingoadm *DingoAdm) GetServiceId(dcId string) string {
-	serviceId := fmt.Sprintf("%s_%s", dingoadm.ClusterUUId(), dcId)
+func (dingocli *DingoCli) GetServiceId(dcId string) string {
+	serviceId := fmt.Sprintf("%s_%s", dingocli.ClusterUUId(), dcId)
 	return utils.MD5Sum(serviceId)[:12]
 }
 
-func (dingoadm *DingoAdm) GetContainerId(serviceId string) (string, error) {
-	containerId, err := dingoadm.Storage().GetContainerId(serviceId)
+func (dingocli *DingoCli) GetContainerId(serviceId string) (string, error) {
+	containerId, err := dingocli.Storage().GetContainerId(serviceId)
 	if err != nil {
 		return "", errno.ERR_GET_SERVICE_CONTAINER_ID_FAILED
 	} else if len(containerId) == 0 {
@@ -379,29 +379,29 @@ func (dingoadm *DingoAdm) GetContainerId(serviceId string) (string, error) {
 }
 
 // FIXME
-func (dingoadm *DingoAdm) IsSkip(dc *topology.DeployConfig) bool {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.Storage().GetContainerId(serviceId)
+func (dingocli *DingoCli) IsSkip(dc *topology.DeployConfig) bool {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.Storage().GetContainerId(serviceId)
 	return err == nil && len(containerId) == 0 && dc.GetRole() == topology.ROLE_SNAPSHOTCLONE
 }
 
-func (dingoadm *DingoAdm) GetFilesystemId(host, mountPoint string) string {
+func (dingocli *DingoCli) GetFilesystemId(host, mountPoint string) string {
 	filesystemId := fmt.Sprintf("dingofs_filesystem_%s_%s", host, mountPoint)
 	return utils.MD5Sum(filesystemId)[:12]
 }
 
-func (dingoadm *DingoAdm) ExecOptions() module.ExecOptions {
+func (dingocli *DingoCli) ExecOptions() module.ExecOptions {
 	return module.ExecOptions{
 		ExecWithSudo:   true,
 		ExecInLocal:    false,
-		ExecSudoAlias:  dingoadm.config.GetSudoAlias(),
-		ExecTimeoutSec: dingoadm.config.GetTimeout(),
-		ExecWithEngine: dingoadm.config.GetEngine(),
+		ExecSudoAlias:  dingocli.config.GetSudoAlias(),
+		ExecTimeoutSec: dingocli.config.GetTimeout(),
+		ExecWithEngine: dingocli.config.GetEngine(),
 	}
 }
 
-func (dingoadm *DingoAdm) CheckId(id string) error {
-	services, err := dingoadm.Storage().GetServices(dingoadm.ClusterId())
+func (dingocli *DingoCli) CheckId(id string) error {
+	services, err := dingocli.Storage().GetServices(dingocli.ClusterId())
 	if err != nil {
 		return err
 	}
@@ -413,8 +413,8 @@ func (dingoadm *DingoAdm) CheckId(id string) error {
 	return errno.ERR_ID_NOT_FOUND.F("id: %s", id)
 }
 
-func (dingoadm *DingoAdm) CheckRole(role string) error {
-	dcs, err := dingoadm.ParseTopology()
+func (dingocli *DingoCli) CheckRole(role string) error {
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
@@ -444,29 +444,29 @@ func (dingoadm *DingoAdm) CheckRole(role string) error {
 	return nil
 }
 
-func (dingoadm *DingoAdm) CheckHost(host string) error {
-	_, err := dingoadm.GetHost(host)
+func (dingocli *DingoCli) CheckHost(host string) error {
+	_, err := dingocli.GetHost(host)
 	return err
 }
 
 // writer for cobra command error
-func (dingoadm *DingoAdm) Write(p []byte) (int, error) {
+func (dingocli *DingoCli) Write(p []byte) (int, error) {
 	// trim prefix which generate by cobra
 	p = p[len(cliutil.PREFIX_COBRA_COMMAND_ERROR):]
-	return dingoadm.WriteOut(string(p))
+	return dingocli.WriteOut(string(p))
 }
 
-func (dingoadm *DingoAdm) WriteOut(format string, a ...interface{}) (int, error) {
+func (dingocli *DingoCli) WriteOut(format string, a ...interface{}) (int, error) {
 	output := fmt.Sprintf(format, a...)
-	return dingoadm.out.Write([]byte(output))
+	return dingocli.out.Write([]byte(output))
 }
 
-func (dingoadm *DingoAdm) WriteOutln(format string, a ...interface{}) (int, error) {
+func (dingocli *DingoCli) WriteOutln(format string, a ...interface{}) (int, error) {
 	output := fmt.Sprintf(format, a...) + "\n"
-	return dingoadm.out.Write([]byte(output))
+	return dingocli.out.Write([]byte(output))
 }
 
-func (dingoadm *DingoAdm) IsSameRole(dcs []*topology.DeployConfig) bool {
+func (dingocli *DingoCli) IsSameRole(dcs []*topology.DeployConfig) bool {
 	role := dcs[0].GetRole()
 	for _, dc := range dcs {
 		if dc.GetRole() != role {
@@ -476,9 +476,9 @@ func (dingoadm *DingoAdm) IsSameRole(dcs []*topology.DeployConfig) bool {
 	return true
 }
 
-func (dingoadm *DingoAdm) DiffTopology(data1, data2 string) ([]topology.TopologyDiff, error) {
+func (dingocli *DingoCli) DiffTopology(data1, data2 string) ([]topology.TopologyDiff, error) {
 	ctx := topology.NewContext()
-	hcs, err := hosts.ParseHosts(dingoadm.Hosts())
+	hcs, err := hosts.ParseHosts(dingocli.Hosts())
 	if err != nil {
 		return nil, err
 	}
@@ -500,7 +500,7 @@ func (dingoadm *DingoAdm) DiffTopology(data1, data2 string) ([]topology.Topology
 	return topology.DiffTopology(data1, data2, ctx)
 }
 
-func (dingoadm *DingoAdm) PreAudit(now time.Time, args []string) int64 {
+func (dingocli *DingoCli) PreAudit(now time.Time, args []string) int64 {
 	if len(args) == 0 {
 		return -1
 	} else if args[0] == "audit" || args[0] == "__complete" {
@@ -508,8 +508,8 @@ func (dingoadm *DingoAdm) PreAudit(now time.Time, args []string) int64 {
 	}
 
 	cwd, _ := os.Getwd()
-	command := fmt.Sprintf("dingoadm %s", strings.Join(args, " "))
-	id, err := dingoadm.Storage().InsertAuditLog(
+	command := fmt.Sprintf("dingocli %s", strings.Join(args, " "))
+	id, err := dingocli.Storage().InsertAuditLog(
 		now, cwd, command, comm.AUDIT_STATUS_ABORT)
 	if err != nil {
 		log.Error("Insert audit log failed",
@@ -519,12 +519,12 @@ func (dingoadm *DingoAdm) PreAudit(now time.Time, args []string) int64 {
 	return id
 }
 
-func (dingoadm *DingoAdm) PostAudit(id int64, ec error) {
+func (dingocli *DingoCli) PostAudit(id int64, ec error) {
 	if id < 0 {
 		return
 	}
 
-	auditLogs, err := dingoadm.Storage().GetAuditLog(id)
+	auditLogs, err := dingocli.Storage().GetAuditLog(id)
 	if err != nil {
 		log.Error("Get audit log failed",
 			log.Field("Error", err))
@@ -547,27 +547,27 @@ func (dingoadm *DingoAdm) PostAudit(id int64, ec error) {
 		}
 	}
 
-	err = dingoadm.Storage().SetAuditLogStatus(id, status, errorCode)
+	err = dingocli.Storage().SetAuditLogStatus(id, status, errorCode)
 	if err != nil {
 		log.Error("Set audit log status failed",
 			log.Field("Error", err))
 	}
 }
 
-func (dingoadm *DingoAdm) SwitchCluster(cluster storage.Cluster) error {
+func (dingocli *DingoCli) SwitchCluster(cluster storage.Cluster) error {
 
-	dingoadm.memStorage = utils.NewSafeMap()
-	dingoadm.clusterId = cluster.Id
-	dingoadm.clusterUUId = cluster.UUId
-	dingoadm.clusterName = cluster.Name
-	dingoadm.clusterTopologyData = cluster.Topology
-	dingoadm.clusterPoolData = cluster.Pool
+	dingocli.memStorage = utils.NewSafeMap()
+	dingocli.clusterId = cluster.Id
+	dingocli.clusterUUId = cluster.UUId
+	dingocli.clusterName = cluster.Name
+	dingocli.clusterTopologyData = cluster.Topology
+	dingocli.clusterPoolData = cluster.Pool
 
 	return nil
 }
 
 // extract all deploy configs's role and deduplicate same role
-func (dingoadm *DingoAdm) GetRoles(dcs []*topology.DeployConfig) []string {
+func (dingocli *DingoCli) GetRoles(dcs []*topology.DeployConfig) []string {
 	roles := []string{}
 	roleMap := make(map[string]bool)
 

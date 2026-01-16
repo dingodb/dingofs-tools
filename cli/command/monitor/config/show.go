@@ -19,21 +19,21 @@ package config
 import (
 	"encoding/json"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewShowCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewShowCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "show [OPTIONS]",
 		Short: "Show cluster topology",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShow(dingoadm)
+			return runShow(dingocli)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -54,17 +54,17 @@ func decodeMonitorJSON(data string) (string, error) {
 	return string(bytes), nil
 }
 
-func runShow(dingoadm *cli.DingoAdm) error {
+func runShow(dingocli *cli.DingoCli) error {
 	// 1) check whether cluster exist
-	if len(dingoadm.Monitor().Monitor) == 0 {
-		dingoadm.WriteOutln("<empty monitor>")
+	if len(dingocli.Monitor().Monitor) == 0 {
+		dingocli.WriteOutln("<empty monitor>")
 		return nil
 	}
 
-	//data, err := decodeMonitorJSON(dingoadm.Monitor().Monitor)
+	//data, err := decodeMonitorJSON(dingocli.Monitor().Monitor)
 	//if err != nil {
 	//	return err
 	//}
-	dingoadm.WriteOutln(dingoadm.Monitor().Monitor)
+	dingocli.WriteOutln(dingocli.Monitor().Monitor)
 	return nil
 }

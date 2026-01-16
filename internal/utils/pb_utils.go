@@ -17,7 +17,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 )
 
 func ConvertPbPartitionTypeToString(partitionType mds.PartitionType) string {

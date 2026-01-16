@@ -22,22 +22,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/scripts"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/scripts"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
 const (
 	FORMAT_FILTER_SPORT = "( sport = :%d )"
 
-	HTTP_SERVER_CONTAINER_NAME = "dingoadm-precheck-nginx"
-	CHECK_PORT_CONTAINER_NAME  = "dingoadm-precheck-port"
+	HTTP_SERVER_CONTAINER_NAME = "dingocli-precheck-nginx"
+	CHECK_PORT_CONTAINER_NAME  = "dingocli-precheck-port"
 )
 
 // TASK: check port in use
@@ -71,18 +71,18 @@ func joinPorts(dc *topology.DeployConfig, addresses []Address) string {
 	return strings.Join(ports, ",")
 }
 
-func getCheckPortContainerName(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) string {
+func getCheckPortContainerName(dingocli *cli.DingoCli, dc *topology.DeployConfig) string {
 	return fmt.Sprintf("%s-%s-%s",
 		CHECK_PORT_CONTAINER_NAME,
 		dc.GetRole(),
-		dingoadm.GetServiceId(dc.GetId()))
+		dingocli.GetServiceId(dc.GetId()))
 }
 
 type step2CheckPortStatus struct {
 	containerId *string
 	success     *bool
 	dc          *topology.DeployConfig
-	dingoadm    *cli.DingoAdm
+	dingocli    *cli.DingoCli
 	port        int
 }
 
@@ -104,7 +104,7 @@ func (s *step2CheckPortStatus) Execute(ctx *context.Context) error {
 		Command:     command,
 		Success:     s.success,
 		Out:         &out,
-		ExecOptions: s.dingoadm.ExecOptions(),
+		ExecOptions: s.dingocli.ExecOptions(),
 	})
 	steps = append(steps, &step.Lambda{
 		Lambda: checkPortInUse(s.success, &out, s.dc.GetHost(), s.port),
@@ -119,8 +119,8 @@ func (s *step2CheckPortStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewCheckPortInUseTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckPortInUseTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -137,22 +137,22 @@ func NewCheckPortInUseTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*
 	var success bool
 	t.AddStep(&step.PullImage{
 		Image:       dc.GetContainerImage(),
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.CreateContainer{
 		Image:       dc.GetContainerImage(),
 		Command:     "-c 'sleep infinity'", // keep the container running
 		Entrypoint:  "/bin/bash",
-		Name:        getCheckPortContainerName(dingoadm, dc),
+		Name:        getCheckPortContainerName(dingocli, dc),
 		Remove:      true,
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.StartContainer{
 		ContainerId: &containerId,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	for _, address := range addresses {
@@ -160,7 +160,7 @@ func NewCheckPortInUseTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*
 			containerId: &containerId,
 			success:     &success,
 			dc:          dc,
-			dingoadm:    dingoadm,
+			dingocli:    dingocli,
 			port:        address.Port,
 		})
 	}
@@ -190,13 +190,13 @@ func checkReachable(success *bool, out *string) step.LambdaType {
 	}
 }
 
-func NewCheckDestinationReachableTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckDestinationReachableTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
 
-	dcs := dingoadm.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
+	dcs := dingocli.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
 	addresses := unique(getServiceConnectAddress(dc, dcs))
 	subname := fmt.Sprintf("host=%s role=%s ping={%s}",
 		dc.GetHost(), dc.GetRole(), tui.TrimAddress(strings.Join(addresses, ",")))
@@ -210,7 +210,7 @@ func NewCheckDestinationReachableTask(dingoadm *cli.DingoAdm, dc *topology.Deplo
 			Count:       1,
 			Success:     &success,
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 		t.AddStep(&step.Lambda{
 			Lambda: checkReachable(&success, &out),
@@ -231,11 +231,11 @@ func getNginxListens(dc *topology.DeployConfig) string {
 	return strings.Join(listens, " ")
 }
 
-func getHTTPServerContainerName(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) string {
+func getHTTPServerContainerName(dingocli *cli.DingoCli, dc *topology.DeployConfig) string {
 	return fmt.Sprintf("%s-%s-%s",
 		HTTP_SERVER_CONTAINER_NAME,
 		dc.GetRole(),
-		dingoadm.GetServiceId(dc.GetId()))
+		dingocli.GetServiceId(dc.GetId()))
 }
 
 func waitNginxStarted(seconds int) step.LambdaType {
@@ -245,8 +245,8 @@ func waitNginxStarted(seconds int) step.LambdaType {
 	}
 }
 
-func NewStartHTTPServerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewStartHTTPServerTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -265,28 +265,28 @@ func NewStartHTTPServerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 	command := fmt.Sprintf("%s '%s'", scriptPath, getNginxListens(dc))
 	t.AddStep(&step.PullImage{
 		Image:       dc.GetContainerImage(),
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.CreateContainer{
 		Image:       dc.GetContainerImage(),
 		Command:     command,
 		Entrypoint:  "/bin/bash",
-		Name:        getHTTPServerContainerName(dingoadm, dc),
+		Name:        getHTTPServerContainerName(dingocli, dc),
 		Remove:      true,
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.InstallFile{
 		ContainerId:       &containerId,
 		ContainerDestPath: scriptPath,
 		Content:           &script,
-		ExecOptions:       dingoadm.ExecOptions(),
+		ExecOptions:       dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.StartContainer{
 		ContainerId: &containerId,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{ // TODO(P1): maybe we should check all ports
 		Lambda: waitNginxStarted(5),
@@ -315,13 +315,13 @@ func (s *step2CheckConnectStatus) Execute(ctx *context.Context) error {
 			s.dc.GetRole(), s.dc.GetHost(), s.address.IP, s.address.Port)
 }
 
-func NewCheckNetworkFirewallTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckNetworkFirewallTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
 
-	dcs := dingoadm.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
+	dcs := dingocli.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
 	addresses := getServiceConnectAddress(dc, dcs)
 
 	// add task
@@ -337,7 +337,7 @@ func NewCheckNetworkFirewallTask(dingoadm *cli.DingoAdm, dc *topology.DeployConf
 			Output:      "/dev/null",
 			Success:     &success,
 			Out:         &out,
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 		t.AddStep(&step2CheckConnectStatus{
 			success: &success,
@@ -354,7 +354,7 @@ func NewCheckNetworkFirewallTask(dingoadm *cli.DingoAdm, dc *topology.DeployConf
 type step2StopContainer struct {
 	containerId *string
 	dc          *topology.DeployConfig
-	dingoadm    *cli.DingoAdm
+	dingocli    *cli.DingoCli
 }
 
 func (s *step2StopContainer) Execute(ctx *context.Context) error {
@@ -368,12 +368,12 @@ func (s *step2StopContainer) Execute(ctx *context.Context) error {
 		ContainerId: *s.containerId,
 		Time:        1,
 		Out:         s.containerId,
-		ExecOptions: s.dingoadm.ExecOptions(),
+		ExecOptions: s.dingocli.ExecOptions(),
 	})
 	steps = append(steps, &step.RemoveContainer{
 		Success:     &success, // FIXME(P1): rmeove iff container exist
 		ContainerId: *s.containerId,
-		ExecOptions: s.dingoadm.ExecOptions(),
+		ExecOptions: s.dingocli.ExecOptions(),
 	})
 
 	for _, step := range steps {
@@ -385,8 +385,8 @@ func (s *step2StopContainer) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewCleanEnvironmentTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCleanEnvironmentTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -400,26 +400,26 @@ func NewCleanEnvironmentTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 	t.AddStep(&step.ListContainers{
 		ShowAll:     true,
 		Format:      `"{{.ID}}"`,
-		Filter:      fmt.Sprintf("name=%s", getCheckPortContainerName(dingoadm, dc)),
+		Filter:      fmt.Sprintf("name=%s", getCheckPortContainerName(dingocli, dc)),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2StopContainer{
 		containerId: &out,
 		dc:          dc,
-		dingoadm:    dingoadm,
+		dingocli:    dingocli,
 	})
 	t.AddStep(&step.ListContainers{
 		ShowAll:     true,
 		Format:      `"{{.ID}}"`,
-		Filter:      fmt.Sprintf("name=%s", getHTTPServerContainerName(dingoadm, dc)),
+		Filter:      fmt.Sprintf("name=%s", getHTTPServerContainerName(dingocli, dc)),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2StopContainer{
 		containerId: &out,
 		dc:          dc,
-		dingoadm:    dingoadm,
+		dingocli:    dingocli,
 	})
 
 	return t, nil

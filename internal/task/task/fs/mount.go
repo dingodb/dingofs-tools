@@ -21,17 +21,17 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/scripts"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/checker"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/scripts"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/checker"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (
@@ -47,7 +47,7 @@ type (
 	}
 
 	step2InsertClient struct {
-		dingoadm    *cli.DingoAdm
+		dingocli    *cli.DingoCli
 		options     MountOptions
 		config      *configure.ClientConfig
 		containerId *string
@@ -215,9 +215,9 @@ func getEnvironments(cc *configure.ClientConfig) []string {
 
 func (s *step2InsertClient) Execute(ctx *context.Context) error {
 	config := s.config
-	dingoadm := s.dingoadm
+	dingocli := s.dingocli
 	options := s.options
-	fsId := dingoadm.GetFilesystemId(options.Host, options.MountPoint)
+	fsId := dingocli.GetFilesystemId(options.Host, options.MountPoint)
 
 	auxInfo := &AuxInfo{
 		FSName:     options.MountFSName,
@@ -228,13 +228,13 @@ func (s *step2InsertClient) Execute(ctx *context.Context) error {
 		return errno.ERR_ENCODE_INFO_TO_JSON_FAILED.E(err)
 	}
 
-	err = dingoadm.Storage().InsertClient(fsId, config.GetKind(),
+	err = dingocli.Storage().InsertClient(fsId, config.GetKind(),
 		options.Host, *s.containerId, string(bytes))
 	if err != nil {
 		return errno.ERR_INSERT_CLIENT_FAILED.E(err)
 	}
 
-	err = dingoadm.Storage().InsertClientConfig(fsId, config.GetData())
+	err = dingocli.Storage().InsertClientConfig(fsId, config.GetData())
 	if err != nil {
 		return errno.ERR_INSERT_CLIENT_CONFIG_FAILED.E(err)
 	}
@@ -253,11 +253,11 @@ func checkStartContainerStatus(success *bool, out *string) step.LambdaType {
 	}
 }
 
-func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
-	options := dingoadm.MemStorage().Get(comm.KEY_MOUNT_OPTIONS).(MountOptions)
-	useNewDingo := dingoadm.MemStorage().Get(comm.KEY_USE_NEW_DINGO).(bool)
-	fstype := dingoadm.MemStorage().Get(comm.KEY_FSTYPE).(string)
-	hc, err := dingoadm.GetHost(options.Host)
+func NewMountFSTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
+	options := dingocli.MemStorage().Get(comm.KEY_MOUNT_OPTIONS).(MountOptions)
+	useNewDingo := dingocli.MemStorage().Get(comm.KEY_USE_NEW_DINGO).(bool)
+	fstype := dingocli.MemStorage().Get(comm.KEY_FSTYPE).(string)
+	hc, err := dingocli.GetHost(options.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -282,26 +282,26 @@ func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.T
 	t.AddStep(&step.EngineInfo{
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
-		Lambda: checker.CheckEngineInfo(options.Host, dingoadm.ExecOptions().ExecWithEngine, &success, &out),
+		Lambda: checker.CheckEngineInfo(options.Host, dingocli.ExecOptions().ExecWithEngine, &success, &out),
 	})
 	t.AddStep(&step.ListContainers{
 		ShowAll:     true,
 		Format:      "'{{.Names}}'",
 		Filter:      fmt.Sprintf("name=%s", containerName),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkMountStatus(mountPoint, containerName, &out),
 	})
-	useLocalImage := dingoadm.MemStorage().Get(comm.KEY_USE_LOCAL_IMAGE).(bool)
+	useLocalImage := dingocli.MemStorage().Get(comm.KEY_USE_LOCAL_IMAGE).(bool)
 	if !useLocalImage {
 		t.AddStep(&step.PullImage{
 			Image:       cc.GetContainerImage(),
-			ExecOptions: dingoadm.ExecOptions(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 	}
 
@@ -320,7 +320,7 @@ func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.T
 
 	t.AddStep(&step.CreateDirectory{
 		Paths:       createDir,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	t.AddStep(&step.CreateContainer{
@@ -339,10 +339,10 @@ func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.T
 		Pid:               cc.GetContainerPid(),
 		Privileged:        true,
 		Out:               &containerId,
-		ExecOptions:       dingoadm.ExecOptions(),
+		ExecOptions:       dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2InsertClient{
-		dingoadm:    dingoadm,
+		dingocli:    dingocli,
 		options:     options,
 		config:      cc,
 		containerId: &containerId,
@@ -355,28 +355,28 @@ func NewMountFSTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.T
 		ContainerDestPath: fmt.Sprintf("%s/conf/client.conf", prefix),
 		KVFieldSplit:      comm.CLIENT_CONFIG_DELIMITER,
 		Mutate:            newMutate(cc, comm.CLIENT_CONFIG_DELIMITER),
-		ExecOptions:       dingoadm.ExecOptions(),
+		ExecOptions:       dingocli.ExecOptions(),
 	})
-	t.AddStep(&step.TrySyncFile{ // sync dingofs-tools config
+	t.AddStep(&step.TrySyncFile{ // sync dingocli config
 		ContainerSrcId:    &containerId,
 		ContainerSrcPath:  fetchDingoConfigPath(useNewDingo, root),
 		ContainerDestId:   &containerId,
 		ContainerDestPath: topology.GetDingoFSProjectLayout().FSToolsConfSystemPath,
 		KVFieldSplit:      comm.TOOLS_V2_CONFIG_DELIMITER,
 		Mutate:            newFSToolsMutate(cc, comm.TOOLS_V2_CONFIG_DELIMITER, fstype),
-		ExecOptions:       dingoadm.ExecOptions(),
+		ExecOptions:       dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.InstallFile{ // install client.sh shell
 		ContainerId:       &containerId,
 		ContainerDestPath: mountfsScriptTargetPath,
 		Content:           &mountfsScriptSource,
-		ExecOptions:       dingoadm.ExecOptions(),
+		ExecOptions:       dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.StartContainer{
 		ContainerId: &containerId,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkStartContainerStatus(&success, &out),

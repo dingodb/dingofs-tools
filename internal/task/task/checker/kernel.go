@@ -22,14 +22,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 const (
@@ -89,8 +89,8 @@ func checkKernelModule(name string, success *bool, out *string) step.LambdaType 
 	}
 }
 
-func NewCheckKernelVersionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckKernelVersionTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func NewCheckKernelVersionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig
 	t.AddStep(&step.UnixName{
 		KernelRelease: true,
 		Out:           &out,
-		ExecOptions:   dingoadm.ExecOptions(),
+		ExecOptions:   dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkKernelVersion(&out, dc),
@@ -114,15 +114,15 @@ func NewCheckKernelVersionTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig
 	return t, nil
 }
 
-func NewCheckKernelModuleTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
-	host := dingoadm.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
-	hc, err := dingoadm.GetHost(host)
+func NewCheckKernelModuleTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
+	host := dingocli.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
 
 	// new task
-	name := dingoadm.MemStorage().Get(comm.KEY_CHECK_KERNEL_MODULE_NAME).(string)
+	name := dingocli.MemStorage().Get(comm.KEY_CHECK_KERNEL_MODULE_NAME).(string)
 	subname := fmt.Sprintf("host=%s module=%s", host, name)
 	t := task.NewTask("Check Kernel Module", subname, hc.GetSSHConfig())
 
@@ -133,7 +133,7 @@ func NewCheckKernelModuleTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig
 		Name:        name,
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: checkKernelModule(name, &success, &out),

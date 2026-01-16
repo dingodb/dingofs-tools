@@ -19,14 +19,14 @@ package member
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/utils"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ type unlockOptions struct {
 	format   string
 }
 
-func NewCacheMemberUnlockCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCacheMemberUnlockCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options unlockOptions
 
 	cmd := &cobra.Command{
@@ -61,7 +61,7 @@ func NewCacheMemberUnlockCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runUnlock(cmd, dingoadm, options)
+			return runUnlock(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -88,7 +88,7 @@ func NewCacheMemberUnlockCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runUnlock(cmd *cobra.Command, dingoadm *cli.DingoAdm, options unlockOptions) error {
+func runUnlock(cmd *cobra.Command, dingocli *cli.DingoCli, options unlockOptions) error {
 	// new rpc
 	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "UnlockMember")
 	if err != nil {

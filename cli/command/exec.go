@@ -19,10 +19,10 @@ package command
 import (
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/tools"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/tools"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ type execOptions struct {
 	cmd string
 }
 
-func NewExecCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewExecCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options execOptions
 
 	cmd := &cobra.Command{
@@ -41,10 +41,10 @@ func NewExecCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			options.id = args[0]
 			options.cmd = strings.Join(args[1:], " ")
 			args = args[:1]
-			return dingoadm.CheckId(options.id)
+			return dingocli.CheckId(options.id)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runExec(dingoadm, options)
+			return runExec(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -57,15 +57,15 @@ func NewExecCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 //  2. filter service
 //  3. get container id
 //  4. exec cmd in remote container
-func runExec(dingoadm *cli.DingoAdm, options execOptions) error {
+func runExec(dingocli *cli.DingoCli, options execOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) filter service
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: "*",
 		Host: "*",
@@ -76,12 +76,12 @@ func runExec(dingoadm *cli.DingoAdm, options execOptions) error {
 
 	// 3) get container id
 	dc := dcs[0]
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if err != nil {
 		return err
 	}
 
 	// 4) exec cmd in remote container
-	return tools.ExecCmdInRemoteContainer(dingoadm, dc.GetHost(), containerId, options.cmd)
+	return tools.ExecCmdInRemoteContainer(dingocli, dc.GetHost(), containerId, options.cmd)
 }

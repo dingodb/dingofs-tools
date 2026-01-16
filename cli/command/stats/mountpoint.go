@@ -27,9 +27,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/mattn/go-isatty"
 
 	"github.com/spf13/cobra"
@@ -111,7 +111,7 @@ func init() {
 	output.SetShow(true)
 }
 
-func NewStatsMountpointCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStatsMountpointCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options mountpointOptions
 
 	cmd := &cobra.Command{
@@ -141,7 +141,7 @@ func NewStatsMountpointCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				return err
 			}
 
-			return runMountpoint(cmd, dingoadm, options)
+			return runMountpoint(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -158,7 +158,7 @@ func NewStatsMountpointCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runMountpoint(cmd *cobra.Command, dingoadm *cli.DingoAdm, options mountpointOptions) error {
+func runMountpoint(cmd *cobra.Command, dingocli *cli.DingoCli, options mountpointOptions) error {
 
 	realTimeStats(options.mountpoint, options.schema, options.verbose, options.interval, options.count)
 

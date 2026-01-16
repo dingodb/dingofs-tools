@@ -20,14 +20,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 var (
@@ -49,9 +49,9 @@ func getCleanFiles(clean map[string]bool, mc *configure.MonitorConfig) []string 
 	return files
 }
 
-func NewCleanMonitorTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewCleanMonitorTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,13 +59,13 @@ func NewCleanMonitorTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (
 		(len(containerId) == 0 || containerId == comm.CLEANED_CONTAINER_ID) {
 		return nil, nil
 	}
-	hc, err := dingoadm.GetHost(cfg.GetHost())
+	hc, err := dingocli.GetHost(cfg.GetHost())
 	if err != nil {
 		return nil, err
 	}
 
 	// new task
-	only := dingoadm.MemStorage().Get(comm.KEY_CLEAN_ITEMS).([]string)
+	only := dingocli.MemStorage().Get(comm.KEY_CLEAN_ITEMS).([]string)
 	subname := fmt.Sprintf("host=%s role=%s containerId=%s clean=%s",
 		cfg.GetHost(), cfg.GetRole(), tui.TrimContainerId(containerId), strings.Join(only, ","))
 	t := task.NewTask("Clean Monitor", subname, hc.GetSSHConfig())
@@ -75,14 +75,14 @@ func NewCleanMonitorTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (
 	files := getCleanFiles(clean, cfg) // directorys which need cleaned
 	t.AddStep(&step.RemoveFile{
 		Files:       files,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	if clean[comm.CLEAN_ITEM_CONTAINER] == true {
 		t.AddStep(&common.Step2CleanContainer{
 			ServiceId:   serviceId,
 			ContainerId: containerId,
-			Storage:     dingoadm.Storage(),
-			ExecOptions: dingoadm.ExecOptions(),
+			Storage:     dingocli.Storage(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 	}
 	return t, nil

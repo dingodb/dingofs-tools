@@ -17,14 +17,14 @@
 package client
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	task "github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/client"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/storage"
+	task "github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/client"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -39,7 +39,7 @@ type statusOptions struct {
 	verbose bool
 }
 
-func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStatusCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options statusOptions
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Display client status",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStatus(dingoadm, options)
+			return runStatus(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -58,7 +58,7 @@ func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStatusPlaybook(dingoadm *cli.DingoAdm,
+func genStatusPlaybook(dingocli *cli.DingoCli,
 	clients []storage.Client,
 	options statusOptions) (*playbook.Playbook, error) {
 	config := []interface{}{}
@@ -67,7 +67,7 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := GET_STATUS_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -85,9 +85,9 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func displayStatus(dingoadm *cli.DingoAdm, clients []storage.Client, options statusOptions) {
+func displayStatus(dingocli *cli.DingoCli, clients []storage.Client, options statusOptions) {
 	statuses := []task.ClientStatus{}
-	v := dingoadm.MemStorage().Get(comm.KEY_ALL_CLIENT_STATUS)
+	v := dingocli.MemStorage().Get(comm.KEY_ALL_CLIENT_STATUS)
 	if v != nil {
 		m := v.(map[string]task.ClientStatus)
 		for _, status := range m {
@@ -97,20 +97,20 @@ func displayStatus(dingoadm *cli.DingoAdm, clients []storage.Client, options sta
 
 	output := tui.FormatStatus(statuses, options.verbose)
 	if len(clients) > 0 {
-		dingoadm.WriteOutln("")
+		dingocli.WriteOutln("")
 	}
-	dingoadm.WriteOut(output)
+	dingocli.WriteOut(output)
 }
 
-func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
+func runStatus(dingocli *cli.DingoCli, options statusOptions) error {
 	// 1) get all clients
-	clients, err := dingoadm.Storage().GetClients()
+	clients, err := dingocli.Storage().GetClients()
 	if err != nil {
 		return errno.ERR_GET_ALL_CLIENTS_FAILED.E(err)
 	}
 
 	// 2) generate get status playbook
-	pb, err := genStatusPlaybook(dingoadm, clients, options)
+	pb, err := genStatusPlaybook(dingocli, clients, options)
 	if err != nil {
 		return err
 	}
@@ -119,6 +119,6 @@ func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
 	err = pb.Run()
 
 	// 4) display service status
-	displayStatus(dingoadm, clients, options)
+	displayStatus(dingocli, clients, options)
 	return err
 }

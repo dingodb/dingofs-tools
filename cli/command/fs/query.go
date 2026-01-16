@@ -19,16 +19,16 @@ package fs
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/table"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/table"
+	"github.com/dingodb/dingocli/internal/utils"
 
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +44,7 @@ type queryOptions struct {
 	format string
 }
 
-func NewFsQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsQueryCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options queryOptions
 
 	cmd := &cobra.Command{
@@ -61,7 +61,7 @@ func NewFsQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runQuery(cmd, dingoadm, options)
+			return runQuery(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -86,7 +86,7 @@ func NewFsQueryCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runQuery(cmd *cobra.Command, dingoadm *cli.DingoAdm, options queryOptions) error {
+func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) error {
 	// new rpc
 	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "ListFsInfo")
 	if err != nil {

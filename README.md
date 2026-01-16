@@ -10,7 +10,7 @@ dingo工具是 Dingo 团队为了提高系统的易用性，解决旧工具种�
 #### Download dep
 
 ```sh
-cd dingofs-tools
+cd dingocli
 git submodule sync
 git submodule update --init --recursive
 ```
@@ -45,7 +45,7 @@ export PATH=$PATH:/usr/local/go/bin
 
 ### Build 
 ```sh
-cd dingofs-tools
+cd dingocli
 
 make build
 ```

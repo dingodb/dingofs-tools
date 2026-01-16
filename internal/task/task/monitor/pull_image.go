@@ -19,16 +19,16 @@ package monitor
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
-func NewPullImageTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
+func NewPullImageTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
 	image := cfg.GetImage()
 	host := cfg.GetHost()
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func NewPullImageTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*ta
 	// add step to task
 	t.AddStep(&step.PullImage{
 		Image:       image,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	return t, nil
 }

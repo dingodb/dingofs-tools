@@ -21,7 +21,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dingodb/dingofs-tools/internal/common"
+	"github.com/dingodb/dingocli/internal/common"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )

@@ -15,7 +15,7 @@ protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_
 
 ### dingofs-proto/mds.proto
 protoc --experimental_allow_proto3_optional --go_out=proto --proto_path=${PROTO_PATH} \
-    --go_opt=Mdingofs/error.proto=github.com/dingodb/dingofs-tools/proto/dingofs/proto/error \
+    --go_opt=Mdingofs/error.proto=github.com/dingodb/dingocli/proto/dingofs/proto/error \
     ${PROTO_PATH}/dingofs/mds.proto
 
 ### dingofs-proto/cachegroup.proto

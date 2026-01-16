@@ -17,11 +17,11 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/tui"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/tui"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ type listOptions struct {
 	verbose bool
 }
 
-func NewListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewListCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options listOptions
 
 	cmd := &cobra.Command{
@@ -38,7 +38,7 @@ func NewListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short:   "List clusters",
 		Args:    cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dingoadm, options)
+			return runList(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -49,9 +49,9 @@ func NewListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runList(dingoadm *cli.DingoAdm, options listOptions) error {
+func runList(dingocli *cli.DingoCli, options listOptions) error {
 	// 1) get all clusters
-	storage := dingoadm.Storage()
+	storage := dingocli.Storage()
 	clusters, err := storage.GetClusters("%")
 	if err != nil {
 		log.Error("Get clusters failed",
@@ -61,6 +61,6 @@ func runList(dingoadm *cli.DingoAdm, options listOptions) error {
 
 	// 2) display clusters
 	output := tui.FormatClusters(clusters, options.verbose)
-	dingoadm.WriteOut(output)
+	dingocli.WriteOut(output)
 	return nil
 }

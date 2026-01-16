@@ -17,18 +17,18 @@
 package hosts
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/errno"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 const (
 	COMMIT_EXAMPLE = `Examples:
-  $ dingoadm hosts commit /path/to/hosts.yaml  # Commit hosts`
+  $ dingocli hosts commit /path/to/hosts.yaml  # Commit hosts`
 )
 
 type commitOptions struct {
@@ -37,7 +37,7 @@ type commitOptions struct {
 	force    bool
 }
 
-func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCommitCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options commitOptions
 
 	cmd := &cobra.Command{
@@ -47,7 +47,7 @@ func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Example: COMMIT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.filename = args[0]
-			return runCommit(dingoadm, options)
+			return runCommit(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -59,7 +59,7 @@ func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func readAndCheckHosts(dingoadm *cli.DingoAdm, options commitOptions) (string, error) {
+func readAndCheckHosts(dingocli *cli.DingoCli, options commitOptions) (string, error) {
 	// 1) read hosts from file
 	if !utils.PathExist(options.filename) {
 		return "", errno.ERR_HOSTS_FILE_NOT_FOUND.
@@ -71,10 +71,10 @@ func readAndCheckHosts(dingoadm *cli.DingoAdm, options commitOptions) (string, e
 	}
 
 	// 2) display difference
-	oldData := dingoadm.Hosts()
+	oldData := dingocli.Hosts()
 	if !options.slient {
 		diff := utils.Diff(oldData, data)
-		dingoadm.WriteOutln(diff)
+		dingocli.WriteOutln(diff)
 	}
 
 	// 3) check hosts data
@@ -82,9 +82,9 @@ func readAndCheckHosts(dingoadm *cli.DingoAdm, options commitOptions) (string, e
 	return data, err
 }
 
-func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
+func runCommit(dingocli *cli.DingoCli, options commitOptions) error {
 	// 1) read and check hosts
-	data, err := readAndCheckHosts(dingoadm, options)
+	data, err := readAndCheckHosts(dingocli, options)
 	if err != nil {
 		return err
 	}
@@ -93,18 +93,18 @@ func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
 	if !options.force {
 		pass := tui.ConfirmYes("Do you want to continue?")
 		if !pass {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("commit hosts"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("commit hosts"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}
 
 	// 3) update hosts in database
-	err = dingoadm.Storage().SetHosts(data)
+	err = dingocli.Storage().SetHosts(data)
 	if err != nil {
 		return errno.ERR_UPDATE_HOSTS_FAILED.E(err)
 	}
 
 	// 4) print success prompt
-	dingoadm.WriteOutln(color.GreenString("Hosts updated"))
+	dingocli.WriteOutln(color.GreenString("Hosts updated"))
 	return nil
 }

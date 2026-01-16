@@ -19,7 +19,7 @@ package tasks
 import (
 	"sync"
 
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 const (

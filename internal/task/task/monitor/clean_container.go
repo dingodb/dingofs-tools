@@ -17,24 +17,24 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
 )
 
-func NewCleanConfigContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
+func NewCleanConfigContainerTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
 	role := cfg.GetRole()
 	if role != ROLE_MONITOR_CONF {
 		return nil, nil
 	}
 	host := cfg.GetHost()
-	hc, err := dingoadm.GetHost(host)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +42,8 @@ func NewCleanConfigContainerTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorC
 	t.AddStep(&common.Step2CleanContainer{
 		ServiceId:   serviceId,
 		ContainerId: containerId,
-		Storage:     dingoadm.Storage(),
-		ExecOptions: dingoadm.ExecOptions(),
+		Storage:     dingocli.Storage(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	return t, nil
 }

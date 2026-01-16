@@ -20,19 +20,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/storage"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	COMMIT_EXAMPLE = `Examples:
-  $ dingoadm monitor config commit -c /path/to/monitor.yaml  # Commit monitor topology`
+  $ dingocli monitor config commit -c /path/to/monitor.yaml  # Commit monitor topology`
 )
 
 type commitOptions struct {
@@ -41,7 +41,7 @@ type commitOptions struct {
 	force    bool
 }
 
-func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCommitCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options commitOptions
 
 	cmd := &cobra.Command{
@@ -51,7 +51,7 @@ func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Example: COMMIT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// options.filename = args[0]
-			return runCommit(dingoadm, options)
+			return runCommit(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -72,8 +72,8 @@ func skipError(err error) bool {
 	return false
 }
 
-func checkDiff(dingoadm *cli.DingoAdm, newData string) error {
-	diffs, err := configure.DiffMonitor(dingoadm, dingoadm.Monitor().Monitor, newData)
+func checkDiff(dingocli *cli.DingoCli, newData string) error {
+	diffs, err := configure.DiffMonitor(dingocli, dingocli.Monitor().Monitor, newData)
 	if err != nil && !skipError(err) {
 		return err
 	}
@@ -90,20 +90,20 @@ func checkDiff(dingoadm *cli.DingoAdm, newData string) error {
 	return nil
 }
 
-func checkMonitor(dingoadm *cli.DingoAdm, data string, options commitOptions) error {
+func checkMonitor(dingocli *cli.DingoCli, data string, options commitOptions) error {
 	if options.force {
 		return nil
 	}
 
 	// 1) parse monitor configure
-	_, err := configure.ParseMonitorInfo(dingoadm, options.filename, configure.INFO_TYPE_FILE)
+	_, err := configure.ParseMonitorInfo(dingocli, options.filename, configure.INFO_TYPE_FILE)
 	if err != nil {
 		return err
 	}
 
 	// 2) check wether add/delete service
-	if len(dingoadm.Monitor().Monitor) > 0 {
-		err = checkDiff(dingoadm, data)
+	if len(dingocli.Monitor().Monitor) > 0 {
+		err = checkDiff(dingocli, data)
 		if err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func checkMonitor(dingoadm *cli.DingoAdm, data string, options commitOptions) er
 	return nil
 }
 
-func readMonitor(dingoadm *cli.DingoAdm, options commitOptions) (string, error) {
+func readMonitor(dingocli *cli.DingoCli, options commitOptions) (string, error) {
 	filename := options.filename
 	if len(filename) == 0 {
 		return "", nil
@@ -126,29 +126,29 @@ func readMonitor(dingoadm *cli.DingoAdm, options commitOptions) (string, error) 
 		return "", errno.ERR_READ_TOPOLOGY_FILE_FAILED.E(err)
 	}
 
-	oldData := dingoadm.Monitor().Monitor
+	oldData := dingocli.Monitor().Monitor
 	if !options.slient {
 		diff := utils.Diff(oldData, data)
-		dingoadm.WriteOutln("%s", diff)
+		dingocli.WriteOutln("%s", diff)
 	}
 	return data, nil
 }
 
-func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
+func runCommit(dingocli *cli.DingoCli, options commitOptions) error {
 	// 1) parse cluster topology
-	_, err := configure.ParseMonitorInfo(dingoadm, options.filename, configure.INFO_TYPE_FILE)
+	_, err := configure.ParseMonitorInfo(dingocli, options.filename, configure.INFO_TYPE_FILE)
 	if err != nil {
 		return err
 	}
 
 	// 2) read monitor data, and print diff content
-	data, err := readMonitor(dingoadm, options)
+	data, err := readMonitor(dingocli, options)
 	if err != nil {
 		return err
 	}
 
 	// 3) check topology
-	err = checkMonitor(dingoadm, data, options)
+	err = checkMonitor(dingocli, data, options)
 	if err != nil {
 		return err
 	}
@@ -156,18 +156,18 @@ func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
 	if !options.force {
 		// 4) confirm by user
 		if pass := tui.ConfirmYes("Do you want to continue?"); !pass {
-			dingoadm.WriteOutln(tui.PromptCancelOpetation("commit monitor"))
+			dingocli.WriteOutln(tui.PromptCancelOpetation("commit monitor"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}
 
 	// 5) update monitor in database
-	err = dingoadm.Storage().ReplaceMonitor(storage.Monitor{
-		ClusterId: dingoadm.ClusterId(),
+	err = dingocli.Storage().ReplaceMonitor(storage.Monitor{
+		ClusterId: dingocli.ClusterId(),
 		Monitor:   data,
 	})
 
 	// 6) print success prompt
-	dingoadm.WriteOutln("'%s' Monitor updated", dingoadm.ClusterName())
+	dingocli.WriteOutln("'%s' Monitor updated", dingocli.ClusterName())
 	return err
 }

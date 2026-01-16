@@ -22,10 +22,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/logger"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/logger"
+	"github.com/dingodb/dingocli/pkg/module"
 
 	"github.com/spf13/cobra"
 )
@@ -90,7 +90,7 @@ type addOptions struct {
 	// user        string
 }
 
-func NewExportAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewExportAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options addOptions
 
 	cmd := &cobra.Command{
@@ -123,7 +123,7 @@ func NewExportAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			// 	return err
 			// }
 
-			return runAdd(cmd, dingoadm, &options)
+			return runAdd(cmd, dingocli, &options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -142,7 +142,7 @@ func NewExportAddCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runAdd(cmd *cobra.Command, dingoadm *cli.DingoAdm, options *addOptions) error {
+func runAdd(cmd *cobra.Command, dingocli *cli.DingoCli, options *addOptions) error {
 
 	options.shell = module.NewShell(nil)
 	options.execOptions = module.ExecOptions{ExecWithSudo: true, ExecInLocal: true, ExecTimeoutSec: 10}

@@ -17,30 +17,30 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/cli/command/monitor/config"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/cli/command/monitor/config"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewMonitorCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewMonitorCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "monitor",
 		Short: "Manage monitor",
 		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingoadm.Err()),
+		RunE:  cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(
-		NewDeployCommand(dingoadm),
-		NewStartCommand(dingoadm),
-		NewStopCommand(dingoadm),
-		NewStatusCommand(dingoadm),
-		NewCleanCommand(dingoadm),
-		NewRestartCommand(dingoadm),
-		NewReloadCommand(dingoadm),
-		NewUpgradeCommand(dingoadm),
-		config.NewConfigCommand(dingoadm),
+		NewDeployCommand(dingocli),
+		NewStartCommand(dingocli),
+		NewStopCommand(dingocli),
+		NewStatusCommand(dingocli),
+		NewCleanCommand(dingocli),
+		NewRestartCommand(dingocli),
+		NewReloadCommand(dingocli),
+		NewUpgradeCommand(dingocli),
+		config.NewConfigCommand(dingocli),
 	)
 	return cmd
 }

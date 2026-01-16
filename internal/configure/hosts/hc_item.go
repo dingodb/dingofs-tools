@@ -19,8 +19,8 @@ package hosts
 import (
 	"fmt"
 
-	comm "github.com/dingodb/dingofs-tools/internal/configure/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	comm "github.com/dingodb/dingocli/internal/configure/common"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (

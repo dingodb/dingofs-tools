@@ -24,8 +24,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +46,7 @@ type mountOptions struct {
 	daemonize    bool
 }
 
-func NewFsMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options mountOptions
 
 	cmd := &cobra.Command{
@@ -68,7 +68,7 @@ func NewFsMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			}
 
 			if len(args) < 2 {
-				return fmt.Errorf("\"dingoadm fs mount\" requires exactly 2 arguments\n\nUsage: dingoadm fs mount METAURL MOUNTPOINT [OPTIONS]")
+				return fmt.Errorf("\"dingocli fs mount\" requires exactly 2 arguments\n\nUsage: dingocli fs mount METAURL MOUNTPOINT [OPTIONS]")
 			}
 			options.cmdArgs = args
 			options.mountpoint = args[1]
@@ -94,7 +94,7 @@ func NewFsMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				}
 			}
 
-			return runMount(cmd, dingoadm, options)
+			return runMount(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -105,7 +105,7 @@ func NewFsMountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runMount(cmd *cobra.Command, dingoadm *cli.DingoAdm, options mountOptions) error {
+func runMount(cmd *cobra.Command, dingocli *cli.DingoCli, options mountOptions) error {
 	var oscmd *exec.Cmd
 	var name string
 
@@ -168,7 +168,7 @@ func runMount(cmd *cobra.Command, dingoadm *cli.DingoAdm, options mountOptions) 
 	case _ = <-isTimeout: //mount failed
 		//umount fs
 		tmpOptions := umountOptions{mountpoint: options.mountpoint}
-		runUmuont(cmd, dingoadm, tmpOptions)
+		runUmuont(cmd, dingocli, tmpOptions)
 		return fmt.Errorf("Failed mount at %s\n", options.mountpoint)
 	}
 }
