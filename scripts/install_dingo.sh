@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 
 # usage: 
-# curl -sSL https://raw.githubusercontent.com/dingodb/dingoadm/main/scripts/install_dingoadm.sh | bash -s -- [--source=internal|github|local] [local_binary_path_if_source_is_local]
-# bash install_dingoadm.sh --source=internal|github|local [local_binary_path_if_source_is_local]
+# curl -sSL https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh | bash -s -- [--source=internal|github|local] [local_binary_path_if_source_is_local]
+# bash install_dingo.sh --source=internal|github|local [local_binary_path_if_source_is_local]
 
 
 ############################  GLOBAL VARIABLES
 g_color_yellow=$(printf '\033[33m')
 g_color_red=$(printf '\033[31m')
 g_color_normal=$(printf '\033[0m')
-g_dingoadm_home="${HOME}/.dingoadm"
-g_bin_dir="${g_dingoadm_home}/bin"
-g_db_path="sqlite://${g_dingoadm_home}/data/dingoadm.db"
+g_dingo_home="${HOME}/.dingo"
+g_bin_dir="${g_dingo_home}/bin"
+g_db_path="sqlite://${g_dingo_home}/data/dingocli.db"
 g_profile="${HOME}/.profile"
 g_internal_url="https://work.dingodb.top"
-g_github_url="https://github.com/dingodb/dingoadm/releases/download/latest/dingoadm"
-g_upgrade="${DINGOADM_UPGRADE}"
-g_version="${DINGOADM_VERSION:=$g_latest_version}"
-g_download_url="${g_internal_url}/dingoadm.tar.gz"
+g_github_url="https://github.com/dingodb/dingocli/releases/download/latest/dingo"
+g_upgrade="${DINGO_UPGRADE}"
+g_version="${DINGO_VERSION:=$g_latest_version}"
+g_download_url="${g_internal_url}/dingo.tar.gz"
 g_local_binary=""
 
 ############################  BASIC FUNCTIONS
@@ -45,22 +45,22 @@ program_must_exist() {
 
 ############################ FUNCTIONS
 backup() {
-    if [ -d "${g_dingoadm_home}" ]; then
-        mv "${g_dingoadm_home}" "${g_dingoadm_home}-$(date +%s).backup"
+    if [ -d "${g_dingo_home}" ]; then
+        mv "${g_dingo_home}" "${g_dingo_home}-$(date +%s).backup"
     fi
 }
 
 backup_binary() {
-    if [ -f "${g_bin_dir}/dingoadm" ]; then
-        mv "${g_bin_dir}/dingoadm" "${g_bin_dir}/dingoadm-$(date +%s).backup"
+    if [ -f "${g_bin_dir}/dingo" ]; then
+        mv "${g_bin_dir}/dingo" "${g_bin_dir}/dingo-$(date +%s).backup"
     fi
 }
 
 setup() {
-    mkdir -p "${g_dingoadm_home}"/{bin,data,module,logs,temp}
+    mkdir -p "${g_dingo_home}"/{bin,data,module,logs,temp}
 
     # generate config file
-    local confpath="${g_dingoadm_home}/dingoadm.cfg"
+    local confpath="${g_dingo_home}/dingocli.cfg"
     if [ ! -f "${confpath}" ]; then
         cat << __EOF__ > "${confpath}"
 [defaults]
@@ -86,7 +86,7 @@ install_binary() {
     local source=$1
     if [ "$source" == "internal" ]; then
         echo "Downloading from internal source..."
-        local tempfile="/tmp/dingoadm-$(date +%s%6N).tar.gz"
+        local tempfile="/tmp/dingo-$(date +%s%6N).tar.gz"
         # Add your internal download logic here
         wget --no-check-certificate "${g_download_url}" -O "${tempfile}" # internal
         if [ $? -eq 0 ]; then
@@ -95,8 +95,8 @@ install_binary() {
         fi
     elif [ "$source" == "github" ]; then
         echo "Downloading from GitHub..."
-        local tempfile="/tmp/dingoadm"
-        # check /tmp/dingoadm exists, if exists, remove it
+        local tempfile="/tmp/dingo"
+        # check /tmp/dingo exists, if exists, remove it
         if [ -f "${tempfile}" ]; then
             echo "remove existing tempfile ${tempfile}"
             sudo rm -f "${tempfile}"
@@ -109,7 +109,7 @@ install_binary() {
         fi
     elif [ "$source" == "local" ]; then
         echo "Using local binary..."
-        cp "$g_local_binary" "${g_bin_dir}/dingoadm"
+        cp "$g_local_binary" "${g_bin_dir}/dingo"
         ret=$?
     else
         echo "Invalid source specified. Please choose 'internal' or 'github'."
@@ -118,9 +118,9 @@ install_binary() {
 
     # rm  "${tempfile}"
     if [ ${ret} -eq 0 ]; then
-        chmod 755 "${g_bin_dir}/dingoadm"
+        chmod 755 "${g_bin_dir}/dingo"
     else
-        die "Download dingoadm failed\n"
+        die "Download dingo failed\n"
     fi
 }
 
@@ -141,14 +141,14 @@ set_profile() {
 }
 
 print_install_success() {
-    success "Install dingoadm ${g_version} success, please run 'source ${g_profile}'\n"
+    success "Install dingo ${g_version} success, please run 'source ${g_profile}'\n"
 }
 
 print_upgrade_success() {
-    if [ -f "${g_dingoadm_home}/CHANGELOG" ]; then
-        cat "${g_dingoadm_home}/CHANGELOG"
+    if [ -f "${g_dingo_home}/CHANGELOG" ]; then
+        cat "${g_dingo_home}/CHANGELOG"
     fi
-    success "Upgrade dingoadm to ${g_version} success\n"
+    success "Upgrade dingo to ${g_version} success\n"
 }
 
 install() {
