@@ -17,7 +17,7 @@
 package main
 
 import (
-	"github.com/dingodb/dingofs-tools/cli"
+	"github.com/dingodb/dingocli/cli"
 )
 
 func main() {

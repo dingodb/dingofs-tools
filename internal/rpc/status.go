@@ -15,7 +15,7 @@
 package rpc
 
 import (
-	mdsError "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
+	mdsError "github.com/dingodb/dingocli/proto/dingofs/proto/error"
 )
 
 var (

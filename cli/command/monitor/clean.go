@@ -17,22 +17,22 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	CLEAN_EXAMPLE = `Examples:
-  $ dingoadm monitor clean                                  # Clean everything for monitor
-  $ dingoadm monitor clean --only='data'                    # Clean data for monitor
-  $ dingoadm monitor clean --role=grafana --only=container  # Clean container for grafana service`
+  $ dingocli monitor clean                                  # Clean everything for monitor
+  $ dingocli monitor clean --only='data'                    # Clean data for monitor
+  $ dingocli monitor clean --role=grafana --only=container  # Clean container for grafana service`
 )
 
 var (
@@ -54,7 +54,7 @@ type cleanOptions struct {
 	force bool
 }
 
-func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCleanCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options cleanOptions
 
 	cmd := &cobra.Command{
@@ -63,7 +63,7 @@ func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:    cliutil.NoArgs,
 		Example: CLEAN_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runClean(dingoadm, options)
+			return runClean(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -77,10 +77,10 @@ func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genCleanPlaybook(dingoadm *cli.DingoAdm,
+func genCleanPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options cleanOptions) (*playbook.Playbook, error) {
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -94,7 +94,7 @@ func genCleanPlaybook(dingoadm *cli.DingoAdm,
 		// add stop service step before clean service step
 		steps = append([]int{playbook.STOP_MONITOR_SERVICE}, steps...)
 	}
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -107,15 +107,15 @@ func genCleanPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runClean(dingoadm *cli.DingoAdm, options cleanOptions) error {
+func runClean(dingocli *cli.DingoCli, options cleanOptions) error {
 	// 1) parse monitor config
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) generate clean playbook
-	pb, err := genCleanPlaybook(dingoadm, mcs, options)
+	pb, err := genCleanPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func runClean(dingoadm *cli.DingoAdm, options cleanOptions) error {
 	if !options.force {
 		// 3) confirm by user
 		if pass := tui.ConfirmYes(tui.PromptCleanService(options.role, options.host, options.only)); !pass {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("clean monitor service"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("clean monitor service"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}

@@ -25,7 +25,7 @@ import (
 	"text/template"
 	"time"
 
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/melbahja/goph"
 )
 

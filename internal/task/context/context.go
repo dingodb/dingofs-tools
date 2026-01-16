@@ -17,7 +17,7 @@
 package context
 
 import (
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/pkg/module"
 )
 
 type Context struct {

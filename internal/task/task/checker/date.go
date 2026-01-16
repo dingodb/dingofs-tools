@@ -21,13 +21,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 const (
@@ -46,15 +46,15 @@ func step2Pre(start *int64) step.LambdaType {
 	}
 }
 
-func newIfNil(dingoadm *cli.DingoAdm) map[string]Time {
-	m := dingoadm.MemStorage().Get(comm.KEY_ALL_HOST_DATE)
+func newIfNil(dingocli *cli.DingoCli) map[string]Time {
+	m := dingocli.MemStorage().Get(comm.KEY_ALL_HOST_DATE)
 	if m != nil {
 		return m.(map[string]Time)
 	}
 	return map[string]Time{}
 }
 
-func step2Post(dingoadm *cli.DingoAdm, dc *topology.DeployConfig, start *int64, out *string) step.LambdaType {
+func step2Post(dingocli *cli.DingoCli, dc *topology.DeployConfig, start *int64, out *string) step.LambdaType {
 	return func(ctx *context.Context) error {
 		if len(*out) == 0 {
 			return errno.ERR_INVALID_DATE_FORMAT.
@@ -67,15 +67,15 @@ func step2Post(dingoadm *cli.DingoAdm, dc *topology.DeployConfig, start *int64, 
 				F("date: %s", *out)
 		}
 
-		m := newIfNil(dingoadm)
+		m := newIfNil(dingocli)
 		m[dc.GetHost()] = Time{dc.GetHost(), int64(time)}
-		dingoadm.MemStorage().Set(comm.KEY_ALL_HOST_DATE, m)
+		dingocli.MemStorage().Set(comm.KEY_ALL_HOST_DATE, m)
 		return nil
 	}
 }
 
-func NewGetHostDate(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewGetHostDate(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -91,20 +91,20 @@ func NewGetHostDate(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Ta
 	t.AddStep(&step.Date{
 		Format:      "+%s",
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
-		Lambda: step2Post(dingoadm, dc, &start, &out),
+		Lambda: step2Post(dingocli, dc, &start, &out),
 	})
 
 	return t, nil
 }
 
-func checkDate(dingoadm *cli.DingoAdm) step.LambdaType {
+func checkDate(dingocli *cli.DingoCli) step.LambdaType {
 	return func(ctx *context.Context) error {
 		var minT, maxT Time
 		min, max := int64(0), int64(0)
-		m := newIfNil(dingoadm)
+		m := newIfNil(dingocli)
 		for _, t := range m {
 			if min == 0 || t.time < min {
 				min = t.time
@@ -125,10 +125,10 @@ func checkDate(dingoadm *cli.DingoAdm) step.LambdaType {
 	}
 }
 
-func NewCheckDate(dingoadm *cli.DingoAdm, c interface{}) (*task.Task, error) {
+func NewCheckDate(dingocli *cli.DingoCli, c interface{}) (*task.Task, error) {
 	t := task.NewTask("Check Host Date <date>", "", nil)
 	t.AddStep(&step.Lambda{
-		Lambda: checkDate(dingoadm),
+		Lambda: checkDate(dingocli),
 	})
 	return t, nil
 }

@@ -66,7 +66,7 @@ mv dingo /usr/bin/dingo
 set configure file
 
 ```bash
-wget https://raw.githubusercontent.com/dingodb/dingofs-tools/main/pkg/config/dingo.yaml
+wget https://raw.githubusercontent.com/dingodb/dingocli/main/pkg/config/dingo.yaml
 ```
 Please modify the `mdsAddr` under `dingofs` in the template.yaml file as required
 
@@ -302,7 +302,7 @@ dingo list mountpoint
 Output:
 
 ```shell
-[yansp@dingofs-6 dingofs-tools]$ dingo list mountpoint  --mdsaddr 10.220.32.16:6900,10.220.32.17:6900,10.220.32.18:6900
+ dingo list mountpoint  --mdsaddr 10.220.32.16:6900,10.220.32.17:6900,10.220.32.18:6900
 +-------+---------------------------------------+--------------------------------------+------------------------------------+-------+
 | FSID  |                FSNAME                 |               CLIENTID               |             MOUNTPOINT             |  CTO  |
 +-------+---------------------------------------+--------------------------------------+------------------------------------+-------+

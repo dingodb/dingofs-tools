@@ -17,11 +17,11 @@
 package client
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/tools"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/tools"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ type enterOptions struct {
 	id string
 }
 
-func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewEnterCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options enterOptions
 
 	cmd := &cobra.Command{
@@ -38,7 +38,7 @@ func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:  utils.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.id = args[0]
-			return runEnter(dingoadm, options)
+			return runEnter(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -46,9 +46,9 @@ func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runEnter(dingoadm *cli.DingoAdm, options enterOptions) error {
+func runEnter(dingocli *cli.DingoCli, options enterOptions) error {
 	// 1) get container id
-	clients, err := dingoadm.Storage().GetClient(options.id)
+	clients, err := dingocli.Storage().GetClient(options.id)
 	if err != nil {
 		return err
 	} else if len(clients) != 1 {
@@ -61,5 +61,5 @@ func runEnter(dingoadm *cli.DingoAdm, options enterOptions) error {
 	if client.Kind == topology.KIND_DINGOFS {
 		home = "/dingofs/client"
 	}
-	return tools.AttachRemoteContainer(dingoadm, client.Host, client.ContainerId, home)
+	return tools.AttachRemoteContainer(dingocli, client.Host, client.ContainerId, home)
 }

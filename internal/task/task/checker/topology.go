@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (
@@ -37,13 +37,13 @@ type (
 	// check whether host exist
 	step2CheckSSHConfigure struct {
 		dc       *topology.DeployConfig
-		dingoadm *cli.DingoAdm
+		dingocli *cli.DingoCli
 	}
 
 	// check whether the S3 configure is valid
 	step2CheckS3Configure struct {
 		dc       *topology.DeployConfig
-		dingoadm *cli.DingoAdm
+		dingocli *cli.DingoCli
 	}
 
 	// check whether directory path is absolute path
@@ -66,7 +66,7 @@ type (
 	//   (1) each role requires at least 3 services
 	//   (2) each requires at least 3 hosts
 	step2CheckServices struct {
-		dingoadm  *cli.DingoAdm
+		dingocli  *cli.DingoCli
 		dcs       []*topology.DeployConfig
 		skipRoles []string
 	}
@@ -74,13 +74,13 @@ type (
 
 func (s *step2CheckSSHConfigure) Execute(ctx *context.Context) error {
 	host := s.dc.GetHost()
-	_, err := s.dingoadm.GetHost(host)
+	_, err := s.dingocli.GetHost(host)
 	return err
 }
 
 func (s *step2CheckS3Configure) Execute(ctx *context.Context) error {
 	dc := s.dc
-	if s.dingoadm.MemStorage().Get(comm.KEY_CHECK_SKIP_SNAPSHOECLONE).(bool) {
+	if s.dingocli.MemStorage().Get(comm.KEY_CHECK_SKIP_SNAPSHOECLONE).(bool) {
 		return nil
 	}
 
@@ -96,7 +96,7 @@ func (s *step2CheckS3Configure) Execute(ctx *context.Context) error {
 	}
 
 	// we can pass it iff the s3 value is nil in weak check model
-	weak := s.dingoadm.MemStorage().Get(comm.KEY_CHECK_WITH_WEAK).(bool) // for topology commit
+	weak := s.dingocli.MemStorage().Get(comm.KEY_CHECK_WITH_WEAK).(bool) // for topology commit
 	for _, item := range items {
 		key := item.key
 		value := item.value
@@ -212,13 +212,13 @@ func (s *step2CheckServices) Execute(ctx *context.Context) error {
 		{ROLE_COORDINATOR, errno.ERR_COORDINATOR_REQUIRES_3_SERVICES},
 		{ROLE_STORE, errno.ERR_STORE_REQUIRES_3_SERVICES},
 	}
-	weak := s.dingoadm.MemStorage().Get(comm.KEY_CHECK_WITH_WEAK).(bool) // for topology commit
+	weak := s.dingocli.MemStorage().Get(comm.KEY_CHECK_WITH_WEAK).(bool) // for topology commit
 	for _, item := range items {
 		role := item.role
 		if s.skip(role) {
 			continue
 		}
-		dcs := s.dingoadm.FilterDeployConfigByRole(s.dcs, role)
+		dcs := s.dingocli.FilterDeployConfigByRole(s.dcs, role)
 		num := len(dcs)
 		if weak && role == ROLE_SNAPSHOTCLONE {
 			if num == 0 || num >= 3 {
@@ -246,7 +246,7 @@ func (s *step2CheckServices) Execute(ctx *context.Context) error {
 		if s.skip(role) {
 			continue
 		}
-		dcs := s.dingoadm.FilterDeployConfigByRole(s.dcs, role)
+		dcs := s.dingocli.FilterDeployConfigByRole(s.dcs, role)
 		num := s.getHostNum(dcs)
 		if weak && role == ROLE_SNAPSHOTCLONE {
 			if num == 0 || num >= 3 {
@@ -261,17 +261,17 @@ func (s *step2CheckServices) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewCheckTopologyTask(dingoadm *cli.DingoAdm, null interface{}) (*task.Task, error) {
+func NewCheckTopologyTask(dingocli *cli.DingoCli, null interface{}) (*task.Task, error) {
 	// new task
-	dcs := dingoadm.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
-	subname := fmt.Sprintf("cluster=%s kind=%s", dingoadm.ClusterName(), dcs[0].GetKind())
+	dcs := dingocli.MemStorage().Get(comm.KEY_ALL_DEPLOY_CONFIGS).([]*topology.DeployConfig)
+	subname := fmt.Sprintf("cluster=%s kind=%s", dingocli.ClusterName(), dcs[0].GetKind())
 	t := task.NewTask("Check Topology <topology>", subname, nil)
 
 	// add step to task
 	for _, dc := range dcs {
 		t.AddStep(&step2CheckSSHConfigure{
 			dc:       dc,
-			dingoadm: dingoadm,
+			dingocli: dingocli,
 		})
 	}
 	for _, dc := range dcs {
@@ -281,13 +281,13 @@ func NewCheckTopologyTask(dingoadm *cli.DingoAdm, null interface{}) (*task.Task,
 	t.AddStep(&step2CheckAddressDuplicate{dcs: dcs})
 	t.AddStep(&step2CheckServices{
 		dcs:       dcs,
-		dingoadm:  dingoadm,
-		skipRoles: dingoadm.MemStorage().Get(comm.KEY_SKIP_CHECKS_ROLES).([]string),
+		dingocli:  dingocli,
+		skipRoles: dingocli.MemStorage().Get(comm.KEY_SKIP_CHECKS_ROLES).([]string),
 	})
 	for _, dc := range dcs {
 		t.AddStep(&step2CheckS3Configure{
 			dc:       dc,
-			dingoadm: dingoadm,
+			dingocli: dingocli,
 		})
 	}
 

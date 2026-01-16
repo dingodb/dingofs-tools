@@ -22,8 +22,8 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +38,7 @@ type umountOptions struct {
 	lazy       bool
 }
 
-func NewFsUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsUmountCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options umountOptions
 
 	cmd := &cobra.Command{
@@ -59,7 +59,7 @@ func NewFsUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				return err
 			}
 
-			return runUmuont(cmd, dingoadm, options)
+			return runUmuont(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -74,7 +74,7 @@ func NewFsUmountCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runUmuont(cmd *cobra.Command, dingoadm *cli.DingoAdm, options umountOptions) error {
+func runUmuont(cmd *cobra.Command, dingocli *cli.DingoCli, options umountOptions) error {
 	flags := 0
 	if options.lazy && options.force {
 		return fmt.Errorf("lazy and force options cannot be used simultaneously")

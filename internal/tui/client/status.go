@@ -19,9 +19,9 @@ package service
 import (
 	"sort"
 
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	task "github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	comm "github.com/dingodb/dingocli/internal/common"
+	task "github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 	"github.com/fatih/color"
 )
 

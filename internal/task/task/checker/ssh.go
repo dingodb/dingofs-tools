@@ -19,14 +19,14 @@ package checker
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (
@@ -56,8 +56,8 @@ func checkHost(hc *hosts.HostConfig) step.LambdaType {
 	}
 }
 
-func NewCheckSSHConnectTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCheckSSHConnectTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}

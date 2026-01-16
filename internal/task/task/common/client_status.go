@@ -19,15 +19,15 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/storage"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (
@@ -58,10 +58,10 @@ type (
 	}
 )
 
-func dumpCfg(dingoadm *cli.DingoAdm, id string, cfgPath *string) step.LambdaType {
+func dumpCfg(dingocli *cli.DingoCli, id string, cfgPath *string) step.LambdaType {
 	return func(ctx *context.Context) error {
 		*cfgPath = MISSING_CLIENT_CONFIG
-		cfgs, err := dingoadm.Storage().GetClientConfig(id)
+		cfgs, err := dingocli.Storage().GetClientConfig(id)
 		if err != nil {
 			return errno.ERR_SELECT_CLIENT_CONFIG_FAILED.E(err)
 		} else if len(cfgs) == 0 {
@@ -130,27 +130,27 @@ func (s *step2FormatClientStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewInitClientStatusTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
+func NewInitClientStatusTask(dingocli *cli.DingoCli, v interface{}) (*task.Task, error) {
 	client := v.(storage.Client)
 
 	t := task.NewTask("Init Client Status", "", nil)
 
 	var cfgPath string
 	t.AddStep(&step.Lambda{
-		Lambda: dumpCfg(dingoadm, client.Id, &cfgPath),
+		Lambda: dumpCfg(dingocli, client.Id, &cfgPath),
 	})
 	t.AddStep(&step2InitClientStatus{
 		client:     client,
 		cfgPath:    &cfgPath,
-		memStorage: dingoadm.MemStorage(),
+		memStorage: dingocli.MemStorage(),
 	})
 
 	return t, nil
 }
 
-func NewGetClientStatusTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
+func NewGetClientStatusTask(dingocli *cli.DingoCli, v interface{}) (*task.Task, error) {
 	client := v.(storage.Client)
-	hc, err := dingoadm.GetHost(client.Host)
+	hc, err := dingocli.GetHost(client.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -167,12 +167,12 @@ func NewGetClientStatusTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, 
 		Format:      `"{{.Status}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &status,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2FormatClientStatus{
 		client:     client,
 		status:     &status,
-		memStorage: dingoadm.MemStorage(),
+		memStorage: dingocli.MemStorage(),
 	})
 
 	return t, nil

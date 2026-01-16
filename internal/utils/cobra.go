@@ -96,7 +96,7 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
 	for _, subCmd := range cmd.Commands() {
-		if cmd.Name() == "dingoadm" && subCmd.Name() == "completion" {
+		if cmd.Name() == "dingocli" && subCmd.Name() == "completion" {
 			continue
 		} else if subCmd.IsAvailableCommand() && subCmd.HasSubCommands() {
 			cmds = append(cmds, subCmd)

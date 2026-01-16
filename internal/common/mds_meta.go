@@ -17,7 +17,7 @@ package common
 import (
 	"sync"
 
-	pbmds "github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	pbmds "github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 )
 
 type MDSMeta struct {

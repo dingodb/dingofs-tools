@@ -19,10 +19,10 @@ package hosts
 import (
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/tui"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/tui"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ type listOptions struct {
 	labels  string
 }
 
-func NewListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewListCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options listOptions
 
 	cmd := &cobra.Command{
@@ -40,7 +40,7 @@ func NewListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short:   "List hosts",
 		Args:    cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runList(dingoadm, options)
+			return runList(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -147,10 +147,10 @@ func filter(data string, labels []string) ([]*hosts.HostConfig, error) {
 	return out, nil
 }
 
-func runList(dingoadm *cli.DingoAdm, options listOptions) error {
+func runList(dingocli *cli.DingoCli, options listOptions) error {
 	var hcs []*hosts.HostConfig
 	var err error
-	data := dingoadm.Hosts()
+	data := dingocli.Hosts()
 	if len(data) > 0 {
 		labels := strings.Split(options.labels, ":")
 		hcs, err = filter(data, labels) // filter hosts
@@ -160,6 +160,6 @@ func runList(dingoadm *cli.DingoAdm, options listOptions) error {
 	}
 
 	output := tui.FormatHosts(hcs, options.verbose)
-	dingoadm.WriteOut(output)
+	dingocli.WriteOut(output)
 	return nil
 }

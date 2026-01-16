@@ -22,7 +22,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/dingodb/dingofs-tools/internal/errno"
+	"github.com/dingodb/dingocli/internal/errno"
 )
 
 var (

@@ -17,12 +17,12 @@
 package member
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewCacheMemberCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCacheMemberCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
 		Short: "Manage cache member",
@@ -30,10 +30,10 @@ func NewCacheMemberCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewCacheMemberListCommand(dingoadm),
-		NewCacheMemberDeleteCommand(dingoadm),
-		NewCacheMemberUnlockCommand(dingoadm),
-		NewCacheMemberLeaveCommand(dingoadm),
+		NewCacheMemberListCommand(dingocli),
+		NewCacheMemberDeleteCommand(dingocli),
+		NewCacheMemberUnlockCommand(dingocli),
+		NewCacheMemberLeaveCommand(dingocli),
 	)
 
 	return cmd

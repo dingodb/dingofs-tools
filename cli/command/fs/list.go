@@ -19,16 +19,16 @@ package fs
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/table"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/table"
+	"github.com/dingodb/dingocli/internal/utils"
 
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -41,7 +41,7 @@ type listOptions struct {
 	format string
 }
 
-func NewFsListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsListCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options listOptions
 
 	cmd := &cobra.Command{
@@ -56,7 +56,7 @@ func NewFsListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runList(cmd, dingoadm, options)
+			return runList(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -78,7 +78,7 @@ func NewFsListCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runList(cmd *cobra.Command, dingoadm *cli.DingoAdm, options listOptions) error {
+func runList(cmd *cobra.Command, dingocli *cli.DingoCli, options listOptions) error {
 	// new rpc
 	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "ListFsInfo")
 	if err != nil {

@@ -24,12 +24,12 @@ import (
 	"regexp"
 	"strings"
 
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/module"
 )
 
 const (

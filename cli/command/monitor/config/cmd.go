@@ -17,22 +17,22 @@
 package config
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewConfigCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage cluster topology",
 		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingoadm.Err()),
+		RunE:  cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(
-		NewShowCommand(dingoadm),
-		NewCommitCommand(dingoadm),
+		NewShowCommand(dingocli),
+		NewCommitCommand(dingocli),
 	)
 	return cmd
 }

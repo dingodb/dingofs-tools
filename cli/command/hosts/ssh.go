@@ -17,9 +17,9 @@
 package hosts
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/tools"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/tools"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ type sshOptions struct {
 	become bool
 }
 
-func NewSSHCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewSSHCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options sshOptions
 
 	cmd := &cobra.Command{
@@ -37,7 +37,7 @@ func NewSSHCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:  cliutil.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.host = args[0]
-			return runSSH(dingoadm, options)
+			return runSSH(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -48,6 +48,6 @@ func NewSSHCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runSSH(dingoadm *cli.DingoAdm, options sshOptions) error {
-	return tools.AttachRemoteHost(dingoadm, options.host, options.become)
+func runSSH(dingocli *cli.DingoCli, options sshOptions) error {
+	return tools.AttachRemoteHost(dingocli, options.host, options.become)
 }

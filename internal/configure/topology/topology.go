@@ -19,8 +19,8 @@ package topology
 import (
 	"bytes"
 
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/viper"
 )
 

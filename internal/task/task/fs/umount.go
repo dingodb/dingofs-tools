@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 const (
@@ -39,31 +39,31 @@ type (
 		containerId string
 		status      *string
 		mountPoint  string
-		dingoadm    *cli.DingoAdm
+		dingocli    *cli.DingoCli
 	}
 
 	step2RemoveContainer struct {
 		status      *string
 		containerId string
-		dingoadm    *cli.DingoAdm
+		dingocli    *cli.DingoCli
 	}
 
 	step2DeleteClient struct {
 		fsId     string
-		dingoadm *cli.DingoAdm
+		dingocli *cli.DingoCli
 	}
 )
 
 func (s *step2UmountFS) Execute(ctx *context.Context) error {
 	if len(*s.status) == 0 || !strings.HasPrefix(*s.status, "Up") { // container already removed or not runing, remove it directly
 		cmd := ctx.Module().Shell().Umount(s.mountPoint)
-		cmd.Execute(s.dingoadm.ExecOptions())
+		cmd.Execute(s.dingocli.ExecOptions())
 		return nil
 	}
 
 	command := fmt.Sprintf("umount %s", configure.GetFSClientMountPath(s.mountPoint))
 	dockerCli := ctx.Module().DockerCli().ContainerExec(s.containerId, command)
-	out, err := dockerCli.Execute(s.dingoadm.ExecOptions())
+	out, err := dockerCli.Execute(s.dingocli.ExecOptions())
 	if strings.Contains(out, SIGNATURE_NOT_MOUNTED) {
 		return nil
 	} else if err == nil {
@@ -73,12 +73,12 @@ func (s *step2UmountFS) Execute(ctx *context.Context) error {
 }
 
 func (s *step2DeleteClient) Execute(ctx *context.Context) error {
-	err := s.dingoadm.Storage().DeleteClient(s.fsId)
+	err := s.dingocli.Storage().DeleteClient(s.fsId)
 	if err != nil {
 		return errno.ERR_DELETE_CLIENT_FAILED.E(err)
 	}
 
-	err = s.dingoadm.Storage().DeleteClientConfig(s.fsId)
+	err = s.dingocli.Storage().DeleteClientConfig(s.fsId)
 	if err != nil {
 		return errno.ERR_DELETE_CLIENT_CONFIG_FAILED.E(err)
 	}
@@ -92,7 +92,7 @@ func (s *step2RemoveContainer) Execute(ctx *context.Context) error {
 	}
 
 	steps := []task.Step{}
-	options := s.dingoadm.ExecOptions()
+	options := s.dingocli.ExecOptions()
 	options.ExecTimeoutSec = ONE_DAY_SECONDS // wait all data flushed to S3
 	if strings.HasPrefix(*s.status, "Up") {
 		// stop container
@@ -108,7 +108,7 @@ func (s *step2RemoveContainer) Execute(ctx *context.Context) error {
 	}
 	steps = append(steps, &step.RemoveContainer{
 		ContainerId: s.containerId,
-		ExecOptions: s.dingoadm.ExecOptions(),
+		ExecOptions: s.dingocli.ExecOptions(),
 	})
 
 	for _, step := range steps {
@@ -120,10 +120,10 @@ func (s *step2RemoveContainer) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewUmountFSTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) {
-	options := dingoadm.MemStorage().Get(comm.KEY_MOUNT_OPTIONS).(MountOptions)
-	fsId := dingoadm.GetFilesystemId(options.Host, options.MountPoint)
-	hc, err := dingoadm.GetHost(options.Host)
+func NewUmountFSTask(dingocli *cli.DingoCli, v interface{}) (*task.Task, error) {
+	options := dingocli.MemStorage().Get(comm.KEY_MOUNT_OPTIONS).(MountOptions)
+	fsId := dingocli.GetFilesystemId(options.Host, options.MountPoint)
+	hc, err := dingocli.GetHost(options.Host)
 	if err != nil {
 		return nil, err
 	}
@@ -142,21 +142,21 @@ func NewUmountFSTask(dingoadm *cli.DingoAdm, v interface{}) (*task.Task, error) 
 		Format:      "'{{.Status}}'",
 		Filter:      fmt.Sprintf("name=%s", containerId),
 		Out:         &status,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step2UmountFS{
 		containerId: containerId,
 		status:      &status,
 		mountPoint:  options.MountPoint,
-		dingoadm:    dingoadm,
+		dingocli:    dingocli,
 	})
 	t.AddStep(&step2RemoveContainer{
 		status:      &status,
 		containerId: containerId,
-		dingoadm:    dingoadm,
+		dingocli:    dingocli,
 	})
 	t.AddStep(&step2DeleteClient{
-		dingoadm: dingoadm,
+		dingocli: dingocli,
 		fsId:     fsId,
 	})
 

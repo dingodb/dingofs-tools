@@ -23,11 +23,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/tools"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/tools"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -50,7 +50,7 @@ type playbookOptions struct {
 	labels   []string
 }
 
-func checkPlaybookOptions(dingoadm *cli.DingoAdm, options playbookOptions) error {
+func checkPlaybookOptions(dingocli *cli.DingoCli, options playbookOptions) error {
 	// TODO: added error code
 	if !utils.PathExist(options.filepath) {
 		return fmt.Errorf("%s: no such file", options.filepath)
@@ -58,7 +58,7 @@ func checkPlaybookOptions(dingoadm *cli.DingoAdm, options playbookOptions) error
 	return nil
 }
 
-func NewPlaybookCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options playbookOptions
 
 	cmd := &cobra.Command{
@@ -79,10 +79,10 @@ func NewPlaybookCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 			}
 			options.filepath = args[0]
 			options.args = args[1:]
-			return checkPlaybookOptions(dingoadm, options)
+			return checkPlaybookOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runPlaybook(dingoadm, options)
+			return runPlaybook(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -93,11 +93,11 @@ func NewPlaybookCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func execute(dingoadm *cli.DingoAdm, options playbookOptions, idx int, hc *hosts.HostConfig) {
+func execute(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts.HostConfig) {
 	defer func() { wg.Done() }()
 	name := hc.GetHost()
 	target := path.Join("/tmp", utils.RandString(8))
-	err := tools.Scp(dingoadm, name, options.filepath, target)
+	err := tools.Scp(dingocli, name, options.filepath, target)
 	if err != nil {
 		retC <- result{host: name, err: err}
 		return
@@ -105,7 +105,7 @@ func execute(dingoadm *cli.DingoAdm, options playbookOptions, idx int, hc *hosts
 
 	defer func() {
 		command := fmt.Sprintf("rm -rf %s", target)
-		tools.ExecuteRemoteCommand(dingoadm, name, command)
+		tools.ExecuteRemoteCommand(dingocli, name, command)
 	}()
 
 	command := strings.Join([]string{
@@ -114,33 +114,33 @@ func execute(dingoadm *cli.DingoAdm, options playbookOptions, idx int, hc *hosts
 		target,
 		strings.Join(options.args, " "),
 	}, " ")
-	out, err := tools.ExecuteRemoteCommand(dingoadm, name, command)
+	out, err := tools.ExecuteRemoteCommand(dingocli, name, command)
 	retC <- result{index: idx, host: name, out: out, err: err}
 }
 
-func output(dingoadm *cli.DingoAdm, ret *result) {
-	dingoadm.WriteOutln("")
+func output(dingocli *cli.DingoCli, ret *result) {
+	dingocli.WriteOutln("")
 	out, err := ret.out, ret.err
-	dingoadm.WriteOutln("%s [%s]", color.YellowString(ret.host),
+	dingocli.WriteOutln("%s [%s]", color.YellowString(ret.host),
 		utils.Choose(err == nil, color.GreenString("SUCCESS"), color.RedString("FAIL")))
-	dingoadm.WriteOutln("---")
+	dingocli.WriteOutln("---")
 	if err != nil {
-		dingoadm.Out().Write([]byte(out))
-		dingoadm.WriteOutln(err.Error())
+		dingocli.Out().Write([]byte(out))
+		dingocli.WriteOutln(err.Error())
 	} else if len(out) > 0 {
-		dingoadm.Out().Write([]byte(out))
+		dingocli.Out().Write([]byte(out))
 	}
 }
 
-func receiver(dingoadm *cli.DingoAdm, total int) {
-	dingoadm.WriteOutln("TOTAL: %d hosts", total)
+func receiver(dingocli *cli.DingoCli, total int) {
+	dingocli.WriteOutln("TOTAL: %d hosts", total)
 	current := 0
 	rets := map[int]result{}
 	for ret := range retC {
 		rets[ret.index] = ret
 		for {
 			if v, ok := rets[current]; ok {
-				output(dingoadm, &v)
+				output(dingocli, &v)
 				current++
 			} else {
 				break
@@ -149,10 +149,10 @@ func receiver(dingoadm *cli.DingoAdm, total int) {
 	}
 }
 
-func runPlaybook(dingoadm *cli.DingoAdm, options playbookOptions) error {
+func runPlaybook(dingocli *cli.DingoCli, options playbookOptions) error {
 	var hcs []*hosts.HostConfig
 	var err error
-	hosts := dingoadm.Hosts()
+	hosts := dingocli.Hosts()
 	if len(hosts) > 0 {
 		hcs, err = filter(hosts, options.labels) // filter hosts
 		if err != nil {
@@ -162,9 +162,9 @@ func runPlaybook(dingoadm *cli.DingoAdm, options playbookOptions) error {
 
 	retC = make(chan result)
 	wg.Add(len(hcs))
-	go receiver(dingoadm, len(hcs))
+	go receiver(dingocli, len(hcs))
 	for i, hc := range hcs {
-		go execute(dingoadm, options, i, hc)
+		go execute(dingocli, options, i, hc)
 	}
 	wg.Wait()
 	return nil

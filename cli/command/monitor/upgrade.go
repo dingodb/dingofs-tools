@@ -17,13 +17,13 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -47,7 +47,7 @@ type upgradeOptions struct {
 	useLocalImage bool
 }
 
-func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewUpgradeCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options upgradeOptions
 
 	cmd := &cobra.Command{
@@ -55,7 +55,7 @@ func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Upgrade monitor service",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runUpgrade(dingoadm, options)
+			return runUpgrade(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -70,7 +70,7 @@ func NewUpgradeCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genUpgradePlaybook(dingoadm *cli.DingoAdm,
+func genUpgradePlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options upgradeOptions) (*playbook.Playbook, error) {
 	steps := UPGRADE_PLAYBOOK_STEPS
@@ -83,7 +83,7 @@ func genUpgradePlaybook(dingoadm *cli.DingoAdm,
 			}
 		}
 	}
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 
 		pb.AddStep(&playbook.PlaybookStep{
@@ -99,22 +99,22 @@ func genUpgradePlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func displayTitle(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, options upgradeOptions) {
+func displayTitle(dingocli *cli.DingoCli, mcs []*configure.MonitorConfig, options upgradeOptions) {
 	total := len(mcs)
 	if options.force {
-		dingoadm.WriteOutln(color.YellowString("Upgrade %d services at once", total))
+		dingocli.WriteOutln(color.YellowString("Upgrade %d services at once", total))
 	} else {
-		dingoadm.WriteOutln(color.YellowString("Upgrade %d services one by one", total))
+		dingocli.WriteOutln(color.YellowString("Upgrade %d services one by one", total))
 	}
-	dingoadm.WriteOutln(tui.PromptUpgradeService(options.id, options.role, options.host))
+	dingocli.WriteOutln(tui.PromptUpgradeService(options.id, options.role, options.host))
 }
 
-func upgradeAtOnce(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, options upgradeOptions) error {
+func upgradeAtOnce(dingocli *cli.DingoCli, mcs []*configure.MonitorConfig, options upgradeOptions) error {
 	// 1) display upgrade title
-	displayTitle(dingoadm, mcs, options)
+	displayTitle(dingocli, mcs, options)
 
 	// 2) generate upgrade playbook
-	pb, err := genUpgradePlaybook(dingoadm, mcs, options)
+	pb, err := genUpgradePlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
@@ -126,29 +126,29 @@ func upgradeAtOnce(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, optio
 	}
 
 	// 4) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Upgrade %d services success :)", len(mcs)))
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Upgrade %d services success :)", len(mcs)))
 	return nil
 }
 
-func upgradeOneByOne(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, options upgradeOptions) error {
+func upgradeOneByOne(dingocli *cli.DingoCli, mcs []*configure.MonitorConfig, options upgradeOptions) error {
 	// 1) display upgrade title
-	displayTitle(dingoadm, mcs, options)
+	displayTitle(dingocli, mcs, options)
 
 	// 2) upgrade service one by one
 	total := len(mcs)
 	for i, mc := range mcs {
 		// 2.1) confirm by user
-		dingoadm.WriteOutln("")
-		dingoadm.WriteOutln("Upgrade %s service:", color.BlueString("%d/%d", i+1, total))
-		dingoadm.WriteOutln("  + host=%s  role=%s  image=%s", mc.GetHost(), mc.GetRole(), mc.GetImage())
+		dingocli.WriteOutln("")
+		dingocli.WriteOutln("Upgrade %s service:", color.BlueString("%d/%d", i+1, total))
+		dingocli.WriteOutln("  + host=%s  role=%s  image=%s", mc.GetHost(), mc.GetRole(), mc.GetImage())
 		if pass := tui.ConfirmYes(tui.DEFAULT_CONFIRM_PROMPT); !pass {
-			dingoadm.WriteOut(tui.PromptCancelOpetation("upgrade service"))
+			dingocli.WriteOut(tui.PromptCancelOpetation("upgrade service"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 
 		// 2.2) generate upgrade playbook
-		pb, err := genUpgradePlaybook(dingoadm, []*configure.MonitorConfig{mc}, options)
+		pb, err := genUpgradePlaybook(dingocli, []*configure.MonitorConfig{mc}, options)
 		if err != nil {
 			return err
 		}
@@ -160,21 +160,21 @@ func upgradeOneByOne(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, opt
 		}
 
 		// 2.4) print success prompt
-		dingoadm.WriteOutln("")
-		dingoadm.WriteOutln(color.GreenString("Upgrade %d/%d sucess :)"), i+1, total)
+		dingocli.WriteOutln("")
+		dingocli.WriteOutln(color.GreenString("Upgrade %d/%d sucess :)"), i+1, total)
 	}
 	return nil
 }
 
-func runUpgrade(dingoadm *cli.DingoAdm, options upgradeOptions) error {
+func runUpgrade(dingocli *cli.DingoCli, options upgradeOptions) error {
 	// 1) parse monitor configure
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) filter deploy config
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -185,9 +185,9 @@ func runUpgrade(dingoadm *cli.DingoAdm, options upgradeOptions) error {
 
 	// 3.1) upgrade service at once
 	if options.force {
-		return upgradeAtOnce(dingoadm, mcs, options)
+		return upgradeAtOnce(dingocli, mcs, options)
 	}
 
 	// 3.2) OR upgrade service one by one
-	return upgradeOneByOne(dingoadm, mcs, options)
+	return upgradeOneByOne(dingocli, mcs, options)
 }

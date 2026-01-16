@@ -17,12 +17,12 @@
 package stats
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewStatsCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stats",
 		Short: "monitor filesystem performance",
@@ -30,7 +30,7 @@ func NewStatsCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewStatsMountpointCommand(dingoadm),
+		NewStatsMountpointCommand(dingocli),
 	)
 
 	return cmd

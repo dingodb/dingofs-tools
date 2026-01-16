@@ -17,7 +17,7 @@
 package topology
 
 import (
-	"github.com/dingodb/dingofs-tools/internal/errno"
+	"github.com/dingodb/dingocli/internal/errno"
 	"github.com/mitchellh/hashstructure/v2"
 )
 

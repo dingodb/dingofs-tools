@@ -17,10 +17,10 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ type checkoutOptions struct {
 	clusterName string
 }
 
-func NewCheckoutCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCheckoutCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options checkoutOptions
 
 	cmd := &cobra.Command{
@@ -37,7 +37,7 @@ func NewCheckoutCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:  cliutil.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.clusterName = args[0]
-			return runCheckout(dingoadm, options)
+			return runCheckout(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -45,10 +45,10 @@ func NewCheckoutCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runCheckout(dingoadm *cli.DingoAdm, options checkoutOptions) error {
+func runCheckout(dingocli *cli.DingoCli, options checkoutOptions) error {
 	// 1) get cluster by name
 	clusterName := options.clusterName
-	storage := dingoadm.Storage()
+	storage := dingocli.Storage()
 	clusters, err := storage.GetClusters(clusterName)
 	if err != nil {
 		log.Error("Get clusters failed",
@@ -66,6 +66,6 @@ func runCheckout(dingoadm *cli.DingoAdm, options checkoutOptions) error {
 	}
 
 	// 3) print success prompt
-	dingoadm.WriteOutln("Switched to cluster '%s'", clusterName)
+	dingocli.WriteOutln("Switched to cluster '%s'", clusterName)
 	return nil
 }

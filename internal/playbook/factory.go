@@ -17,15 +17,15 @@
 package playbook
 
 import (
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/checker"
-	comm "github.com/dingodb/dingofs-tools/internal/task/task/common"
-	"github.com/dingodb/dingofs-tools/internal/task/task/fs"
-	"github.com/dingodb/dingofs-tools/internal/task/task/monitor"
-	"github.com/dingodb/dingofs-tools/internal/tasks"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/checker"
+	comm "github.com/dingodb/dingocli/internal/task/task/common"
+	"github.com/dingodb/dingocli/internal/task/task/fs"
+	"github.com/dingodb/dingocli/internal/task/task/monitor"
+	"github.com/dingodb/dingocli/internal/tasks"
 )
 
 const (
@@ -133,13 +133,13 @@ func (p *Playbook) createTasks(step *PlaybookStep) (*tasks.Tasks, error) {
 
 	// (2) set key-value pair for options
 	for k, v := range step.Options {
-		p.dingoadm.MemStorage().Set(k, v)
+		p.dingocli.MemStorage().Set(k, v)
 	}
 
 	// (3) create task one by one and added into tasks
 	var t *task.Task
 	once := map[string]bool{}
-	dingoadm := p.dingoadm
+	dingocli := p.dingocli
 	ts := tasks.NewTasks()
 	for i := 0; i < config.Len(); i++ {
 		// only need to execute task once per host
@@ -175,59 +175,59 @@ func (p *Playbook) createTasks(step *PlaybookStep) (*tasks.Tasks, error) {
 		switch step.Type {
 		// checker
 		case CHECK_TOPOLOGY:
-			t, err = checker.NewCheckTopologyTask(dingoadm, nil)
+			t, err = checker.NewCheckTopologyTask(dingocli, nil)
 		case CHECK_SSH_CONNECT:
-			t, err = checker.NewCheckSSHConnectTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckSSHConnectTask(dingocli, config.GetDC(i))
 		case CHECK_PERMISSION:
 			if config.GetDC(i).GetRole() == topology.ROLE_FS_MDS_CLI {
 				continue
 			}
-			t, err = checker.NewCheckPermissionTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckPermissionTask(dingocli, config.GetDC(i))
 		case CHECK_KERNEL_VERSION:
-			t, err = checker.NewCheckKernelVersionTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckKernelVersionTask(dingocli, config.GetDC(i))
 		case CHECK_KERNEL_MODULE:
-			t, err = checker.NewCheckKernelModuleTask(dingoadm, config.GetCC(i))
+			t, err = checker.NewCheckKernelModuleTask(dingocli, config.GetCC(i))
 		case CHECK_PORT_IN_USE:
 			if config.GetDC(i).GetRole() == topology.ROLE_FS_MDS_CLI {
 				continue
 			}
-			t, err = checker.NewCheckPortInUseTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckPortInUseTask(dingocli, config.GetDC(i))
 		case CHECK_DESTINATION_REACHABLE:
 			if config.GetDC(i).GetRole() == topology.ROLE_FS_MDS_CLI {
 				continue
 			}
-			t, err = checker.NewCheckDestinationReachableTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckDestinationReachableTask(dingocli, config.GetDC(i))
 		case START_HTTP_SERVER:
 			if config.GetDC(i).GetRole() == topology.ROLE_FS_MDS_CLI {
 				continue
 			}
-			t, err = checker.NewStartHTTPServerTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewStartHTTPServerTask(dingocli, config.GetDC(i))
 		case CHECK_NETWORK_FIREWALL:
-			t, err = checker.NewCheckNetworkFirewallTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckNetworkFirewallTask(dingocli, config.GetDC(i))
 		case GET_HOST_DATE:
-			t, err = checker.NewGetHostDate(dingoadm, config.GetDC(i))
+			t, err = checker.NewGetHostDate(dingocli, config.GetDC(i))
 		case CHECK_HOST_DATE:
-			t, err = checker.NewCheckDate(dingoadm, nil)
+			t, err = checker.NewCheckDate(dingocli, nil)
 		case CHECK_S3:
-			t, err = checker.NewCheckS3Task(dingoadm, config.GetDC(i))
+			t, err = checker.NewCheckS3Task(dingocli, config.GetDC(i))
 		case CHECK_MDS_ADDRESS:
-			t, err = checker.NewCheckMdsAddressTask(dingoadm, config.GetCC(i))
+			t, err = checker.NewCheckMdsAddressTask(dingocli, config.GetCC(i))
 		case CHECK_STORE_HEALTH:
-			t, err = comm.NewCheckStoreHealthTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewCheckStoreHealthTask(dingocli, config.GetDC(i))
 		case CLEAN_PRECHECK_ENVIRONMENT:
 			if config.GetDC(i).GetRole() == topology.ROLE_FS_MDS_CLI {
 				continue
 			}
-			t, err = checker.NewCleanEnvironmentTask(dingoadm, config.GetDC(i))
+			t, err = checker.NewCleanEnvironmentTask(dingocli, config.GetDC(i))
 		// common
 		case PULL_IMAGE:
-			t, err = comm.NewPullImageTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewPullImageTask(dingocli, config.GetDC(i))
 		case CREATE_CONTAINER:
-			t, err = comm.NewCreateContainerTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewCreateContainerTask(dingocli, config.GetDC(i))
 		case CREATE_MDSV2_CLI_CONTAINER:
-			t, err = comm.NewCreateMdsv2CliContainerTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewCreateMdsv2CliContainerTask(dingocli, config.GetDC(i))
 		case SYNC_CONFIG:
-			t, err = comm.NewSyncConfigTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewSyncConfigTask(dingocli, config.GetDC(i))
 		case START_SERVICE,
 			START_ETCD,
 			START_MDS,
@@ -244,60 +244,60 @@ func (p *Playbook) createTasks(step *PlaybookStep) (*tasks.Tasks, error) {
 			START_DINGODB_EXECUTOR,
 			START_DINGODB_PROXY,
 			START_DINGODB_WEB:
-			t, err = comm.NewStartServiceTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewStartServiceTask(dingocli, config.GetDC(i))
 		case STOP_SERVICE:
-			t, err = comm.NewStopServiceTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewStopServiceTask(dingocli, config.GetDC(i))
 		case RESTART_SERVICE:
-			t, err = comm.NewRestartServiceTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewRestartServiceTask(dingocli, config.GetDC(i))
 		case CREATE_META_TABLES:
-			t, err = comm.NewCreateMetaTablesTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewCreateMetaTablesTask(dingocli, config.GetDC(i))
 		case INIT_SERVIE_STATUS:
-			t, err = comm.NewInitServiceStatusTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewInitServiceStatusTask(dingocli, config.GetDC(i))
 		case GET_SERVICE_STATUS:
-			t, err = comm.NewGetServiceStatusTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewGetServiceStatusTask(dingocli, config.GetDC(i))
 		case CLEAN_SERVICE:
-			t, err = comm.NewCleanServiceTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewCleanServiceTask(dingocli, config.GetDC(i))
 		case INIT_CLIENT_STATUS:
-			t, err = comm.NewInitClientStatusTask(dingoadm, config.GetAny(i))
+			t, err = comm.NewInitClientStatusTask(dingocli, config.GetAny(i))
 		case GET_CLIENT_STATUS:
-			t, err = comm.NewGetClientStatusTask(dingoadm, config.GetAny(i))
+			t, err = comm.NewGetClientStatusTask(dingocli, config.GetAny(i))
 		// fs
 		case CHECK_CLIENT_S3:
-			t, err = checker.NewClientS3ConfigureTask(dingoadm, config.GetCC(i))
+			t, err = checker.NewClientS3ConfigureTask(dingocli, config.GetCC(i))
 		case CREATE_DINGOFS:
-			t, err = fs.NewCreateDingoFSTask(dingoadm, config.GetCC(i))
+			t, err = fs.NewCreateDingoFSTask(dingocli, config.GetCC(i))
 		case MOUNT_FILESYSTEM:
-			t, err = fs.NewMountFSTask(dingoadm, config.GetCC(i))
+			t, err = fs.NewMountFSTask(dingocli, config.GetCC(i))
 		case UMOUNT_FILESYSTEM:
-			t, err = fs.NewUmountFSTask(dingoadm, config.GetCC(i))
+			t, err = fs.NewUmountFSTask(dingocli, config.GetCC(i))
 		// monitor
 		case PULL_MONITOR_IMAGE:
-			t, err = monitor.NewPullImageTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewPullImageTask(dingocli, config.GetMC(i))
 		case CREATE_MONITOR_CONTAINER:
-			t, err = monitor.NewCreateContainerTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewCreateContainerTask(dingocli, config.GetMC(i))
 		case SYNC_MONITOR_ORIGIN_CONFIG, SYNC_MONITOR_ALT_CONFIG:
-			t, err = monitor.NewSyncConfigTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewSyncConfigTask(dingocli, config.GetMC(i))
 		case SYNC_HOSTS_MAPPING:
-			t, err = monitor.NewSyncHostsMappingTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewSyncHostsMappingTask(dingocli, config.GetMC(i))
 		case CLEAN_CONFIG_CONTAINER:
-			t, err = monitor.NewCleanConfigContainerTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewCleanConfigContainerTask(dingocli, config.GetMC(i))
 		case START_MONITOR_SERVICE:
-			t, err = monitor.NewStartServiceTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewStartServiceTask(dingocli, config.GetMC(i))
 		case RESTART_MONITOR_SERVICE:
-			t, err = monitor.NewRestartServiceTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewRestartServiceTask(dingocli, config.GetMC(i))
 		case STOP_MONITOR_SERVICE:
-			t, err = monitor.NewStopServiceTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewStopServiceTask(dingocli, config.GetMC(i))
 		case INIT_MONITOR_STATUS:
-			t, err = monitor.NewInitMonitorStatusTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewInitMonitorStatusTask(dingocli, config.GetMC(i))
 		case GET_MONITOR_STATUS:
-			t, err = monitor.NewGetMonitorStatusTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewGetMonitorStatusTask(dingocli, config.GetMC(i))
 		case CLEAN_MONITOR_SERVICE:
-			t, err = monitor.NewCleanMonitorTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewCleanMonitorTask(dingocli, config.GetMC(i))
 		// dingo executor
 		case SYNC_JAVA_OPTS:
-			t, err = comm.NewSyncJavaOptsTask(dingoadm, config.GetDC(i))
+			t, err = comm.NewSyncJavaOptsTask(dingocli, config.GetDC(i))
 		case SYNC_GRAFANA_DASHBOARD:
-			t, err = monitor.NewSyncGrafanaDashboardTask(dingoadm, config.GetMC(i))
+			t, err = monitor.NewSyncGrafanaDashboardTask(dingocli, config.GetMC(i))
 
 		default:
 			return nil, errno.ERR_UNKNOWN_TASK_TYPE.

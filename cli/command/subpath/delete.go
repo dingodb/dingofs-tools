@@ -26,13 +26,13 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -52,7 +52,7 @@ type deleteOptions struct {
 	format  string
 }
 
-func NewSubpathDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewSubpathDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options deleteOptions
 
 	cmd := &cobra.Command{
@@ -79,7 +79,7 @@ func NewSubpathDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runDelete(cmd, dingoadm, options)
+			return runDelete(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -106,7 +106,7 @@ func NewSubpathDeleteCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runDelete(cmd *cobra.Command, dingoadm *cli.DingoAdm, options deleteOptions) error {
+func runDelete(cmd *cobra.Command, dingocli *cli.DingoCli, options deleteOptions) error {
 	var deleteInodes uint64 = 0
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,

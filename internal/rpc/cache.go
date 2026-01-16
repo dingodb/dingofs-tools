@@ -15,7 +15,7 @@
 package rpc
 
 import (
-	"github.com/dingodb/dingofs-tools/internal/common"
+	"github.com/dingodb/dingocli/internal/common"
 )
 
 var (

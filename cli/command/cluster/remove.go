@@ -17,12 +17,12 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ type removeOptions struct {
 	force       bool
 }
 
-func NewRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewRemoveCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options removeOptions
 
 	cmd := &cobra.Command{
@@ -41,7 +41,7 @@ func NewRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:    cliutil.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.clusterName = args[0]
-			return runRemove(dingoadm, options)
+			return runRemove(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -52,12 +52,12 @@ func NewRemoveCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func checkAllServicesRemoved(dingoadm *cli.DingoAdm, options removeOptions, clusterId int) error {
+func checkAllServicesRemoved(dingocli *cli.DingoCli, options removeOptions, clusterId int) error {
 	if options.force {
 		return nil
 	}
 
-	services, err := dingoadm.Storage().GetServices(clusterId)
+	services, err := dingocli.Storage().GetServices(clusterId)
 	if err != nil {
 		return errno.ERR_GET_ALL_SERVICES_CONTAINER_ID_FAILED.E(err)
 	}
@@ -72,9 +72,9 @@ func checkAllServicesRemoved(dingoadm *cli.DingoAdm, options removeOptions, clus
 	return nil
 }
 
-func runRemove(dingoadm *cli.DingoAdm, options removeOptions) error {
+func runRemove(dingocli *cli.DingoCli, options removeOptions) error {
 	// 1) get cluster by name
-	storage := dingoadm.Storage()
+	storage := dingocli.Storage()
 	clusterName := options.clusterName
 	clusters, err := storage.GetClusters(clusterName) // Get all clusters
 	if err != nil {
@@ -90,22 +90,22 @@ func runRemove(dingoadm *cli.DingoAdm, options removeOptions) error {
 	//   2.1): check wether all services removed (ignore by force)
 	//   2.2): confirm by user
 	//   2.3): delete cluster in database
-	if err := checkAllServicesRemoved(dingoadm, options, clusters[0].Id); err != nil {
+	if err := checkAllServicesRemoved(dingocli, options, clusters[0].Id); err != nil {
 		return err
 	}
 	// force stop
 	if !options.force && !tui.ConfirmYes(tui.PromptRemoveCluster(clusterName)) {
-		dingoadm.WriteOut(tui.PromptCancelOpetation("remove cluster"))
+		dingocli.WriteOut(tui.PromptCancelOpetation("remove cluster"))
 		return errno.ERR_CANCEL_OPERATION
 	} else {
-		dingoadm.WriteOut(tui.PromptRemoveCluster(clusterName))
+		dingocli.WriteOut(tui.PromptRemoveCluster(clusterName))
 	}
 
-	if err := dingoadm.Storage().DeleteCluster(clusterName); err != nil {
+	if err := dingocli.Storage().DeleteCluster(clusterName); err != nil {
 		return errno.ERR_DELETE_CLUSTER_FAILED.E(err)
 	}
 
 	// 3) print success prompt
-	dingoadm.WriteOutln("Deleted cluster '%s'", clusterName)
+	dingocli.WriteOutln("Deleted cluster '%s'", clusterName)
 	return nil
 }

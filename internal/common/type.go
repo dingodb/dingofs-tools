@@ -15,7 +15,7 @@
 package common
 
 import (
-	"github.com/dingodb/dingofs-tools/internal/errno"
+	"github.com/dingodb/dingocli/internal/errno"
 )
 
 type Summary struct {

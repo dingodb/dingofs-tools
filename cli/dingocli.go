@@ -21,21 +21,21 @@ import (
 	"os"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/cli/command"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/cli/command"
 )
 
 func Execute() {
-	dingoadm, err := cli.NewDingoAdm()
+	dingocli, err := cli.NewDingoCli()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	id := dingoadm.PreAudit(time.Now(), os.Args[1:])
-	cmd := command.NewDingoAdmCommand(dingoadm)
+	id := dingocli.PreAudit(time.Now(), os.Args[1:])
+	cmd := command.NewDingoCliCommand(dingocli)
 	err = cmd.Execute()
-	dingoadm.PostAudit(id, err)
+	dingocli.PostAudit(id, err)
 	if err != nil {
 		os.Exit(1)
 	}

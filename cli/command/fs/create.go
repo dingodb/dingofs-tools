@@ -21,14 +21,14 @@ import (
 	"math"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/utils"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
@@ -72,7 +72,7 @@ type createOptions struct {
 	format string
 }
 
-func NewFsCreateCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options createOptions
 
 	cmd := &cobra.Command{
@@ -135,7 +135,7 @@ func NewFsCreateCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
-			return runCreate(cmd, dingoadm, &options)
+			return runCreate(cmd, dingocli, &options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -175,7 +175,7 @@ func NewFsCreateCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runCreate(cmd *cobra.Command, dingoadm *cli.DingoAdm, options *createOptions) error {
+func runCreate(cmd *cobra.Command, dingocli *cli.DingoCli, options *createOptions) error {
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,
 	}

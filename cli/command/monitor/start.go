@@ -17,12 +17,12 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -38,14 +38,14 @@ type startOptions struct {
 	host string
 }
 
-func NewStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options startOptions
 	cmd := &cobra.Command{
 		Use:   "start [OPTIONS]",
 		Short: "Start monitor service",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStart(dingoadm, options)
+			return runStart(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -58,10 +58,10 @@ func NewStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStartPlaybook(dingoadm *cli.DingoAdm,
+func genStartPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options startOptions) (*playbook.Playbook, error) {
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -71,7 +71,7 @@ func genStartPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := MONITOR_START_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -81,22 +81,22 @@ func genStartPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runStart(dingoadm *cli.DingoAdm, options startOptions) error {
+func runStart(dingocli *cli.DingoCli, options startOptions) error {
 	// 1) parse monitor configure
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) generate start playbook
-	pb, err := genStartPlaybook(dingoadm, mcs, options)
+	pb, err := genStartPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
 
 	// 3) confirm by user
 	if pass := tui.ConfirmYes(tui.PromptStartService(options.id, options.role, options.host)); !pass {
-		dingoadm.WriteOut(tui.PromptCancelOpetation("start monitor service"))
+		dingocli.WriteOut(tui.PromptCancelOpetation("start monitor service"))
 		return errno.ERR_CANCEL_OPERATION
 	}
 

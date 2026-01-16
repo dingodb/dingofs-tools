@@ -19,15 +19,15 @@ package quota
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/output"
-	"github.com/dingodb/dingofs-tools/internal/rpc"
-	"github.com/dingodb/dingofs-tools/internal/table"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	pbmdserror "github.com/dingodb/dingofs-tools/proto/dingofs/proto/error"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/output"
+	"github.com/dingodb/dingocli/internal/rpc"
+	"github.com/dingodb/dingocli/internal/table"
+	"github.com/dingodb/dingocli/internal/utils"
+	pbmdserror "github.com/dingodb/dingocli/proto/dingofs/proto/error"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +42,7 @@ type getOptions struct {
 	format string
 }
 
-func NewFsQuotaGetCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewFsQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options getOptions
 
 	cmd := &cobra.Command{
@@ -68,7 +68,7 @@ func NewFsQuotaGetCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
-			return runGet(cmd, dingoadm, options)
+			return runGet(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -93,7 +93,7 @@ func NewFsQuotaGetCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runGet(cmd *cobra.Command, dingoadm *cli.DingoAdm, options getOptions) error {
+func runGet(cmd *cobra.Command, dingocli *cli.DingoCli, options getOptions) error {
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,
 	}

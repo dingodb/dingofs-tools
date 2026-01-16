@@ -20,19 +20,19 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	COMMIT_EXAMPLE = `Examples:
-  $ dingoadm config commit /path/to/topology.yaml  # Commit cluster topology`
+  $ dingocli config commit /path/to/topology.yaml  # Commit cluster topology`
 )
 
 var (
@@ -47,7 +47,7 @@ type commitOptions struct {
 	force    bool
 }
 
-func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCommitCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options commitOptions
 
 	cmd := &cobra.Command{
@@ -57,7 +57,7 @@ func NewCommitCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Example: COMMIT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.filename = args[0]
-			return runCommit(dingoadm, options)
+			return runCommit(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -77,8 +77,8 @@ func skipError(err error) bool {
 	return false
 }
 
-func checkDiff(dingoadm *cli.DingoAdm, newData string) error {
-	diffs, err := dingoadm.DiffTopology(dingoadm.ClusterTopologyData(), newData)
+func checkDiff(dingocli *cli.DingoCli, newData string) error {
+	diffs, err := dingocli.DiffTopology(dingocli.ClusterTopologyData(), newData)
 	if err != nil && !skipError(err) {
 		return err
 	}
@@ -99,14 +99,14 @@ func checkDiff(dingoadm *cli.DingoAdm, newData string) error {
 	return nil
 }
 
-func genCheckTopologyPlaybook(dingoadm *cli.DingoAdm,
+func genCheckTopologyPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options commitOptions) (*playbook.Playbook, error) {
 	steps := CHECK_TOPOLOGY_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 
 	kind := dcs[0].GetKind()
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 
 	skipRoles := topology.FetchSkipRoles(kind, dcs, roles)
 	for _, step := range steps {
@@ -129,7 +129,7 @@ func genCheckTopologyPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func readTopology(dingoadm *cli.DingoAdm, options commitOptions) (string, error) {
+func readTopology(dingocli *cli.DingoCli, options commitOptions) (string, error) {
 	filename := options.filename
 	if len(filename) == 0 {
 		return "", nil
@@ -143,26 +143,26 @@ func readTopology(dingoadm *cli.DingoAdm, options commitOptions) (string, error)
 		return "", errno.ERR_READ_TOPOLOGY_FILE_FAILED.E(err)
 	}
 
-	oldData := dingoadm.ClusterTopologyData()
+	oldData := dingocli.ClusterTopologyData()
 	if !options.slient {
 		diff := utils.Diff(oldData, data)
-		dingoadm.WriteOutln("%s", diff)
+		dingocli.WriteOutln("%s", diff)
 	}
 	return data, nil
 }
 
-func checkTopology(dingoadm *cli.DingoAdm, data string, options commitOptions) error {
+func checkTopology(dingocli *cli.DingoCli, data string, options commitOptions) error {
 	if options.force {
 		return nil
 	}
 
 	// 1) check topology content is ok
-	dcs, err := dingoadm.ParseTopologyData(data)
+	dcs, err := dingocli.ParseTopologyData(data)
 	if err != nil {
 		return err
 	}
 
-	pb, err := genCheckTopologyPlaybook(dingoadm, dcs, options)
+	pb, err := genCheckTopologyPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -173,8 +173,8 @@ func checkTopology(dingoadm *cli.DingoAdm, data string, options commitOptions) e
 	}
 
 	// 2) check wether add/delete service
-	if len(dingoadm.ClusterTopologyData()) > 0 {
-		err = checkDiff(dingoadm, data)
+	if len(dingocli.ClusterTopologyData()) > 0 {
+		err = checkDiff(dingocli, data)
 		if err != nil {
 			return err
 		}
@@ -183,21 +183,21 @@ func checkTopology(dingoadm *cli.DingoAdm, data string, options commitOptions) e
 	return nil
 }
 
-func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
+func runCommit(dingocli *cli.DingoCli, options commitOptions) error {
 	// 1) parse cluster topology
-	_, err := dingoadm.ParseTopology()
+	_, err := dingocli.ParseTopology()
 	if err != nil && !skipError(err) {
 		return err
 	}
 
 	// 2) read  topology
-	data, err := readTopology(dingoadm, options)
+	data, err := readTopology(dingocli, options)
 	if err != nil {
 		return err
 	}
 
 	// 3) check topology
-	err = checkTopology(dingoadm, data, options)
+	err = checkTopology(dingocli, data, options)
 	if err != nil {
 		return err
 	}
@@ -205,18 +205,18 @@ func runCommit(dingoadm *cli.DingoAdm, options commitOptions) error {
 	if !options.force {
 		// 4) confirm by user
 		if pass := tui.ConfirmYes("Do you want to continue?"); !pass {
-			dingoadm.WriteOutln(tui.PromptCancelOpetation("commit topology"))
+			dingocli.WriteOutln(tui.PromptCancelOpetation("commit topology"))
 			return errno.ERR_CANCEL_OPERATION
 		}
 	}
 
 	// 5) update cluster topology in database
-	err = dingoadm.Storage().SetClusterTopology(dingoadm.ClusterId(), data)
+	err = dingocli.Storage().SetClusterTopology(dingocli.ClusterId(), data)
 	if err != nil {
 		return errno.ERR_UPDATE_CLUSTER_TOPOLOGY_FAILED.E(err)
 	}
 
 	// 6) print success prompt
-	dingoadm.WriteOutln("Cluster '%s' topology updated", dingoadm.ClusterName())
+	dingocli.WriteOutln("Cluster '%s' topology updated", dingocli.ClusterName())
 	return err
 }

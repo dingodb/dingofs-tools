@@ -17,13 +17,13 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/tasks"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/tasks"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -42,14 +42,14 @@ type reloadOptions struct {
 	host string
 }
 
-func NewReloadCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewReloadCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options reloadOptions
 	cmd := &cobra.Command{
 		Use:   "reload [OPTIONS]",
 		Short: "Reload monitor service",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runReload(dingoadm, options)
+			return runReload(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -62,10 +62,10 @@ func NewReloadCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genReloadPlaybook(dingoadm *cli.DingoAdm,
+func genReloadPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options reloadOptions) (*playbook.Playbook, error) {
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -75,7 +75,7 @@ func genReloadPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := MONITOR_RELOAD_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		if step == playbook.CREATE_MONITOR_CONTAINER || step == playbook.CLEAN_CONFIG_CONTAINER {
 			pb.AddStep(&playbook.PlaybookStep{
@@ -96,22 +96,22 @@ func genReloadPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runReload(dingoadm *cli.DingoAdm, options reloadOptions) error {
+func runReload(dingocli *cli.DingoCli, options reloadOptions) error {
 	// 1) parse monitor configure
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) generate reload playbook
-	pb, err := genReloadPlaybook(dingoadm, mcs, options)
+	pb, err := genReloadPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
 
 	// 3) confirm by user
 	if pass := tui.ConfirmYes(tui.PromptReloadService(options.id, options.role, options.host)); !pass {
-		dingoadm.WriteOut(tui.PromptCancelOpetation("reload monitor service"))
+		dingocli.WriteOut(tui.PromptCancelOpetation("reload monitor service"))
 		return errno.ERR_CANCEL_OPERATION
 	}
 

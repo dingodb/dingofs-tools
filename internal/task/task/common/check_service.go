@@ -3,22 +3,22 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
-func NewCheckStoreHealthTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+func NewCheckStoreHealthTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func NewCheckStoreHealthTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: CheckContainerExist(host, role, containerId, &out),
@@ -49,7 +49,7 @@ func NewCheckStoreHealthTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) 
 		Command:     fmt.Sprintf("bash %s/%s", dc.GetProjectLayout().DingoStoreScriptDir, topology.SCRIPT_CHECK_STORE_HEALTH),
 		Success:     &success,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 
 	return t, nil

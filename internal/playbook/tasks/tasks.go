@@ -21,8 +21,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 	"github.com/fatih/color"
 	"github.com/vbauerster/mpb/v7"
 	"github.com/vbauerster/mpb/v7/decor"

@@ -17,14 +17,14 @@
 package cache
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/cli/command/cache/group"
-	"github.com/dingodb/dingofs-tools/cli/command/cache/member"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/cli/command/cache/group"
+	"github.com/dingodb/dingocli/cli/command/cache/member"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewCacheCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCacheCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cache",
 		Short: "Manage cache cluster",
@@ -32,9 +32,9 @@ func NewCacheCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		group.NewCacheGroupCommand(dingoadm),
-		member.NewCacheMemberCommand(dingoadm),
-		NewCacheStartCommand(dingoadm),
+		group.NewCacheGroupCommand(dingocli),
+		member.NewCacheMemberCommand(dingocli),
+		NewCacheStartCommand(dingocli),
 	)
 
 	return cmd

@@ -20,15 +20,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	task "github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/service"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	task "github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/service"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -50,7 +50,7 @@ type statusOptions struct {
 	dir           string
 }
 
-func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStatusCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options statusOptions
 
 	cmd := &cobra.Command{
@@ -58,7 +58,7 @@ func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Short: "Display service status",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStatus(dingoadm, options)
+			return runStatus(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -132,9 +132,9 @@ func getClusterCoorRaftAddr(dcs []*topology.DeployConfig) string {
 	return value
 }
 
-func displayStatus(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options statusOptions) int {
+func displayStatus(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options statusOptions) int {
 	statuses := []task.ServiceStatus{}
-	value := dingoadm.MemStorage().Get(comm.KEY_ALL_SERVICE_STATUS)
+	value := dingocli.MemStorage().Get(comm.KEY_ALL_SERVICE_STATUS)
 	if value != nil {
 		m := value.(map[string]task.ServiceStatus)
 		for _, status := range m {
@@ -142,7 +142,7 @@ func displayStatus(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options
 		}
 	}
 	excludeCols := []string{}
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 	isMdsv2 := dcs[0].GetCtx().Lookup(topology.CTX_KEY_MDS_VERSION) == topology.CTX_VAL_MDS_V2
 	isMdsv2Only := false
 	if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) && len(roles) == 2 {
@@ -178,46 +178,46 @@ func displayStatus(dingoadm *cli.DingoAdm, dcs []*topology.DeployConfig, options
 		output, width = tui.FormatDirStatus(dcs[0].GetKind(), statuses, options.showInstances, onlyDirs)
 	}
 
-	dingoadm.WriteOutln("")
+	dingocli.WriteOutln("")
 
 	switch dcs[0].GetKind() {
 	case topology.KIND_DINGOFS:
 		if isMdsv2 {
-			dingoadm.WriteOutln("cluster name     : %s", dingoadm.ClusterName())
-			dingoadm.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
-			dingoadm.WriteOutln("mds     addr     : %s", getClusterMdsV2Addr(dcs))
+			dingocli.WriteOutln("cluster name     : %s", dingocli.ClusterName())
+			dingocli.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
+			dingocli.WriteOutln("mds     addr     : %s", getClusterMdsV2Addr(dcs))
 			if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
-				dingoadm.WriteOutln("coordinator addr : %s", dcs[0].GetDingoStoreCoordinatorAddr())
+				dingocli.WriteOutln("coordinator addr : %s", dcs[0].GetDingoStoreCoordinatorAddr())
 			} else {
-				dingoadm.WriteOutln("coordinator addr : %s", getClusterCoorAddr(dcs))
+				dingocli.WriteOutln("coordinator addr : %s", getClusterCoorAddr(dcs))
 			}
 		} else {
-			dingoadm.WriteOutln("cluster name      : %s", dingoadm.ClusterName())
-			dingoadm.WriteOutln("cluster kind      : %s", dcs[0].GetKind())
-			dingoadm.WriteOutln("cluster mds addr  : %s", getClusterMdsAddr(dcs))
-			dingoadm.WriteOutln("cluster mds leader: %s", getClusterMdsLeader(statuses))
+			dingocli.WriteOutln("cluster name      : %s", dingocli.ClusterName())
+			dingocli.WriteOutln("cluster kind      : %s", dcs[0].GetKind())
+			dingocli.WriteOutln("cluster mds addr  : %s", getClusterMdsAddr(dcs))
+			dingocli.WriteOutln("cluster mds leader: %s", getClusterMdsLeader(statuses))
 		}
 	case topology.KIND_DINGOSTORE:
-		dingoadm.WriteOutln("cluster name             : %s", dingoadm.ClusterName())
-		dingoadm.WriteOutln("cluster kind             : %s", dcs[0].GetKind())
-		dingoadm.WriteOutln("cooridinator server addr : %s", getClusterCoorServerAddr(dcs))
-		dingoadm.WriteOutln("cooridinator raft   addr : %s", getClusterCoorRaftAddr(dcs))
+		dingocli.WriteOutln("cluster name             : %s", dingocli.ClusterName())
+		dingocli.WriteOutln("cluster kind             : %s", dcs[0].GetKind())
+		dingocli.WriteOutln("cooridinator server addr : %s", getClusterCoorServerAddr(dcs))
+		dingocli.WriteOutln("cooridinator raft   addr : %s", getClusterCoorRaftAddr(dcs))
 	case topology.KIND_DINGODB:
-		dingoadm.WriteOutln("cluster name             : %s", dingoadm.ClusterName())
-		dingoadm.WriteOutln("cluster kind             : %s", dcs[0].GetKind())
-		dingoadm.WriteOutln("coordinator addr         : %s", getClusterCoorServerAddr(dcs))
-		dingoadm.WriteOutln("coordinator raft   addr  : %s", getClusterCoorRaftAddr(dcs))
+		dingocli.WriteOutln("cluster name             : %s", dingocli.ClusterName())
+		dingocli.WriteOutln("cluster kind             : %s", dcs[0].GetKind())
+		dingocli.WriteOutln("coordinator addr         : %s", getClusterCoorServerAddr(dcs))
+		dingocli.WriteOutln("coordinator raft   addr  : %s", getClusterCoorRaftAddr(dcs))
 	}
 
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOut("%s", output)
+	dingocli.WriteOutln("")
+	dingocli.WriteOut("%s", output)
 	return width
 }
 
-func genStatusPlaybook(dingoadm *cli.DingoAdm,
+func genStatusPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options statusOptions) (*playbook.Playbook, error) {
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -236,7 +236,7 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := GET_STATUS_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -252,15 +252,15 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
+func runStatus(dingocli *cli.DingoCli, options statusOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) generate get status playbook
-	pb, err := genStatusPlaybook(dingoadm, dcs, options)
+	pb, err := genStatusPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -269,25 +269,25 @@ func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
 	err = pb.Run()
 
 	// 4) display service status
-	width := displayStatus(dingoadm, dcs, options)
+	width := displayStatus(dingocli, dcs, options)
 	if options.withCluster != "" {
 
-		dingoadm.WriteOutln("\n%s\n", strings.Repeat("-", width))
-		storage := dingoadm.Storage()
+		dingocli.WriteOutln("\n%s\n", strings.Repeat("-", width))
+		storage := dingocli.Storage()
 		attachCluster, err := storage.GetClusterByName(options.withCluster)
 		if err != nil || attachCluster.Id <= 0 {
-			dingoadm.WriteOutln("Not Found cluster: %s ", options.withCluster)
+			dingocli.WriteOutln("Not Found cluster: %s ", options.withCluster)
 		} else {
-			err = dingoadm.SwitchCluster(attachCluster)
+			err = dingocli.SwitchCluster(attachCluster)
 			if err != nil {
-				dingoadm.WriteOutln("Switch cluster: %s failed ", options.withCluster)
+				dingocli.WriteOutln("Switch cluster: %s failed ", options.withCluster)
 			} else {
-				dcs, err := dingoadm.ParseTopology()
+				dcs, err := dingocli.ParseTopology()
 				if err == nil {
-					pb, err := genStatusPlaybook(dingoadm, dcs, options)
+					pb, err := genStatusPlaybook(dingocli, dcs, options)
 					if err == nil {
 						pb.Run()
-						displayStatus(dingoadm, dcs, options)
+						displayStatus(dingocli, dcs, options)
 					}
 				}
 			}

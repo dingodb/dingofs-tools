@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/variable"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/variable"
 )
 
 const (
@@ -311,7 +311,7 @@ type (
 		ServiceConfSrcPath string // /dingofs/conf/mds.conf
 		ServiceConfFiles   []ConfFile
 
-		// dingofs-tools
+		// dingocli
 		FSToolsBinDir         string // /dingofs/tools/sbin
 		FSToolsConfDir        string // /dingofs/tools/conf
 		FSToolsConfSrcPath    string // /dingofs/conf/dingo.yaml
@@ -394,7 +394,7 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		})
 	}
 
-	// dingofs-tools
+	// dingocli
 	fsToolsRootDir := root + LAYOUT_FS_TOOLS_DIR
 	fsToolsBinDir := fsToolsRootDir + LAYOUT_SERVICE_BIN_DIR
 	fsToolsBinaryName := BINARY_DINGOFS_TOOLS

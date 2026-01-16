@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/proto/dingofs/proto/mds"
+	"github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/spf13/cobra"
 )
 

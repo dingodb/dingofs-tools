@@ -30,9 +30,9 @@ OUTPUT := bin/dingo
 # build flags
 LDFLAGS := -s -w
 LDFLAGS += -extldflags "-static -fpic"
-LDFLAGS += -X github.com/dingodb/dingofs-tools/cli/cli.Version=3.1
-LDFLAGS += -X github.com/dingodb/dingofs-tools/cli/cli.CommitId=$(shell git rev-parse --short HEAD)
-LDFLAGS += -X github.com/dingodb/dingofs-tools/cli/cli.BuildTime=$(shell date +%Y-%m-%dT%H:%M:%S)
+LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.Version=3.1
+LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.CommitId=$(shell git rev-parse --short HEAD)
+LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.BuildTime=$(shell date +%Y-%m-%dT%H:%M:%S)
 
 BUILD_FLAGS := -a
 BUILD_FLAGS += -trimpath

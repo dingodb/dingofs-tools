@@ -17,22 +17,22 @@
 package command
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
-	utils "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
+	utils "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	CLEAN_EXAMPLE = `Examples:
-  $ dingoadm clean                               # Clean everything for all services
-  $ dingoadm clean --only='log,data'             # Clean log and data for all services
-  $ dingoadm clean --role=etcd --only=container  # Clean container for etcd services`
+  $ dingocli clean                               # Clean everything for all services
+  $ dingocli clean --only='log,data'             # Clean log and data for all services
+  $ dingocli clean --role=etcd --only=container  # Clean container for etcd services`
 )
 
 var (
@@ -59,7 +59,7 @@ type cleanOptions struct {
 	force          bool
 }
 
-func checkCleanOptions(dingoadm *cli.DingoAdm, options cleanOptions) error {
+func checkCleanOptions(dingocli *cli.DingoCli, options cleanOptions) error {
 	supported := utils.Slice2Map(CLEAN_ITEMS)
 	for _, item := range options.only {
 		if !supported[item] {
@@ -67,10 +67,10 @@ func checkCleanOptions(dingoadm *cli.DingoAdm, options cleanOptions) error {
 				F("clean item: %s", item)
 		}
 	}
-	return checkCommonOptions(dingoadm, options.id, options.role, options.host)
+	return checkCommonOptions(dingocli, options.id, options.role, options.host)
 }
 
-func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCleanCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options cleanOptions
 
 	cmd := &cobra.Command{
@@ -79,10 +79,10 @@ func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:    cliutil.NoArgs,
 		Example: CLEAN_EXAMPLE,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return checkCleanOptions(dingoadm, options)
+			return checkCleanOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runClean(dingoadm, options)
+			return runClean(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -98,10 +98,10 @@ func NewCleanCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genCleanPlaybook(dingoadm *cli.DingoAdm,
+func genCleanPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
 	options cleanOptions) (*playbook.Playbook, error) {
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -110,7 +110,7 @@ func genCleanPlaybook(dingoadm *cli.DingoAdm,
 		return nil, errno.ERR_NO_SERVICES_MATCHED
 	}
 
-	roles := dingoadm.GetRoles(dcs)
+	roles := dingocli.GetRoles(dcs)
 
 	// remove raft item if no coordinator or store
 	if !utils.Existed(roles, []string{topology.ROLE_COORDINATOR, topology.ROLE_STORE, topology.ROLE_DINGODB_DOCUMENT, topology.ROLE_DINGODB_INDEX}) {
@@ -149,7 +149,7 @@ func genCleanPlaybook(dingoadm *cli.DingoAdm,
 		steps = append([]int{playbook.STOP_SERVICE}, steps...)
 	}
 
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -163,15 +163,15 @@ func genCleanPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runClean(dingoadm *cli.DingoAdm, options cleanOptions) error {
+func runClean(dingocli *cli.DingoCli, options cleanOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) generate clean playbook
-	pb, err := genCleanPlaybook(dingoadm, dcs, options)
+	pb, err := genCleanPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
@@ -179,12 +179,12 @@ func runClean(dingoadm *cli.DingoAdm, options cleanOptions) error {
 	// 3) confirm by user
 	// 3) force stop
 	if options.force {
-		dingoadm.WriteOutln(tui.PromptForceOpetation("clean service"))
+		dingocli.WriteOutln(tui.PromptForceOpetation("clean service"))
 		return pb.Run()
 	}
 
 	if pass := tui.ConfirmYes(tui.PromptCleanService(options.role, options.host, options.only)); !pass {
-		dingoadm.WriteOut(tui.PromptCancelOpetation("clean service"))
+		dingocli.WriteOut(tui.PromptCancelOpetation("clean service"))
 		return errno.ERR_CANCEL_OPERATION
 	}
 

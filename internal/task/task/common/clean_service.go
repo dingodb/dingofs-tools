@@ -20,16 +20,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	"github.com/dingodb/dingofs-tools/pkg/module"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/storage"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/pkg/module"
 	"github.com/fatih/color"
 )
 
@@ -94,34 +94,34 @@ func getCleanFiles(clean map[string]bool, dc *topology.DeployConfig) []string {
 	return files
 }
 
-func NewCleanServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewCleanServiceTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if containerId == comm.CLEANED_CONTAINER_ID {
 		// container has removed, no need to clean
-		dingoadm.Storage().SetContainId(serviceId, comm.CLEANED_CONTAINER_ID)
-		dingoadm.WriteOutln("%s clean service: host=%s role=%s ", color.YellowString("[SKIP]"), dc.GetHost(), dc.GetRole())
+		dingocli.Storage().SetContainId(serviceId, comm.CLEANED_CONTAINER_ID)
+		dingocli.WriteOutln("%s clean service: host=%s role=%s ", color.YellowString("[SKIP]"), dc.GetHost(), dc.GetRole())
 		return nil, nil
 	}
-	if dingoadm.IsSkip(dc) {
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
 
 	if dc.GetRole() == topology.ROLE_FS_MDS_CLI {
-		skipTmp := dingoadm.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
+		skipTmp := dingocli.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
 		if skipTmp != nil && skipTmp.(bool) {
 			return nil, nil
 		}
 	}
 
 	// new task
-	only := dingoadm.MemStorage().Get(comm.KEY_CLEAN_ITEMS).([]string)
+	only := dingocli.MemStorage().Get(comm.KEY_CLEAN_ITEMS).([]string)
 	subname := fmt.Sprintf("host=%s role=%s containerId=%s clean=%s",
 		dc.GetHost(), dc.GetRole(), tui.TrimContainerId(containerId), strings.Join(only, ","))
 	t := task.NewTask("Clean Service", subname, hc.GetSSHConfig())
@@ -132,7 +132,7 @@ func NewCleanServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 
 	t.AddStep(&step.RemoveFile{
 		Files:       files,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	if clean[comm.CLEAN_ITEM_CONTAINER] {
 
@@ -141,7 +141,7 @@ func NewCleanServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 		// ContainerId: containerId,
 		// Format:      "'{{.State.Status}}'",
 		// Out:         &status,
-		// ExecOptions: dingoadm.ExecOptions(),
+		// ExecOptions: dingocli.ExecOptions(),
 		// })
 		// if err != nil {
 		// return errno.ERR_CONTAINER_NOT_EXISTED.S(*s.Out)
@@ -155,8 +155,8 @@ func NewCleanServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*ta
 		t.AddStep(&Step2CleanContainer{
 			ServiceId:   serviceId,
 			ContainerId: containerId,
-			Storage:     dingoadm.Storage(),
-			ExecOptions: dingoadm.ExecOptions(),
+			Storage:     dingocli.Storage(),
+			ExecOptions: dingocli.ExecOptions(),
 		})
 	}
 

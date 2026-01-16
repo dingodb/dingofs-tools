@@ -20,13 +20,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/scripts"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/scripts"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
 const (
@@ -113,22 +113,22 @@ func syncJavaOpts(java_opts map[string]interface{}, hostSyncJavaOptsScriptPath, 
 	return command
 }
 
-func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
 	if dc.GetRole() == topology.ROLE_FS_MDS_CLI {
-		skipTmp := dingoadm.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
+		skipTmp := dingocli.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
 		if skipTmp != nil && skipTmp.(bool) {
 			return nil, nil
 		}
 	}
 
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: CheckContainerExist(dc.GetHost(), dc.GetRole(), containerId, &out),
@@ -170,7 +170,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task
 				KVFieldSplit:      delimiter,
 				Mutate:            NewMutate(dc, delimiter, conf.Name == "nginx.conf"),
 				SerivceConfig:     dc.GetServiceConfig(),
-				ExecOptions:       dingoadm.ExecOptions(),
+				ExecOptions:       dingocli.ExecOptions(),
 			})
 		}
 
@@ -191,7 +191,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task
 				ContainerId:       &containerId,
 				ContainerDestPath: checkStoreScriptPath,
 				Content:           &checkStoreScript,
-				ExecOptions:       dingoadm.ExecOptions(),
+				ExecOptions:       dingocli.ExecOptions(),
 			})
 
 			return t, nil
@@ -204,7 +204,7 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task
 				ContainerId:       &containerId,
 				ContainerDestPath: createTablesScriptPath,
 				Content:           &createTablesScript,
-				ExecOptions:       dingoadm.ExecOptions(),
+				ExecOptions:       dingocli.ExecOptions(),
 			})
 
 		} else if dc.GetRole() == topology.ROLE_DINGODB_EXECUTOR {
@@ -216,45 +216,45 @@ func NewSyncConfigTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task
 			// sync executor java opts config /opt/dingo/bin/start-executor.sh
 			syncJavaOptsScript := scripts.SYNC_JAVA_OPTS
 			// containerSyncJavaOptsScriptPath := fmt.Sprintf("%s/%s", layout.DingoExecutorBinDir, topology.SCRIPT_SYNC_JAVA_OPTS)
-			hostSyncJavaOptsScriptPath := fmt.Sprintf("%s/%s", dingoadm.TempDir(), topology.SCRIPT_SYNC_JAVA_OPTS)
+			hostSyncJavaOptsScriptPath := fmt.Sprintf("%s/%s", dingocli.TempDir(), topology.SCRIPT_SYNC_JAVA_OPTS)
 			containerStartExecutorPath := fmt.Sprintf("%s/%s", layout.DingoExecutorBinDir, topology.SCRIPT_START_EXECUTOR)
-			hostStartExecutorPath := fmt.Sprintf("%s/%s", dingoadm.TempDir(), topology.SCRIPT_START_EXECUTOR)
+			hostStartExecutorPath := fmt.Sprintf("%s/%s", dingocli.TempDir(), topology.SCRIPT_START_EXECUTOR)
 			t.AddStep(&step.InstallFile{ // install sync_java_opts.sh on local script
 				HostDestPath: hostSyncJavaOptsScriptPath,
 				Content:      &syncJavaOptsScript,
-				ExecOptions:  dingoadm.ExecOptions(),
+				ExecOptions:  dingocli.ExecOptions(),
 			})
 
 			t.AddStep(&step.CopyFromContainer{ // copy container /opt/dingo/bin/start-executor.sh to host
 				ContainerId:      containerId,
 				ContainerSrcPath: containerStartExecutorPath,
 				HostDestPath:     hostStartExecutorPath,
-				ExecOptions:      dingoadm.ExecOptions(),
+				ExecOptions:      dingocli.ExecOptions(),
 			})
 
 			t.AddStep(&step.Command{
 				Command:     syncJavaOpts(java_opts, hostSyncJavaOptsScriptPath, hostStartExecutorPath),
 				Out:         &out,
-				ExecOptions: dingoadm.ExecOptions(),
+				ExecOptions: dingocli.ExecOptions(),
 			})
 
 			t.AddStep(&step.CopyIntoContainer{ // copy host start-executor.sh to container
 				HostSrcPath:       hostStartExecutorPath,
 				ContainerId:       containerId,
 				ContainerDestPath: containerStartExecutorPath,
-				ExecOptions:       dingoadm.ExecOptions(),
+				ExecOptions:       dingocli.ExecOptions(),
 			})
 
 		} else {
 			containerToolsSrcPath := layout.FSToolsConfSrcPath
-			t.AddStep(&step.TrySyncFile{ // sync dingofs-tools config
+			t.AddStep(&step.TrySyncFile{ // sync dingocli config
 				ContainerSrcId:    &containerId,
 				ContainerSrcPath:  containerToolsSrcPath,
 				ContainerDestId:   &containerId,
 				ContainerDestPath: layout.FSToolsConfSystemPath,
 				KVFieldSplit:      CONFIG_DELIMITER_COLON,
 				Mutate:            NewMutate(dc, CONFIG_DELIMITER_COLON, false),
-				ExecOptions:       dingoadm.ExecOptions(),
+				ExecOptions:       dingocli.ExecOptions(),
 			})
 
 		}

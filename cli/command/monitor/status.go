@@ -19,14 +19,14 @@ package monitor
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/task/task/monitor"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/service"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/task/task/monitor"
+	tui "github.com/dingodb/dingocli/internal/tui/service"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -44,14 +44,14 @@ type statusOptions struct {
 	verbose bool
 }
 
-func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewStatusCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options statusOptions
 	cmd := &cobra.Command{
 		Use:   "status [OPTIONS]",
 		Short: "Display monitor services status",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStatus(dingoadm, options)
+			return runStatus(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -64,10 +64,10 @@ func NewStatusCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genStatusPlaybook(dingoadm *cli.DingoAdm,
+func genStatusPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig,
 	options statusOptions) (*playbook.Playbook, error) {
-	mcs = configure.FilterMonitorConfig(dingoadm, mcs, configure.FilterMonitorOption{
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
 		Id:   options.id,
 		Role: options.role,
 		Host: options.host,
@@ -77,7 +77,7 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	}
 
 	steps := GET_MONITOR_STATUS_PLAYBOOK_STEPS
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
 			Type:    step,
@@ -92,9 +92,9 @@ func genStatusPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func displayStatus(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, options statusOptions) {
+func displayStatus(dingocli *cli.DingoCli, mcs []*configure.MonitorConfig, options statusOptions) {
 	statuses := []monitor.MonitorStatus{}
-	value := dingoadm.MemStorage().Get(comm.KEY_MONITOR_STATUS)
+	value := dingocli.MemStorage().Get(comm.KEY_MONITOR_STATUS)
 	if value != nil {
 		m := value.(map[string]monitor.MonitorStatus)
 		for _, status := range m {
@@ -114,23 +114,23 @@ func displayStatus(dingoadm *cli.DingoAdm, mcs []*configure.MonitorConfig, optio
 	}
 
 	output := tui.FormatMonitorStatus(statuses, options.verbose)
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln("cluster name    : %s", dingoadm.ClusterName())
-	dingoadm.WriteOutln("cluster kind    : %s", mcs[0].GetKind())
-	dingoadm.WriteOutln("grafana address : %s", grafanaAddr)
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOut("%s", output)
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln("cluster name    : %s", dingocli.ClusterName())
+	dingocli.WriteOutln("cluster kind    : %s", mcs[0].GetKind())
+	dingocli.WriteOutln("grafana address : %s", grafanaAddr)
+	dingocli.WriteOutln("")
+	dingocli.WriteOut("%s", output)
 }
 
-func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
+func runStatus(dingocli *cli.DingoCli, options statusOptions) error {
 	// 1) parse monitor config
-	mcs, err := configure.ParseMonitor(dingoadm)
+	mcs, err := configure.ParseMonitor(dingocli)
 	if err != nil {
 		return err
 	}
 
 	// 2) generate get status playbook
-	pb, err := genStatusPlaybook(dingoadm, mcs, options)
+	pb, err := genStatusPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
@@ -139,7 +139,7 @@ func runStatus(dingoadm *cli.DingoAdm, options statusOptions) error {
 	err = pb.Run()
 
 	// 4) display service status
-	displayStatus(dingoadm, mcs, options)
+	displayStatus(dingocli, mcs, options)
 	return err
 
 }

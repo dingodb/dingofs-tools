@@ -17,12 +17,12 @@
 package quota
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewQuotaCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewQuotaCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "quota",
 		Short: "Manage directory quota",
@@ -30,11 +30,11 @@ func NewQuotaCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewQuotaSetCommand(dingoadm),
-		NewQuotaGetCommand(dingoadm),
-		NewQuotaCheckCommand(dingoadm),
-		NewQuotaListCommand(dingoadm),
-		NewQuotaDeleteCommand(dingoadm),
+		NewQuotaSetCommand(dingocli),
+		NewQuotaGetCommand(dingocli),
+		NewQuotaCheckCommand(dingocli),
+		NewQuotaListCommand(dingocli),
+		NewQuotaDeleteCommand(dingocli),
 	)
 
 	return cmd

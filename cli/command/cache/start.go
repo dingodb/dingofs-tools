@@ -23,8 +23,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -43,7 +43,7 @@ type startOptions struct {
 	daemonize   bool
 }
 
-func NewCacheStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options startOptions
 
 	cmd := &cobra.Command{
@@ -80,7 +80,7 @@ func NewCacheStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 				}
 			}
 
-			return runStart(cmd, dingoadm, options)
+			return runStart(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -91,7 +91,7 @@ func NewCacheStartCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runStart(cmd *cobra.Command, dingoadm *cli.DingoAdm, options startOptions) error {
+func runStart(cmd *cobra.Command, dingocli *cli.DingoCli, options startOptions) error {
 	var oscmd *exec.Cmd
 	var name string
 

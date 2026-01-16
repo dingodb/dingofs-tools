@@ -17,21 +17,21 @@
 package monitor
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/playbook"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	"github.com/dingodb/dingofs-tools/internal/tasks"
-	"github.com/dingodb/dingofs-tools/internal/utils"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/playbook"
+	"github.com/dingodb/dingocli/internal/storage"
+	"github.com/dingodb/dingocli/internal/tasks"
+	"github.com/dingodb/dingocli/internal/utils"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 const (
 	DEPLOY_EXAMPLE = `Examples:
-	$ dingoadm monitor deploy -c monitor.yaml    # deploy monitor for current cluster`
+	$ dingocli monitor deploy -c monitor.yaml    # deploy monitor for current cluster`
 )
 
 var (
@@ -62,7 +62,7 @@ type deployOptions struct {
  *     4.2) start prometheus container
  *     4.3) start grafana container
  */
-func NewDeployCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewDeployCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options deployOptions
 
 	cmd := &cobra.Command{
@@ -71,7 +71,7 @@ func NewDeployCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:    cliutil.NoArgs,
 		Example: DEPLOY_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeploy(dingoadm, options)
+			return runDeploy(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -82,7 +82,7 @@ func NewDeployCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func genDeployPlaybook(dingoadm *cli.DingoAdm,
+func genDeployPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig, options deployOptions) (*playbook.Playbook, error) {
 	steps := MONITOR_DEPLOY_STEPS
 	if options.useLocalImage {
@@ -94,7 +94,7 @@ func genDeployPlaybook(dingoadm *cli.DingoAdm,
 			}
 		}
 	}
-	pb := playbook.NewPlaybook(dingoadm)
+	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		if step == playbook.CLEAN_CONFIG_CONTAINER {
 			pb.AddStep(&playbook.PlaybookStep{
@@ -115,9 +115,9 @@ func genDeployPlaybook(dingoadm *cli.DingoAdm,
 	return pb, nil
 }
 
-func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
+func runDeploy(dingocli *cli.DingoCli, options deployOptions) error {
 	// 1) parse cluster topology and get services' hosts
-	mcs, err := configure.ParseMonitorInfo(dingoadm, options.filename, configure.INFO_TYPE_FILE)
+	mcs, err := configure.ParseMonitorInfo(dingocli, options.filename, configure.INFO_TYPE_FILE)
 	if err != nil {
 		return err
 	}
@@ -127,8 +127,8 @@ func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	if err != nil {
 		return errno.ERR_READ_MONITOR_FILE_FAILED.E(err)
 	}
-	err = dingoadm.Storage().ReplaceMonitor(storage.Monitor{
-		ClusterId: dingoadm.ClusterId(),
+	err = dingocli.Storage().ReplaceMonitor(storage.Monitor{
+		ClusterId: dingocli.ClusterId(),
 		Monitor:   data,
 	})
 	if err != nil {
@@ -136,7 +136,7 @@ func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	}
 
 	// 4) generate deploy playbook
-	pb, err := genDeployPlaybook(dingoadm, mcs, options)
+	pb, err := genDeployPlaybook(dingocli, mcs, options)
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func runDeploy(dingoadm *cli.DingoAdm, options deployOptions) error {
 	}
 
 	// 6) print success prompt
-	dingoadm.WriteOutln("")
-	dingoadm.WriteOutln(color.GreenString("Deploy monitor success ^_^"))
+	dingocli.WriteOutln("")
+	dingocli.WriteOutln(color.GreenString("Deploy monitor success ^_^"))
 	return nil
 }

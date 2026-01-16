@@ -20,10 +20,10 @@ import (
 	"strconv"
 	"strings"
 
-	configure "github.com/dingodb/dingofs-tools/internal/configure/hosts"
-	"github.com/dingodb/dingofs-tools/internal/tui/common"
-	tuicommon "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	configure "github.com/dingodb/dingocli/internal/configure/hosts"
+	"github.com/dingodb/dingocli/internal/tui/common"
+	tuicommon "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 const (

@@ -19,9 +19,9 @@ package tui
 import (
 	"strconv"
 
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	"github.com/dingodb/dingofs-tools/internal/tui/common"
-	tuicommon "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/storage"
+	"github.com/dingodb/dingocli/internal/tui/common"
+	tuicommon "github.com/dingodb/dingocli/internal/tui/common"
 	"github.com/fatih/color"
 )
 

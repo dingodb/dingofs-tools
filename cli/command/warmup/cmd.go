@@ -17,8 +17,8 @@
 package warmup
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ const (
 	DINGOFS_WARMUP_OP_XATTR = "dingofs.warmup.op"
 )
 
-func NewWarmupCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewWarmupCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "warmup",
 		Short: "Warmup file to local cache",
@@ -34,8 +34,8 @@ func NewWarmupCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	}
 
 	cmd.AddCommand(
-		NewWarmupAddCommand(dingoadm),
-		NewWarmupQueryCommand(dingoadm),
+		NewWarmupAddCommand(dingocli),
+		NewWarmupQueryCommand(dingocli),
 	)
 
 	return cmd

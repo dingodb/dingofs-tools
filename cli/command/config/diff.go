@@ -17,22 +17,22 @@
 package config
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	DIFF_EXAMPLE = `Examples:
-  $ dingoadm config diff /path/to/topology.yaml  # Display difference for topology`
+  $ dingocli config diff /path/to/topology.yaml  # Display difference for topology`
 )
 
 type diffOptions struct {
 	filename string
 }
 
-func NewDiffCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewDiffCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options diffOptions
 
 	cmd := &cobra.Command{
@@ -42,7 +42,7 @@ func NewDiffCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Example: DIFF_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.filename = args[0]
-			return runDiff(dingoadm, options)
+			return runDiff(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -50,9 +50,9 @@ func NewDiffCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runDiff(dingoadm *cli.DingoAdm, options diffOptions) error {
+func runDiff(dingocli *cli.DingoCli, options diffOptions) error {
 	// 1) data1: current cluster topology data
-	data1 := dingoadm.ClusterTopologyData()
+	data1 := dingocli.ClusterTopologyData()
 
 	// 2) data2: topology in file
 	if !utils.PathExist(options.filename) {
@@ -66,6 +66,6 @@ func runDiff(dingoadm *cli.DingoAdm, options diffOptions) error {
 
 	// 3) print difference
 	diff := utils.Diff(data1, data2)
-	dingoadm.Out().Write([]byte(diff))
+	dingocli.Out().Write([]byte(diff))
 	return nil
 }

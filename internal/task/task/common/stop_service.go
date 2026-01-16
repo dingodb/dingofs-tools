@@ -19,13 +19,13 @@ package common
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
 )
 
 func CheckContainerExist(host, role, containerId string, out *string) step.LambdaType {
@@ -49,22 +49,22 @@ func checkContainerId(containerId string) step.LambdaType {
 	}
 }
 
-func NewStopServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewStopServiceTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
 	host, role := dc.GetHost(), dc.GetRole()
 	if role == topology.ROLE_FS_MDS_CLI {
-		skipTmp := dingoadm.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
+		skipTmp := dingocli.MemStorage().Get(comm.KEY_SKIP_MDSV2_CLI)
 		if skipTmp != nil && skipTmp.(bool) {
 			return nil, nil
 		}
 	}
 
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
-	if dingoadm.IsSkip(dc) {
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
+	if dingocli.IsSkip(dc) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func NewStopServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*tas
 		Format:      `"{{.ID}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: CheckContainerExist(host, role, containerId, &out),
@@ -93,7 +93,7 @@ func NewStopServiceTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*tas
 	t.AddStep(&step.StopContainer{
 		ContainerId: containerId,
 		Out:         &out,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	return t, nil
 }

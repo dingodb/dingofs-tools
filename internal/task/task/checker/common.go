@@ -17,7 +17,7 @@
 package checker
 
 import (
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/configure/topology"
 )
 
 type (

@@ -21,15 +21,15 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/storage"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/storage"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 )
 
 const (
@@ -131,7 +131,7 @@ func (s *Step2InsertService) Execute(ctx *context.Context) error {
 }
 
 func getContainerCMD(dc *topology.DeployConfig) string {
-	//upgrade_flag := dingoadm.MemStorage().Get(comm.KEY_UPGRADE_FLAG).(bool)
+	//upgrade_flag := dingocli.MemStorage().Get(comm.KEY_UPGRADE_FLAG).(bool)
 	cmd := "deploystart" // cleanstart
 	//if upgrade_flag {
 	//	cmd = "deploystart"
@@ -395,11 +395,11 @@ func TrimContainerId(containerId *string) step.LambdaType {
 	}
 }
 
-func NewCreateContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+func NewCreateContainerTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
 	if dc.GetRole() == topology.ROLE_FS_MDS_CLI {
 		return nil, nil
 	}
-	hc, err := dingoadm.GetHost(dc.GetHost())
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -410,19 +410,19 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 
 	// add step to task
 	var oldContainerId, containerId string
-	clusterId := dingoadm.ClusterId()
+	clusterId := dingocli.ClusterId()
 	dcId := dc.GetId()
-	serviceId := dingoadm.GetServiceId(dcId)
+	serviceId := dingocli.GetServiceId(dcId)
 	kind := dc.GetKind()
 	role := dc.GetRole()
 	hostname := fmt.Sprintf("%s-%s-%s", kind, role, serviceId)
-	options := dingoadm.ExecOptions()
+	options := dingocli.ExecOptions()
 	options.ExecWithSudo = false
 
 	t.AddStep(&Step2GetService{ // if service exist, break task
 		ServiceId:   serviceId,
 		ContainerId: &oldContainerId,
-		Storage:     dingoadm.Storage(),
+		Storage:     dingocli.Storage(),
 	})
 
 	createDir := []string{dc.GetLogDir(), dc.GetDataDir()}
@@ -459,7 +459,7 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 		Ulimits:     getUlimits(),
 		Volumes:     getMountVolumes(dc),
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: TrimContainerId(&containerId),
@@ -469,14 +469,14 @@ func NewCreateContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (
 		ServiceId:      serviceId,
 		ContainerId:    &containerId,
 		OldContainerId: &oldContainerId,
-		Storage:        dingoadm.Storage(),
+		Storage:        dingocli.Storage(),
 	})
 
 	return t, nil
 }
 
-func NewCreateMdsv2CliContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
-	hc, err := dingoadm.GetHost(dc.GetHost())
+func NewCreateMdsv2CliContainerTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
+	hc, err := dingocli.GetHost(dc.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -487,19 +487,19 @@ func NewCreateMdsv2CliContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployC
 
 	// add step to task
 	var oldContainerId, containerId string
-	clusterId := dingoadm.ClusterId()
+	clusterId := dingocli.ClusterId()
 	dcId := dc.GetId()
-	serviceId := dingoadm.GetServiceId(dcId)
+	serviceId := dingocli.GetServiceId(dcId)
 	kind := dc.GetKind()
 	role := dc.GetRole()
 	hostname := fmt.Sprintf("%s-%s-%s", kind, role, serviceId)
-	options := dingoadm.ExecOptions()
+	options := dingocli.ExecOptions()
 	options.ExecWithSudo = false
 
 	t.AddStep(&Step2GetService{ // if service exist, break task
 		ServiceId:   serviceId,
 		ContainerId: &oldContainerId,
-		Storage:     dingoadm.Storage(),
+		Storage:     dingocli.Storage(),
 	})
 
 	t.AddStep(&step.CreateContainer{
@@ -516,7 +516,7 @@ func NewCreateMdsv2CliContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployC
 		//--ulimit core=-1: Sets the core dump file size limit to -1, meaning there’s no restriction on the core dump size.
 		//--ulimit nofile=65535:65535: Sets both the soft and hard limits for the number of open files to 65535.
 		Out:         &containerId,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: TrimContainerId(&containerId),
@@ -526,7 +526,7 @@ func NewCreateMdsv2CliContainerTask(dingoadm *cli.DingoAdm, dc *topology.DeployC
 		ServiceId:      serviceId,
 		ContainerId:    &containerId,
 		OldContainerId: &oldContainerId,
-		Storage:        dingoadm.Storage(),
+		Storage:        dingocli.Storage(),
 	})
 
 	return t, nil

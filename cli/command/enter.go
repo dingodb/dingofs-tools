@@ -17,11 +17,11 @@
 package command
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/tools"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/tools"
+	"github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -29,7 +29,7 @@ type enterOptions struct {
 	id string
 }
 
-func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewEnterCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options enterOptions
 
 	cmd := &cobra.Command{
@@ -38,10 +38,10 @@ func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 		Args:  utils.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			options.id = args[0]
-			return dingoadm.CheckId(options.id)
+			return dingocli.CheckId(options.id)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runEnter(dingoadm, options)
+			return runEnter(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -49,15 +49,15 @@ func NewEnterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
 	return cmd
 }
 
-func runEnter(dingoadm *cli.DingoAdm, options enterOptions) error {
+func runEnter(dingocli *cli.DingoCli, options enterOptions) error {
 	// 1) parse cluster topology
-	dcs, err := dingoadm.ParseTopology()
+	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
 	// 2) filter service
-	dcs = dingoadm.FilterDeployConfig(dcs, topology.FilterOption{
+	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: "*",
 		Host: "*",
@@ -68,13 +68,13 @@ func runEnter(dingoadm *cli.DingoAdm, options enterOptions) error {
 
 	// 3) get container id
 	dc := dcs[0]
-	serviceId := dingoadm.GetServiceId(dc.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+	serviceId := dingocli.GetServiceId(dc.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if err != nil {
 		return err
 	}
 
 	// 4) attch remote container
 	home := dc.GetProjectLayout().ServiceRootDir
-	return tools.AttachRemoteContainer(dingoadm, dc.GetHost(), containerId, home)
+	return tools.AttachRemoteContainer(dingocli, dc.GetHost(), containerId, home)
 }

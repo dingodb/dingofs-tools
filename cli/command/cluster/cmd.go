@@ -17,25 +17,25 @@
 package cluster
 
 import (
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	cliutil "github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-func NewClusterCommand(dingoadm *cli.DingoAdm) *cobra.Command {
+func NewClusterCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cluster",
 		Short: "Manage clusters",
 		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingoadm.Err()),
+		RunE:  cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(
-		NewAddCommand(dingoadm),
-		NewCheckoutCommand(dingoadm),
-		NewListCommand(dingoadm),
-		NewRemoveCommand(dingoadm),
-		NewRenameCommand(dingoadm),
+		NewAddCommand(dingocli),
+		NewCheckoutCommand(dingocli),
+		NewListCommand(dingocli),
+		NewRemoveCommand(dingocli),
+		NewRenameCommand(dingocli),
 	)
 	return cmd
 }

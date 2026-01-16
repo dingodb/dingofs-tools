@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/dingodb/dingofs-tools/pkg/log/glg"
+	log "github.com/dingodb/dingocli/pkg/log/glg"
 )
 
 const (

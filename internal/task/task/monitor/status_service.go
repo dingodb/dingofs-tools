@@ -20,15 +20,15 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/step"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
-	"github.com/dingodb/dingofs-tools/internal/task/task/common"
-	tui "github.com/dingodb/dingofs-tools/internal/tui/common"
-	"github.com/dingodb/dingofs-tools/internal/utils"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/step"
+	"github.com/dingodb/dingocli/internal/task/task"
+	"github.com/dingodb/dingocli/internal/task/task/common"
+	tui "github.com/dingodb/dingocli/internal/tui/common"
+	"github.com/dingodb/dingocli/internal/utils"
 )
 
 type step2InitMonitorStatus struct {
@@ -111,9 +111,9 @@ func (s *step2FormatMonitorStatus) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewInitMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewInitMonitorStatusTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF}) {
 		return nil, nil
 	} else if err != nil {
@@ -128,21 +128,21 @@ func NewInitMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConf
 		mc:          cfg,
 		serviceId:   serviceId,
 		containerId: containerId,
-		memStorage:  dingoadm.MemStorage(),
+		memStorage:  dingocli.MemStorage(),
 	})
 
 	return t, nil
 }
 
-func NewGetMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfig) (*task.Task, error) {
-	serviceId := dingoadm.GetServiceId(cfg.GetId())
-	containerId, err := dingoadm.GetContainerId(serviceId)
+func NewGetMonitorStatusTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*task.Task, error) {
+	serviceId := dingocli.GetServiceId(cfg.GetId())
+	containerId, err := dingocli.GetContainerId(serviceId)
 	if IsSkip(cfg, []string{ROLE_MONITOR_CONF}) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
-	hc, err := dingoadm.GetHost(cfg.GetHost())
+	hc, err := dingocli.GetHost(cfg.GetHost())
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ func NewGetMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfi
 		Format:      `"{{.Status}}"`,
 		Filter:      fmt.Sprintf("id=%s", containerId),
 		Out:         &status,
-		ExecOptions: dingoadm.ExecOptions(),
+		ExecOptions: dingocli.ExecOptions(),
 	})
 	t.AddStep(&step.Lambda{
 		Lambda: common.TrimContainerStatus(&status),
@@ -171,7 +171,7 @@ func NewGetMonitorStatusTask(dingoadm *cli.DingoAdm, cfg *configure.MonitorConfi
 		containerId: containerId,
 		ports:       &ports,
 		status:      &status,
-		memStorage:  dingoadm.MemStorage(),
+		memStorage:  dingocli.MemStorage(),
 	})
 	return t, nil
 }

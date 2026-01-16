@@ -19,13 +19,13 @@ package checker
 import (
 	"fmt"
 
-	"github.com/dingodb/dingofs-tools/cli/cli"
-	comm "github.com/dingodb/dingofs-tools/internal/common"
-	"github.com/dingodb/dingofs-tools/internal/configure"
-	"github.com/dingodb/dingofs-tools/internal/configure/topology"
-	"github.com/dingodb/dingofs-tools/internal/errno"
-	"github.com/dingodb/dingofs-tools/internal/task/context"
-	"github.com/dingodb/dingofs-tools/internal/task/task"
+	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure"
+	"github.com/dingodb/dingocli/internal/configure/topology"
+	"github.com/dingodb/dingocli/internal/errno"
+	"github.com/dingodb/dingocli/internal/task/context"
+	"github.com/dingodb/dingocli/internal/task/task"
 )
 
 type (
@@ -74,7 +74,7 @@ func (s *step2CheckClientS3Configure) Execute(ctx *context.Context) error {
 	return nil
 }
 
-func NewCheckS3Task(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Task, error) {
+func NewCheckS3Task(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task.Task, error) {
 	subname := fmt.Sprintf("host=%s role=%s", dc.GetHost(), dc.GetRole())
 	t := task.NewTask("Check S3", subname, nil)
 
@@ -88,21 +88,21 @@ func NewCheckS3Task(dingoadm *cli.DingoAdm, dc *topology.DeployConfig) (*task.Ta
 	return t, nil
 }
 
-func NewCheckMdsAddressTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
-	host := dingoadm.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
-	hc, err := dingoadm.GetHost(host)
+func NewCheckMdsAddressTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
+	host := dingocli.MemStorage().Get(comm.KEY_CLIENT_HOST).(string)
+	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
 
-	address := cc.GetClusterMDSAddr(dingoadm.MemStorage().Get(comm.KEY_FSTYPE).(string))
+	address := cc.GetClusterMDSAddr(dingocli.MemStorage().Get(comm.KEY_FSTYPE).(string))
 	subname := fmt.Sprintf("host=%s address=%s", host, address)
 	t := task.NewTask("Check MDS Address", subname, hc.GetSSHConfig())
 
 	return t, nil
 }
 
-func NewClientS3ConfigureTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
+func NewClientS3ConfigureTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
 	t := task.NewTask("Check S3 Configure <service>", "", nil)
 
 	t.AddStep(&step2CheckClientS3Configure{
@@ -112,6 +112,6 @@ func NewClientS3ConfigureTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig
 	return t, nil
 }
 
-func NewCheckDiskUsageTask(dingoadm *cli.DingoAdm, cc *configure.ClientConfig) (*task.Task, error) {
+func NewCheckDiskUsageTask(dingocli *cli.DingoCli, cc *configure.ClientConfig) (*task.Task, error) {
 	return nil, nil
 }
