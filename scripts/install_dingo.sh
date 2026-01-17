@@ -4,7 +4,6 @@
 # curl -sSL https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh | bash -s -- [--source=internal|github|local] [local_binary_path_if_source_is_local]
 # bash install_dingo.sh --source=internal|github|local [local_binary_path_if_source_is_local]
 
-
 ############################  GLOBAL VARIABLES
 g_color_yellow=$(printf '\033[33m')
 g_color_red=$(printf '\033[31m')
@@ -14,7 +13,7 @@ g_bin_dir="${g_dingo_home}/bin"
 g_db_path="sqlite://${g_dingo_home}/data/dingocli.db"
 g_profile="${HOME}/.profile"
 g_internal_url="https://work.dingodb.top"
-g_github_url="https://github.com/dingodb/dingocli/releases/download/latest/dingo"
+g_github_url="https://github.com/dingodb/dingocli/releases/download/main/dingo"
 g_upgrade="${DINGO_UPGRADE}"
 g_version="${DINGO_VERSION:=$g_latest_version}"
 g_download_url="${g_internal_url}/dingo.tar.gz"
@@ -86,11 +85,11 @@ install_binary() {
     local source=$1
     if [ "$source" == "internal" ]; then
         echo "Downloading from internal source..."
-        local tempfile="/tmp/dingo-$(date +%s%6N).tar.gz"
+        local tempfile="/tmp/dingo"
         # Add your internal download logic here
         wget --no-check-certificate "${g_download_url}" -O "${tempfile}" # internal
         if [ $? -eq 0 ]; then
-            tar -zxvf "${tempfile}" -C "${g_bin_dir}" 1>/dev/null
+            mv ${tempfile} ${g_bin_dir}/
             ret=$?
         fi
     elif [ "$source" == "github" ]; then
