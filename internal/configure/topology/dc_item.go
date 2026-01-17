@@ -65,6 +65,7 @@ const (
 	DEFAULT_DINGODB_WEB_SERVER_PORT         = 13001
 	DEFAULT_DINGODB_PROXY_SERVER_PORT       = 13000
 	DEFAULT_DINGODB_WEB_EXPORT_PORT         = 19100
+	DEFAULT_DINGO_MDS_CLUSTER_ID            = 0
 )
 
 type (
@@ -599,6 +600,20 @@ var (
 		REQUIRE_POSITIVE_INTEGER,
 		false,
 		DEFAULT_DINGODB_WEB_EXPORT_PORT,
+	)
+
+	CONFIG_DINGO_MDS_CLUSTER_ID = itemset.insert(
+		KIND_DINGOFS,
+		"cluster_id",
+		REQUIRE_INT,
+		true,
+		func(dc *DeployConfig) interface{} {
+			cluster_id, err := dc.GetVariables().Get("cluster_id")
+			if err != nil || cluster_id == "" {
+				return DEFAULT_DINGO_MDS_CLUSTER_ID
+			}
+			return cluster_id
+		},
 	)
 )
 

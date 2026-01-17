@@ -290,6 +290,10 @@ func (dc *DeployConfig) GetDingoExecutorJavaOpts() map[string]interface{} {
 	return dc.getMap(CONFIG_DINGO_EXECUTOR_JAVA_OPTS)
 }
 
+func (dc *DeployConfig) GetDingoClusterId() int {
+	return dc.getInt(CONFIG_DINGO_MDS_CLUSTER_ID)
+}
+
 type (
 	ConfFile struct {
 		Name       string
