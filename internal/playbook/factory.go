@@ -23,7 +23,6 @@ import (
 	"github.com/dingodb/dingocli/internal/task/task"
 	"github.com/dingodb/dingocli/internal/task/task/checker"
 	comm "github.com/dingodb/dingocli/internal/task/task/common"
-	"github.com/dingodb/dingocli/internal/task/task/fs"
 	"github.com/dingodb/dingocli/internal/task/task/monitor"
 	"github.com/dingodb/dingocli/internal/tasks"
 )
@@ -264,12 +263,6 @@ func (p *Playbook) createTasks(step *PlaybookStep) (*tasks.Tasks, error) {
 		// fs
 		case CHECK_CLIENT_S3:
 			t, err = checker.NewClientS3ConfigureTask(dingocli, config.GetCC(i))
-		case CREATE_DINGOFS:
-			t, err = fs.NewCreateDingoFSTask(dingocli, config.GetCC(i))
-		case MOUNT_FILESYSTEM:
-			t, err = fs.NewMountFSTask(dingocli, config.GetCC(i))
-		case UMOUNT_FILESYSTEM:
-			t, err = fs.NewUmountFSTask(dingocli, config.GetCC(i))
 		// monitor
 		case PULL_MONITOR_IMAGE:
 			t, err = monitor.NewPullImageTask(dingocli, config.GetMC(i))
