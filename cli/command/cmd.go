@@ -29,7 +29,6 @@ import (
 
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/cli/command/cache"
-	"github.com/dingodb/dingocli/cli/command/client"
 	"github.com/dingodb/dingocli/cli/command/cluster"
 	"github.com/dingodb/dingocli/cli/command/config"
 	"github.com/dingodb/dingocli/cli/command/hosts"
@@ -56,7 +55,6 @@ type rootOptions struct {
 
 func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
 	cmd.AddCommand(
-		client.NewClientCommand(dingocli),   // dingocli client
 		cluster.NewClusterCommand(dingocli), // dingocli cluster ...
 		config.NewConfigCommand(dingocli),   // dingocli config ...
 		hosts.NewHostsCommand(dingocli),     // dingocli hosts ...
@@ -87,8 +85,6 @@ func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
 		// commonly used shorthands
 		hosts.NewSSHCommand(dingocli),      // dingocli ssh
 		hosts.NewPlaybookCommand(dingocli), // dingocli playbook
-		client.NewMountCommand(dingocli),   // dingocli mount
-		client.NewUmountCommand(dingocli),  // dingocli umount
 	)
 }
 
