@@ -4,40 +4,37 @@ A tool for DingoFS
 
 - [dingo tool usage](#dingo-tool-usage)
   - [How to use dingo tool](#how-to-use-dingo-tool)
-    - [Install](#install)
+    - [Configure](#configure)
     - [Introduction](#introduction)
   - [Command](#command)
-    - [version](#version)
-    - [create](#create)
-      - [create fs](#create-fs)
-      - [create subpath](#create-subpath)
-    - [delete](#delete)
-      - [delete fs](#delete-fs)
-      - [delete cachemember](#delete-cachemember)
-    - [list](#list)
-      - [list fs](#list-fs)
-      - [list mountpoint](#list-mountpoint)
-      - [list dentry](#list-dentry)
-      - [list cachegroup](#list-cachegroup)
-      - [list cachemember](#list-cachemember)
-    - [query](#query)
-      - [query fs](#query-fs)
-      - [query inode](#query-inode)
-      - [query dirtree](#query-dirtree)
-    - [set](#set)
-      - [set cachemember](#set-cachemember)
-    - [status](#status)
-      - [status mds](#status-mds)
-    - [umount](#umount)
-      - [umount fs](#umount-fs)
-    - [usage](#usage)
-      - [usage fs](#usage-fs)
+    - [fs](#fs)
+      - [fs mount](#fs-mount)
+      - [fs umount](#fs-umount)
+      - [fs create](#fs-create)
+      - [fs delete](#fs-delete)
+      - [fs list](#fs-list)
+      - [fs mountpoint](#fs-mountpoint)
+      - [fs query](#fs-query)
+      - [fs usage](#fs-usage)
+      - [fs quota](#fs-quota)
+        - [fs quota set](#fs-quota-set)
+        - [fs quota get](#fs-quota-get)
+        - [fs quota check](#fs-quota-check)
+    - [mds](#mds)
+      - [mds status](#mds-status)
+      - [mds start](#mds-start)
+    - [cache](#cache)
+      - [cache start](#cache-start)
+      - [cache group](#cache-group)
+        - [cache group list](#cache-group-list)
+      - [cache member](#cache-member)
+        - [cache member list](#cache-member-list)
+        - [cache member unlock](#cache-member-unlock)
+        - [cache member leave](#cache-member-leave)
+        - [cache member delete](#cache-member-delete)     
     - [warmup](#warmup)
       - [warmup add](#warmup-add)
-    - [config](#config)
-      - [config fs](#config-fs)
-      - [config get](#config-get)
-      - [config check](#config-check)
+      - [warmup query](#warmup-query)
     - [quota](#quota)
       - [quota set](#quota-set)
       - [quota get](#quota-get)
@@ -46,29 +43,18 @@ A tool for DingoFS
       - [quota check](#quota-check)
     - [stats](#stats)
       - [stats mountpoint](#stats-mountpoint)
-    - [unlock](#unlock)
-      - [unlock cachemember](#unlock-cachemember)
       
 ## How to use dingo tool
 
-### Install
-
-install dingo tool
-
-For obtaining binary package, please refer to:
-[dingo tool binary compilation guide](https://github.com/dingodb/dingofs/blob/main/INSTALL.md)
-
-```bash
-chmod +x dingo
-mv dingo /usr/bin/dingo
-```
+### Configure
 
 set configure file
 
+The dingo.yaml file is not necessary for deploy dingofs cluster, it is only used for managing dingofs cluster.
 ```bash
-wget https://raw.githubusercontent.com/dingodb/dingocli/main/pkg/config/dingo.yaml
+wget https://raw.githubusercontent.com/dingodb/dingocli/main/dingo.yaml
 ```
-Please modify the `mdsAddr` under `dingofs` in the template.yaml file as required
+Please modify the `mdsaddr` under `dingofs` in the dingo.yaml file as required
 
 configure file priority
 environment variables(CONF=/opt/dingo.yaml) > default (~/.dingo/dingo.yaml)
@@ -94,394 +80,289 @@ dingo COMMAND --help
 
 For example:
 
-```bash
 dingo status mds --help
-Usage:  dingo status mds [flags]
+```bash
+Usage:  dingo mds status [OPTIONS]
 
-get status of mds
+show mds cluster status
 
-Flags:
+Options:
+  -c, --conf string              Specify configuration file (default "$HOME/.dingo/dingo.yaml")
       --format string            output format (json|plain) (default "plain")
-      --mdsaddr string           mds address, should be like 10.220.32.1:6700,10.220.32.2:6700,10.220.32.3:6700
-      --rpcretrydelay duration   rpc retry delay (default 200ms)
-      --rpcretrytimes int32      rpc retry times (default 5)
-      --rpctimeout duration      rpc timeout (default 30s)
-
-Global Flags:
-      --conf string   config file (default is $HOME/.dingo/dingo.yaml or /etc/dingo/dingo.yaml)
-      --help          print help
-      --showerror     display all errors in command
-      --verbose       show some extra info
+  -h, --help                     Print usage
+      --mdsaddr string           Specify mds address (default "127.0.0.1:7400")
+      --rpcretrydelay duration   RPC retry delay (default 200ms)
+      --rpcretrytimes uint32     RPC retry times (default 5)
+      --rpctimeout duration      RPC timeout (default 30s)
+      --verbose                  Show more debug info
 
 Examples:
-$ dingo status mds
-```
+   $ dingo mds status
 
-In addition, this tool reads the configuration from `$HOME/.dingo/dingo.yaml` or `/etc/dingo/dingo.yaml` by default,
-and can be specified by `--conf`.
-
-### Config file example
-```shell
-Examples:
-
-global:
-  httpTimeout: 50000ms
-  rpcTimeout: 50000ms
-  rpcRetryTimes: 3
-  rpcRetryDelay: 200ms
-  showError: false
-
-dingofs:
-  mdsAddr: 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
-  storagetype: s3 # s3 or rados
-  s3:
-    ak: UAJ1WIVF3NM5XRIL0OU2
-    sk: X9MxdCZslPmXADljX140iiN6r81aGgCnO61wEA3L 
-    endpoint: http://10.220.68.19:80 
-    bucketname: dingofs-bucket
-    blocksize: 4 mib
-    chunksize: 64 mib
-  rados:
-    username: client.dingofs-rgw
-    key: AQANAExo/ihMLBAAPL8AXgqfxwdraw8uoWyJig==
-    mon: 10.220.69.5:3300,10.220.69.6:3300,10.220.69.8:3300
-    poolname: rados.dingofs.data
-    blocksize: 4 mib
-    chunksize: 64 mib
 ```
 
 ## Command
 
-### version
+### fs
 
-show the version of dingo tool
+#### fs mount
+
+mount filesystem
 
 Usage:
 
 ```shell
-dingo version
+dingo fs mount METAURL MOUNTPOINT [OPTIONS]
 ```
 
 Output:
 
-```shel
-Version: 5.0.0
-Build Date: 2025-09-26T10:37:14Z
-Git Commit: 600e11eaf2559bebc9c76aab6cbcd652dc1111f7
-Go Version: go1.24.3
-OS / Arch: linux amd64
+```shell
+$ dingo fs mount mds://10.220.69.6:8400/dingofs1 /mnt
+
+dingofs1 is ready at /mnt
+
+current configuration:
+  config               []
+  log                  [/home/yansp/.dingofs/log INFO 0(verbose)]
+  meta                 [mds://10.220.69.6:8400/dingofs1]
+  storage              [s3://10.220.32.13:8001/dingofs-bucket]
+  cache                [/home/yansp/.dingofs/cache 102400MB 10%(ratio)]
+  monitor              [10.220.69.6:10000]
 ```
-### create
 
-#### create fs
+#### fs umount
 
-create fs in dingofs cluster
+umount filesystem
+
+Usage:
+
+```shell
+dingo fs umount MOUNTPOINT [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo fs umount /mnt
+
+Successfully unmounted /mnt
+```
+
+#### fs create
+
+create fs in cluster
 
 Usage:
 
 ```shell
 # store in s3
-$ dingo create fs --fsname dingofs --storagetype s3 --s3.ak 1CzODWr3xuiIOTl80CGc --s3.sk NR3Tk3hLK6GjehsawFeLPzHRweqwdMAGVMQ8ik1S --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket --mdsaddr 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
+$ dingo create fs dingofs1 --storagetype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket
 
 # store in rados
-$ dingo create fs --fsname dingofs --storagetype rados --rados.username admin --rados.key AQDg3Y2h --rados.mon 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300 --rados.poolname pool1 --rados.clustername ceph --mdsaddr 172.20.61.102:26700,172.20.61.103:26700,172.20.61.105:26700
+$ dingo create fs dingofs1 --storagetype rados --rados.username admin --rados.key AQDg3Y2h --rados.mon 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300 --rados.poolname pool1 --rados.clustername ceph
 ```
 
 Output:
 
 ```shell
-+-------+---------+--------+-------------+--------------------------------------+---------+
-| FSID  | FSNAME  | STATUS | STORAGETYPE |                 UUID                 | RESULT  |
-+-------+---------+--------+-------------+--------------------------------------+---------+
-| 10016 | dingofs | NORMAL | S3          | 2b2312fb-1931-4d37-abaa-69a762f84e27 | success |
-+-------+---------+--------+-------------+--------------------------------------+---------+
+$ dingo fs create dingofs1 
+Successfully create filesystem dingofs1, uuid: d58cca2b-08d7-4aac-91b6-69b21d1a1de1
 ```
 
-#### create subpath
+#### fs delete
 
-create sub directory in dingofs 
+delete fs from cluster 
 
 Usage:
 
 ```shell
- dingo create subpath --fsid 1 --path /path1
- dingo create subpath --fsname dingofs --path /path1/path2
+dingo fs delete FSNAME [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+---------+
-| RESULT  |
-+---------+
-| success |
-+---------+
+$ dingo fs delete dingofs1
+WARNING:Are you sure to delete fs dingofs1?
+please input [dingofs1] to confirm: dingofs1
+Successfully delete filesystem dingofs1
 ```
 
-### delete
+#### fs list
 
-#### delete fs
-
-delete fs from dingofs cluster
+list all fs info 
 
 Usage:
 
 ```shell
-dingo delete fs --fsname dingofs
-WARNING:Are you sure to delete fs dingofs?
-please input [dingofs] to confirm: dingofs
+dingo fs list [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+----------+--------+
-|  FSNAME | RESULT  |
-+---------+---------+
-| dingofs | success |
-+---------+---------+
+$ dingo fs list
++-------+-----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+| FSID  |  FSNAME   | STATUS  | BLOCKSIZE | CHUNKSIZE | MDSNUM |  STORAGETYPE  |               STORAGE               | MOUNTNUM |                 UUID                 |
++-------+-----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+| 10000 | yanspfs01 | NORMAL  | 4194304   | 67108864  | 3      | S3(HASH 1024) | http://10.220.32.13:8001/yansp-test | 1        | a88a67e8-d550-4564-a551-27f21520ffd2 |
++-------+-----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+| 10002 | dingofs1  | DELETED | 4194304   | 67108864  | 3      | S3(HASH 1024) | http://10.220.32.13:8001/yansp-test | 0        | d58cca2b-08d7-4aac-91b6-69b21d1a1de1 |
++-------+-----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
 ```
-#### delete cachemember
 
-delete cachegroup member
+#### fs mountpoint
+
+list all mountpoints in the cluster
 
 Usage:
 
 ```shell
- dingo delete cachemember --group test_cache --ip 10.225.10.170 --port 10001
+dingo fs mountpoint [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+---------+
-| RESULT  |
-+---------+
-| success |
-+---------+
+$ dingo fs mountpoint
++-------+-----------+--------------------------------------+------------------------------+-------+
+| FSID  |  FSNAME   |               CLIENTID               |       MOUNTPOINT             |  CTO  |
++-------+-----------+--------------------------------------+------------------------------+-------+
+| 10000 | dingofs1 | 7d16a4a9-b231-4394-8a5e-fe61bf6f66ac | dingofs-6:10000:/mnt/dingofs  | false |
++-------+-----------+--------------------------------------+------------------------------+-------+
 ```
 
-#### list fs
+#### fs query
 
-list all fs info in dingofs cluster
+query one fs info
 
 Usage:
 
 ```shell
-dingo list fs
+dingo fs query [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
-| FSID  |                FSNAME                 | STATUS | BLOCKSIZE | CHUNKSIZE | MDSNUM |  STORAGETYPE  |               STORAGE               | MOUNTNUM |                 UUID                 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
-| 10000 | dingofs-stability-main16-3clients-211 | NORMAL | 4194304   | 67108864  | 2      | S3(HASH 1024) | http://10.220.88.21:8080/dingofs    | 0        | b674a17e-3899-44b5-850a-429fe93d9d9e |
-+-------+---------------------------------------+--------+-----------+-----------+--------+               +-------------------------------------+----------+--------------------------------------+
-| 10002 | dingofs-stability-main16-3clients-212 | NORMAL | 4194304   | 67108864  | 2      |               | http://10.220.88.21:8080/dingofs-sx | 0        | 7e93e886-cc60-470b-ac8c-ea15eaa42339 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+               +-------------------------------------+----------+--------------------------------------+
-| 10004 | dingofs-stability-main16-3clients-213 | NORMAL | 4194304   | 67108864  | 2      |               | http://10.220.88.21:8080/dingofs-sx | 0        | a2514bc9-5b25-44c8-99b1-35fe67d80287 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+               +-------------------------------------+----------+--------------------------------------+
-| 10006 | dingofs-stability-main16-3clients-224 | NORMAL | 4194304   | 67108864  | 2      |               | http://10.220.88.21:8080/dingofs-sx | 1        | 6afcc601-14c1-4d17-9c2a-5fcfde0260e0 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+               +-------------------------------------+----------+--------------------------------------+
-| 10008 | dingofs-stability-main16-3clients-250 | NORMAL | 4194304   | 67108864  | 3      |               | http://10.220.88.21:8080/dingofs-sx | 2        | b8e512ed-7c2d-42d2-9ab6-4f3fede60b75 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+$ dingo fs query --fsname dingofs1
++-------+----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+| FSID  |  FSNAME  | STATUS  | BLOCKSIZE | CHUNKSIZE | MDSNUM |  STORAGETYPE  |               STORAGE               | MOUNTNUM |                 UUID                 |
++-------+----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
+| 10002 | dingofs1 | DELETED | 4194304   | 67108864  | 3      | S3(HASH 1024) | http://10.220.32.13:8001/yansp-test | 0        | d58cca2b-08d7-4aac-91b6-69b21d1a1de1 |
++-------+----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
 ```
 
-#### list mountpoint
+#### fs usage
 
-list all mountpoint of the dingofs
+get the filesystem usage
 
 Usage:
 
 ```shell
-dingo list mountpoint
+dingo fs usage [OPTIONS]
 ```
 
 Output:
 
 ```shell
- dingo list mountpoint  --mdsaddr 10.220.32.16:6900,10.220.32.17:6900,10.220.32.18:6900
-+-------+---------------------------------------+--------------------------------------+------------------------------------+-------+
-| FSID  |                FSNAME                 |               CLIENTID               |             MOUNTPOINT             |  CTO  |
-+-------+---------------------------------------+--------------------------------------+------------------------------------+-------+
-| 10006 | dingofs-stability-main16-3clients-224 | 8c8b443c-92bf-4ef3-9022-366e966fcb1d | ubuntu3:10020:/mnt/cluster/dingofs4| false |
-+-------+---------------------------------------+--------------------------------------+------------------------------------+       +
-| 10008 | dingofs-stability-main16-3clients-250 | 5404bbdc-bfca-4cf4-bd16-895a6dcccc46 | ubuntu1:10020:/mnt/cluster/dingofs4|       |
-+       +                                       +--------------------------------------+------------------------------------+       +
-|       |                                       | b1b9cbe3-d93c-47f7-9d38-bb9025176c54 | ubuntu2:10020:/mnt/cluster/dingofs4|       |
-+-------+---------------------------------------+--------------------------------------+------------------------------------+-------+
+$ dingo fs usage --humanize
++-------+-----------+---------+-------+
+| FSID  |  FSNAME   |  USED   | IUSED |
++-------+-----------+---------+-------+
+| 10000 | yanspfs01 | 3.9 GiB | 1,746 |
++-------+-----------+---------+-------+
 ```
 
-#### list dentry
+#### fs quota
 
-list directory dentry
+##### fs quota set
+
+set fs quota
 
 Usage:
 
 ```shell
-dingo list dentry --fsid 1 --inodeid 8393046
+dingo fs quota set [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+------+----------+------+---------+----------------+
-| FSID | INODEID  | NAME | PARENT  |      TYPE      |
-+------+----------+------+---------+----------------+
-| 2    | 9441683  | c48  | 8393046 | TYPE_S3        |
-+------+----------+------+---------+----------------+
-| 2    | 11538710 | c75  | 8393046 | TYPE_S3        |
-+------+----------+------+---------+----------------+
-| 2    | 11538673 | d46  | 8393046 | TYPE_DIRECTORY |
-+------+----------+------+---------+----------------+
-| 2    | 4336     | f43  | 8393046 | TYPE_S3        |
-+------+----------+------+---------+----------------+
-| 2    | 9441788  | ld4  | 8393046 | TYPE_SYM_LINK  |
-+------+----------+------+---------+----------------+
+$ dingo fs quota set  --fsname dingofs1 --capacity 10 --inodes 1000000
+Successfully config fs quota, capacity: 10 GiB, inodes: 1,000,000
 ```
 
-#### list cachegroup
+##### fs quota set
 
-list all remote cache groups
+set fs quota
 
 Usage:
 
 ```shell
-dingo list cachegroup
+dingo fs quota set [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+---------+
-|  GROUP  |
-+---------+
-| group_1 |
-+---------+
+$ dingo fs quota set  --fsname dingofs1 --capacity 10 --inodes 1000000
+Successfully config fs quota, capacity: 10 GiB, inodes: 1,000,000
 ```
 
-#### list cachemember
+##### fs quota get
 
-list cachegroup members
+get fs quota
 
 Usage:
 
 ```shell
-dingo list cachemember --group group_1
+dingo fs quota get [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-|               MEMBERID               |      IP      | PORT  | WEIGHT | LOCKED |       CREATE TIME       |    LAST ONLINE TIME     |  STATE  |               GROUP               |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 60b14376-7039-49fa-afee-47cbd318497c | 10.220.32.18 | 30020 | 100    | true   | 2025-09-22 11:36:48.000 | 2025-09-23 16:09:13.831 | offline |                                   |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 178c0bb7-7d9b-4ec2-9d54-f068db3b5e0e | 10.220.32.17 | 30020 | 100    | true   | 2025-09-22 11:36:47.000 | 2025-09-23 16:09:23.365 | offline |                                   |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 01a67188-08cd-4cf3-95fa-532b1ffd106e | 10.220.32.16 | 30020 | 100    | true   | 2025-09-22 11:36:47.000 | 2025-09-23 16:08:09.731 | offline |                                   |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| a1d3e3d9-c403-4b42-a46e-959b4f0b0403 | 10.220.32.16 | 30020 | 100    | true   | 2025-09-23 16:11:19.000 | 2025-09-26 12:25:31.141 | online  | dingofs-remote-cache-stability-v2 |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 39521621-78db-4365-8c68-d67827453ccc | 10.220.32.18 | 30020 | 100    | true   | 2025-09-23 16:11:19.000 | 2025-09-26 12:25:31.072 | online  | dingofs-remote-cache-stability-v2 |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 4a45a03a-7077-49d4-a58c-8e8da0f47006 | 10.220.32.17 | 30020 | 100    | true   | 2025-09-23 16:11:19.000 | 2025-09-26 12:25:31.321 | online  | dingofs-remote-cache-stability-v2 |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
+$ dingo fs quota get --fsname dingofs1 
++-------+-----------+----------+---------+------+-----------+-------+-------+
+| FSID  |  FSNAME   | CAPACITY |  USED   | USE% |  INODES   | IUSED | IUSE% |
++-------+-----------+----------+---------+------+-----------+-------+-------+
+| 10000 | dingofs1 | 10 GiB   | 3.9 GiB | 39   | 1,000,000 | 2,255 | 0     |
++-------+-----------+----------+---------+------+-----------+-------+-------+
 ```
 
-### query
+##### fs quota check
 
-#### query fs
-
-query fs in dingofs by fsname or fsid
+check fs quota
 
 Usage:
 
 ```shell
-dingo query fs --fsid 10000
+dingo fs quota check [OPTIONS]
 ```
 
 Output:
 
 ```shell
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+----------------------------------+----------+--------------------------------------+
-| FSID  |                FSNAME                 | STATUS | BLOCKSIZE | CHUNKSIZE | MDSNUM |  STORAGETYPE  |             STORAGE              | MOUNTNUM |                 UUID                 |
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+----------------------------------+----------+--------------------------------------+
-| 10000 | dingofs-stability-main16-3clients-211 | NORMAL | 4194304   | 67108864  | 2      | S3(HASH 1024) | http://10.220.88.21:8080/dingofs | 0        | b674a17e-3899-44b5-850a-429fe93d9d9e |
-+-------+---------------------------------------+--------+-----------+-----------+--------+---------------+----------------------------------+----------+--------------------------------------+
+$ dingo fs quota check --fsname dingofs1 
++-------+-----------+----------------+---------------+---------------+-----------+-------+-----------+---------+
+| FSID  |  FSNAME   |    CAPACITY    |     USED      |   REALUSED    |  INODES   | IUSED | REALIUSED | STATUS  |
++-------+-----------+----------------+---------------+---------------+-----------+-------+-----------+---------+
+| 10000 | dingofs1  | 10,737,418,240 | 4,198,684,323 | 4,198,684,323 | 1,000,000 | 2,255 | 2,255     | success |
++-------+-----------+----------------+---------------+---------------+-----------+-------+-----------+---------+
 ```
 
-#### query inode
+### mds
 
-query the inode of fs
-
-Usage:
-
-```shell
-dingo query inode --fsid 2 --inodeid 5243380
-```
-
-Output:
-
-```shell
-+-------+----------+-----------+---------+-------+--------+
-| FSID  | INODEID  |  LENGTH   |  TYPE   | NLINK | PARENT |
-+-------+----------+-----------+---------+-------+--------+
-|   2   | 5243380  | 352321536 | TYPE_S3 |   1   |  [1]   |
-+-------+----------+-----------+---------+-------+--------+
-```
-
-#### query dirtree
-
-recursive query parent inode
-
-Usage:
-
-```shell
-dingo query dirtree --fsid 1 --inodeid 7344525
-```
-
-Output:
-
-```shell
--- name  path:	/workunits/suites/tmp.roZYcz7Ln7/p9/dc/d1a/d1b/d21/d34
--- inode path:	1/8390147/10487316/9441617/2101392/7344488/6295896/6295898/7344505/7344525
-```
-### set
-
-#### set cachemember
-
-set remote cachegroup member attribute
-
-Usage:
-
-```shell
-dingo set cachemember --memberid 3 --weight 40
-```
-
-Output:
-
-```shell
-+---------+
-| RESULT  |
-+---------+
-| success |
-+---------+
-```
-
-### status
-
-#### status mds
+#### mds status
 
 get status of mds
 
 Usage:
 
 ```shell
-dingo status mds
+dingo mds status
 ```
 
 Output:
@@ -490,71 +371,160 @@ Output:
 +------+------------------+--------+-------------------------+-------------+
 |  ID  |       ADDR       | STATE  |    LAST ONLINE TIME     | ONLINESTATE |
 +------+------------------+--------+-------------------------+-------------+
-| 1001 | 10.220.69.6:7400 | NORMAL | 2025-09-26 13:39:40.784 | online      |
+| 1001 | 10.220.69.6:8400 | NORMAL | 2026-01-19 15:37:50.585 | online      |
 +------+------------------+--------+-------------------------+-------------+
-| 1002 | 10.220.69.6:7401 | NORMAL | 2025-09-26 13:39:44.747 | online      |
+| 1002 | 10.220.69.6:8401 | NORMAL | 2026-01-19 15:37:50.574 | online      |
 +------+------------------+--------+-------------------------+-------------+
-| 1003 | 10.220.69.6:7402 | NORMAL | 2025-09-26 13:39:45.279 | online      |
+| 1003 | 10.220.69.6:8402 | NORMAL | 2026-01-19 15:37:50.708 | online      |
 +------+------------------+--------+-------------------------+-------------+
 ```
 
-### umount
+#### mds start
 
-#### umount fs
-
-umount fs from the dingofs cluster
+start mds
 
 Usage:
 
 ```shell
-dingo umount fs --fsname dingofs --clientid 0cbe1e76-0afe-435b-9e60-1af57c836a3e
-```
-you can get mountpoint from "dingo list mountpoint" command.
-
-Output:
-
-```shell
-+---------+--------------------------------------+---------+
-| FSNAME  |               CLIENTID               | RESULT  |
-+---------+--------------------------------------+---------+
-| dingofs | 0cbe1e76-0afe-435b-9e60-1af57c836a3e | success |
-+---------+--------------------------------------+---------+
-```
-
-NOTE: 
-umount fs command does't really umount dingo-fuse client,it's only remove mountpoint from mds when dingo-fuse abnormal exit. Please use linux command "umount /mnt/dingofs or fusemount3 -u /mnt/dingofs" to umount dingo-fuse. 
-
-### usage
-
-#### usage fs
-
-get the usage of fs in dingofs cluster
-
-Usage:
-
-```shell
-dingo usage fs
+dingo mds start --conf=./mds.conf
 ```
 
 Output:
 
 ```shell
-+--------+---------------------------------------+-------------+-------+
-|  FSID  |                FSNAME                 |    USED     | IUSED |
-+--------+---------------------------------------+-------------+-------+
-| 10000  | dingofs-stability-main16-3clients-211 | 44859       | 109   |
-+--------+---------------------------------------+-------------+-------+
-| 10002  | dingofs-stability-main16-3clients-212 | 0           | 1     |
-+--------+---------------------------------------+-------------+-------+
-| 10004  | dingofs-stability-main16-3clients-213 | 0           | 1     |
-+--------+---------------------------------------+-------------+-------+
-| 10006  | dingofs-stability-main16-3clients-224 | 30570228489 | 406   |
-+--------+---------------------------------------+-------------+-------+
-| 10008  | dingofs-stability-main16-3clients-250 | 20380152326 | 271   |
-+--------+---------------------------------------+-------------+-------+
-| TOTAL  |                   -                   | 50950425674 |  788  |
-+--------+---------------------------------------+-------------+-------+
+[yansp@dingofs-6 bin]$ dingo mds start --conf=./mds.conf 
+current configuration:
+  id                   [1001]
+  config               [./mds.conf]
+  log                  [/home/yansp/.dingofs/log INFO 0(verbose)]
+  storage              [dummy]
 
+mds is listening on 0.0.0.0:7777
+```
+
+### cache
+
+#### cache start
+
+start cache node
+
+Usage:
+
+```shell
+dingo cache start [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6 --conf ./cache.conf
+current configuration:
+  id                   [85a4b352-4097-4868-9cd6-9ec5e53db1b6]
+  config               [./cache.conf]
+  log                  [/home/yansp/.dingofs/log INFO 0(verbose)]
+  mds                  [10.220.69.6:8400]
+  cache                [disk /home/yansp/.dingofs/cache 102400MB 10%(ratio)]
+
+dingo-cache is listening on 10.220.69.6:8888
+```
+
+#### cache group
+
+##### cache group list
+
+list all remote cache group name
+
+Usage:
+
+```shell
+dingo cache group list [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache group list 
++--------+
+| GROUP  |
++--------+
+| group1 |
++--------+
+```
+
+#### cache member
+
+##### cache member list
+
+list all cache members
+
+Usage:
+
+```shell
+dingo cache member list [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache member list 
++--------------------------------------+-------------+------+--------+--------+-------------------------+-------------------------+--------+--------+
+|               MEMBERID               |     IP      | PORT | WEIGHT | LOCKED |       CREATE TIME       |    LAST ONLINE TIME     | STATE  | GROUP  |
++--------------------------------------+-------------+------+--------+--------+-------------------------+-------------------------+--------+--------+
+| 85a4b352-4097-4868-9cd6-9ec5e53db1b6 | 10.220.69.6 | 8888 | 100    | true   | 2026-01-19 15:48:46.000 | 2026-01-19 16:07:29.179 | online | group1 |
++--------------------------------------+-------------+------+--------+--------+-------------------------+-------------------------+--------+--------+
+```
+
+##### cache member leave
+
+leave cache member from group
+
+Usage:
+
+```shell
+dingo cache member leave [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache member leave --group group1  --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 
+Successfully leave cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
+```
+
+##### cache member unlock
+
+unbind the cache memberid with IP and Port
+
+Usage:
+
+```shell
+dingo cache member unlock [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache member unlock  --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 
+Successfully unlock cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
+```
+
+##### cache member delete
+
+delete cache member
+
+Usage:
+
+```shell
+dingo cache member delete MEMBERID [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo cache member delete 85a4b352-4097-4868-9cd6-9ec5e53db1b6
+WARNING:Are you sure to delete cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6?
+please input [85a4b352-4097-4868-9cd6-9ec5e53db1b6] to confirm: 85a4b352-4097-4868-9cd6-9ec5e53db1b6
+Successfully delete cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
 ```
 
 ### warmup
@@ -568,6 +538,16 @@ Usage:
 ```shell
 dingo warmup add /mnt/dingofs/warmup
 dingo warmup add --filelist /mnt/dingofs/warmup.list
+```
+
+#### warmup query
+
+query the warmup progress
+
+Usage:
+
+```shell
+dingo warmup query /mnt/dingofs/warmup
 ```
 
 ### config
@@ -629,48 +609,53 @@ set quota to directory
 Usage:
 
 ```shell
-dingo quota set --fsid 1 --path /quotadir --capacity 10 --inodes 100000
+Usage:  dingo quota set [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo quota set --fsname dingofs1  --path /dir01  --capacity 10 --inodes 100000
+Successfully set directory[/dir01] quota, capacity: 10 GiB, inodes: 100,000
 ```
 #### quota get
 
-get fs quota
+get directory quota
 
 Usage:
 
 ```shell
-dingo quota get --fsid 1 --path /quotadir
-dingo quota get --fsname dingofs --path /quotadir
+dingo quota get [OPTIONS]
 ```
 Output:
 
 ```shell
-+----------+------------+----------+------+------+------------+-------+-------+
-|    ID    |    PATH    | CAPACITY | USED | USE% |   INODES   | IUSED | IUSE% |
-+----------+------------+----------+------+------+------------+-------+-------+
-| 10485760 | /quotadir1 | 10 GiB   | 6 B  | 0    | 20,000,000 | 1     | 0     |
-+----------+------------+----------+------+------+------------+-------+-------+
+$ dingo quota get --fsname dingofs1  --path /dir01
++-------------+--------+----------+------+------+---------+-------+-------+
+|   INODEID   |  PATH  | CAPACITY | USED | USE% | INODES  | IUSED | IUSE% |
++-------------+--------+----------+------+------+---------+-------+-------+
+| 20000005055 | /dir01 | 10 GiB   | 0 B  | 0    | 100,000 | 1     | 0     |
++-------------+--------+----------+------+------+---------+-------+-------+
 ```
 #### quota list
 
-list all directory quotas of fs
+list fs all directory quota
 
 Usage:
 
 ```shell
-dingo quota list --fsid 1
-dingo quota list --fsname dingofs
+dingo quota list --fsname dingofs1
 ```
 
 Output:
 
 ```shell
-+----------+------------+----------+------+------+------------+-------+-------+
-|    ID    |    PATH    | CAPACITY | USED | USE% |   INODES   | IUSED | IUSE% |
-+----------+------------+----------+------+------+------------+-------+-------+
-| 10485760 | /quotadir1 | 10 GiB   | 6 B  | 0    | 20,000,000 | 1     | 0     |
-+----------+------------+----------+------+------+------------+-------+-------+
-| 2097152  | /quotadir2 | 100 GiB  | 0 B  | 0    | unlimited  | 0     |       |
-+----------+------------+----------+------+------+------------+-------+-------+
+$ dingo quota list --fsname dingofs1
++-------------+--------+----------+------+------+---------+-------+-------+
+|   INODEID   |  PATH  | CAPACITY | USED | USE% | INODES  | IUSED | IUSE% |
++-------------+--------+----------+------+------+---------+-------+-------+
+| 20000005055 | /dir01 | 10 GiB   | 0 B  | 0    | 100,000 | 1     | 0     |
++-------------+--------+----------+------+------+---------+-------+-------+
 ```
 
 #### quota delete
@@ -680,36 +665,35 @@ delete quota of a directory
 Usage:
 
 ```shell
-dingo quota delete --fsid 1 --path /quotadir
+dingo quota delete [OPTIONS]
 ```
-#### quota check
-
-check quota of a directory
-
-Usage:
-
-```shell
-dingo quota check --fsid 1 --path /quotadir
-dingo quota check --fsid 1 --path /quotadir --repair
-```
-
 
 Output:
 
 ```shell
-+----------+------------+----------------+------+----------+------------+-------+-----------+---------+
-|    ID    |    NAME    |    CAPACITY    | USED | REALUSED |   INODES   | IUSED | REALIUSED | STATUS  |
-+----------+------------+----------------+------+----------+------------+-------+-----------+---------+
-| 10485760 | /quotadir | 10,737,418,240 | 22   | 22       | 20,000,000 | 2     | 22        | success |
-+----------+------------+----------------+------+----------+------------+-------+-----------+---------+
+$ dingo quota delete --fsname dingofs1 --path /dir01
+Successfully delete directory[/dir01] quota
+```
 
-or
+#### quota check
 
-+----------+------------+----------------+------+----------+------------+-------+-----------+--------+
-|    ID    |    NAME    |    CAPACITY    | USED | REALUSED |   INODES   | IUSED | REALIUSED | STATUS |
-+----------+------------+----------------+------+----------+------------+-------+-----------+--------+
-| 10485760 | /quotadir | 10,737,418,240 | 22   | 33       | 20,000,000 | 2     | 3         | failed |
-+----------+------------+----------------+------+----------+------------+-------+-----------+--------+
+verify the consistency of directory quota
+
+Usage:
+
+```shell
+dingo quota check [OPTIONS]
+```
+
+Output:
+
+```shell
+$ dingo quota check --fsname dingofs1 --path /dir01
++-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
+|   INODEID   |  NAME  |    CAPACITY    | USED | REALUSED | INODES  | IUSED | REALIUSED | STATUS  |
++-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
+| 20000005055 | /dir01 | 10,737,418,240 | 0    | 0        | 100,000 | 1     | 1         | success |
++-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
 ```
 
 ### stats
@@ -720,6 +704,8 @@ show real time performance statistics of dingofs mountpoint
 Usage:
 
 ```shell
+dingo stats mountpoint MOUNTPOINT [OPTIONS]
+
 # normal
 dingo stats mountpoint /mnt/dingofs
 			
@@ -762,39 +748,4 @@ dingo stats mountpoint /mnt/dingofs
  490% 4692M 1664K|1113  7.35   146M   82M|   0     0     0 |   0    80M| 360M    0    80M 99.1%
  488% 4692M  640K|1431  5.53   167M   86M|   0     0     0 |   0    87M| 440M    0    87M 99.3%
  488% 4692M 1088K|1413  5.49   198M   92M|   0     0     0 |   0    92M| 441M    0    92M 99.6%
-```
-
-### unlock
-#### unlock cachemember
-
-Unbind the cachemember ID with the IP and Port
-
-Usage:
-
-```shell
-$ dingo unlock cachemember  --memberid 6ba7b810-9dad-11d1-80b4-00c04fd430c8 --ip 10.220.69.6 --port 10001
-```
-Output:
-
-```shell
-dingo  list cachemember
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-|               MEMBERID               |      IP      | PORT  | WEIGHT | LOCKED |       CREATE TIME       |    LAST ONLINE TIME     |  STATE  |               GROUP               |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 60b14376-7039-49fa-afee-47cbd318497c | 10.220.32.18 | 30020 | 100    | true   | 2025-09-22 11:36:48.000 | 2025-09-23 16:09:13.831 | offline |                                   |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-
-dingo unlock cachemember --memberid 60b14376-7039-49fa-afee-47cbd318497c --ip 10.220.32.18 --port 30020
-+---------+
-| RESULT  |
-+---------+
-| success |
-+---------+
-
-dingo  list cachemember 
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-|               MEMBERID               |      IP      | PORT  | WEIGHT | LOCKED |       CREATE TIME       |    LAST ONLINE TIME     |  STATE  |               GROUP               |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
-| 60b14376-7039-49fa-afee-47cbd318497c | 10.220.32.18 | 30020 | 100    | false  | 2025-09-22 11:36:48.000 | 2025-09-23 16:09:13.831 | offline |                                   |
-+--------------------------------------+--------------+-------+--------+--------+-------------------------+-------------------------+---------+-----------------------------------+
 ```
