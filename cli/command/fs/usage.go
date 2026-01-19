@@ -26,6 +26,7 @@ import (
 	"github.com/dingodb/dingocli/internal/rpc"
 	"github.com/dingodb/dingocli/internal/table"
 	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/dingodb/dingocli/proto/dingofs/proto/mds"
 	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
@@ -108,6 +109,9 @@ func runUsage(cmd *cobra.Command, dingocli *cli.DingoCli, options usageOptions) 
 		}
 
 		for _, fsInfo := range fsInfos {
+			if fsInfo.GetStatus() != mds.FsStatus_NORMAL {
+				continue
+			}
 			fsids = append(fsids, fsInfo.GetFsId())
 			fsnames = append(fsnames, fsInfo.GetFsName())
 			epochs = append(epochs, rpc.GetFsEpochByFsInfo(fsInfo))
