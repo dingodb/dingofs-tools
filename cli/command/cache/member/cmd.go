@@ -30,6 +30,7 @@ func NewCacheMemberCommand(dingocli *cli.DingoCli) *cobra.Command {
 	}
 
 	cmd.AddCommand(
+		NewCacheMemberSetCommand(dingocli),
 		NewCacheMemberListCommand(dingocli),
 		NewCacheMemberDeleteCommand(dingocli),
 		NewCacheMemberUnlockCommand(dingocli),
