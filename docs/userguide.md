@@ -28,6 +28,7 @@ A tool for DingoFS
       - [cache group](#cache-group)
         - [cache group list](#cache-group-list)
       - [cache member](#cache-member)
+        - [cache member set](#cache-member-set)     
         - [cache member list](#cache-member-list)
         - [cache member unlock](#cache-member-unlock)
         - [cache member leave](#cache-member-leave)
@@ -452,6 +453,23 @@ $ dingo cache group list
 ```
 
 #### cache member
+
+##### cache member set
+
+set cache member weight
+
+Usage:
+
+```shell
+dingo cache member set --memberid MEMBERID --ip IP --port PORT --weight WEIGHT [OPTIONS]]
+```
+
+Output:
+
+```shell
+$ dingo cache member set --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 --weight 70
+Successfully reweight cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6 to 70
+```
 
 ##### cache member list
 
