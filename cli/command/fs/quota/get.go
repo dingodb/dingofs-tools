@@ -49,7 +49,7 @@ func NewFsQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Use:     "get [OPTIONS]",
 		Short:   "get fs quota",
 		Args:    utils.NoArgs,
-		Example: FS_QUOTA_SET_EXAMPLE,
+		Example: FS_QUOTA_GET_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
