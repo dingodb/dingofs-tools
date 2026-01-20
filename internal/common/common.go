@@ -143,6 +143,9 @@ const (
 
 	// upgrade
 	KEY_UPGRADE_FLAG = "UPGRADE_FLAG"
+
+	// env
+	KEY_ENV_MDS_ADDR = "cluster_mds_addr"
 )
 
 // others

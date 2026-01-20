@@ -40,7 +40,7 @@ const (
 	DASHBOARD_CONTAINER_PATH       = "/etc/grafana/provisioning/dashboards"
 	GRAFANA_DATA_SOURCE_PATH       = "/etc/grafana/provisioning/datasources/all.yml"
 	DINGO_TOOL_SRC_PATH            = "/dingofs/conf/dingo.yaml"
-	DINGO_TOOL_DEST_PATH           = "/etc/dingo/dingo.yaml"
+	DINGO_TOOL_DEST_PATH           = "/root/.dingo/dingo.yaml"
 	ORIGIN_MONITOR_PATH            = "/dingofs/monitor"
 )
 

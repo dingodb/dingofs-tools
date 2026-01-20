@@ -83,14 +83,6 @@ func getClusterMdsAddr(dcs []*topology.DeployConfig) string {
 	return value
 }
 
-func getClusterMdsV2Addr(dcs []*topology.DeployConfig) string {
-	value, err := dcs[0].GetVariables().Get("cluster_mdsv2_addr")
-	if err != nil {
-		return "-"
-	}
-	return value
-}
-
 func getClusterCoorAddr(dcs []*topology.DeployConfig) string {
 	value, err := dcs[0].GetVariables().Get("coordinator_addr")
 	if err != nil {
@@ -185,7 +177,7 @@ func displayStatus(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options
 		if isMdsv2 {
 			dingocli.WriteOutln("cluster name     : %s", dingocli.ClusterName())
 			dingocli.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
-			dingocli.WriteOutln("mds     addr     : %s", getClusterMdsV2Addr(dcs))
+			dingocli.WriteOutln("mds     addr     : %s", getClusterMdsAddr(dcs))
 			if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
 				dingocli.WriteOutln("coordinator addr : %s", dcs[0].GetDingoStoreCoordinatorAddr())
 			} else {

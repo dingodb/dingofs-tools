@@ -26,23 +26,23 @@ import (
 
 const (
 	// service project layout in container
-	LAYOUT_DINGO_ROOT_DIR                    = "/dingo"
-	LAYOUT_DINGOFS_ROOT_DIR                  = "/dingofs"
-	LAYOUT_DINGOSTORE_ROOT_DIR               = "/opt/dingo-store"
-	LAYOUT_DINGOSTORE_BIN_DIR                = "/opt/dingo-store/build/bin"
-	LAYOUT_DINGOSTORE_DIST_DIR               = "/opt/dingo-store/dist"
-	LAYOUT_DINGDB_DINGO_ROOT_DIR             = "/opt/dingo"
-	LAYOUT_PLAYGROUND_ROOT_DIR               = "playground"
-	LAYOUT_CONF_SRC_DIR                      = "/conf"
-	LAYOUT_SERVICE_BIN_DIR                   = "/sbin"
-	LAYOUT_SERVICE_CONF_DIR                  = "/conf"
-	LAYOUT_SERVICE_LOGS_DIR                  = "/logs"
-	LAYOUT_SERVICE_LOG_DIR                   = "/log"
-	LAYOUT_SERVICE_DATA_DIR                  = "/data"
-	LAYOUT_TOOLS_DIR                         = "/tools"
-	LAYOUT_FS_TOOLS_DIR                      = "/tools"
-	LAYOUT_MDSV2_CLIENT_DIR                  = "/mds-client" // change mdsv2-client to mds-client
-	LAYOUT_DINGO_TOOLS_V2_CONFIG_SYSTEM_PATH = "/etc/dingo/dingo.yaml"
+	LAYOUT_DINGO_ROOT_DIR               = "/dingo"
+	LAYOUT_DINGOFS_ROOT_DIR             = "/dingofs"
+	LAYOUT_DINGOSTORE_ROOT_DIR          = "/opt/dingo-store"
+	LAYOUT_DINGOSTORE_BIN_DIR           = "/opt/dingo-store/build/bin"
+	LAYOUT_DINGOSTORE_DIST_DIR          = "/opt/dingo-store/dist"
+	LAYOUT_DINGDB_DINGO_ROOT_DIR        = "/opt/dingo"
+	LAYOUT_PLAYGROUND_ROOT_DIR          = "playground"
+	LAYOUT_CONF_SRC_DIR                 = "/conf"
+	LAYOUT_SERVICE_BIN_DIR              = "/sbin"
+	LAYOUT_SERVICE_CONF_DIR             = "/conf"
+	LAYOUT_SERVICE_LOGS_DIR             = "/logs"
+	LAYOUT_SERVICE_LOG_DIR              = "/log"
+	LAYOUT_SERVICE_DATA_DIR             = "/data"
+	LAYOUT_FS_TOOLS_DIR                 = "/tools"
+	LAYOUT_MDSV2_CLIENT_DIR             = "/mds-client" // change mdsv2-client to mds-client
+	LAYOUT_DINGO_CLI_CONFIG_USER_DIR    = "/root/.dingo"
+	LAYOUT_DINGO_CLI_CONFIG_SYSTEM_PATH = "/root/.dingo/dingo.yaml"
 	// dingo-store coordinator
 	LAYOUT_DINGO_COOR_RAFT_DIR = "/coordinator1/data/raft" //TODO: need to be changed
 	LAYOUT_DINGO_COOR_DATA_DIR = "/coordinator1/data/db"   //TODO: need to be changed
@@ -319,7 +319,8 @@ type (
 		FSToolsBinDir         string // /dingofs/tools/sbin
 		FSToolsConfDir        string // /dingofs/tools/conf
 		FSToolsConfSrcPath    string // /dingofs/conf/dingo.yaml
-		FSToolsConfSystemPath string // /etc/dingo/dingo.yaml
+		FSToolsConfUserDir    string // /root/.dingo
+		FSToolsConfSystemPath string // /root/.dingo/dingo.yaml
 		FSToolsBinaryPath     string // /dingofs/tools/sbin/dingo
 
 		// dingofs mds client
@@ -402,7 +403,7 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 	fsToolsRootDir := root + LAYOUT_FS_TOOLS_DIR
 	fsToolsBinDir := fsToolsRootDir + LAYOUT_SERVICE_BIN_DIR
 	fsToolsBinaryName := BINARY_DINGOFS_TOOLS
-	fsToolsConfSystemPath := LAYOUT_DINGO_TOOLS_V2_CONFIG_SYSTEM_PATH
+	fsToolsConfSystemPath := LAYOUT_DINGO_CLI_CONFIG_SYSTEM_PATH
 
 	serviceLogDir := serviceRootDir + LAYOUT_SERVICE_LOGS_DIR
 	serviceDataDir := serviceRootDir + LAYOUT_SERVICE_DATA_DIR
@@ -460,6 +461,7 @@ func (dc *DeployConfig) GetProjectLayout() Layout {
 		FSToolsBinDir:         fsToolsRootDir + LAYOUT_SERVICE_BIN_DIR,
 		FSToolsConfDir:        fsToolsRootDir + LAYOUT_SERVICE_CONF_DIR,
 		FSToolsConfSrcPath:    fmt.Sprintf("%s/dingo.yaml", confSrcDir),
+		FSToolsConfUserDir:    LAYOUT_DINGO_CLI_CONFIG_USER_DIR,
 		FSToolsConfSystemPath: fsToolsConfSystemPath,
 		FSToolsBinaryPath:     fmt.Sprintf("%s/%s", fsToolsBinDir, fsToolsBinaryName),
 

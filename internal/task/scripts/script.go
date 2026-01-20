@@ -29,15 +29,9 @@ var (
 	//go:embed shell/start_nginx.sh
 	START_NGINX string
 
-	//go:embed shell/mount_fs.sh
-	MOUNT_FS string
-
-	//go:embed shell/mount_client.sh
-	MOUNT_CLIENT string
-
-	// DingoFS MdsV2
-	//go:embed shell/create_mdsv2_tables.sh
-	CREATE_MDSV2_TABLES string
+	// DingoFS Mds
+	//go:embed shell/create_mds_tables.sh
+	CREATE_MDS_TABLES string
 
 	// DingoStore
 	//go:embed shell/check_store_health.sh
