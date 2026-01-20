@@ -32,6 +32,7 @@ func NewMDSCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd.AddCommand(
 		NewStatusCommand(dingocli),
 		NewMdsStartCommand(dingocli),
+		NewMdsMetaCommand(dingocli),
 	)
 
 	return cmd

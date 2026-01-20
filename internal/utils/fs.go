@@ -78,3 +78,12 @@ func GetInodesAsString(listFilePath string) (string, error) {
 
 	return strings.Join(inodeStrings, ","), nil
 }
+
+func GetHomeDir() string {
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+
+	return homedir
+}

@@ -23,6 +23,7 @@ A tool for DingoFS
     - [mds](#mds)
       - [mds status](#mds-status)
       - [mds start](#mds-start)
+      - [mds meta](#mds-meta)
     - [cache](#cache)
       - [cache start](#cache-start)
       - [cache group](#cache-group)
@@ -393,7 +394,7 @@ dingo mds start --conf=./mds.conf
 Output:
 
 ```shell
-[yansp@dingofs-6 bin]$ dingo mds start --conf=./mds.conf 
+$ dingo mds start --conf=./mds.conf 
 current configuration:
   id                   [1001]
   config               [./mds.conf]
@@ -401,6 +402,25 @@ current configuration:
   storage              [dummy]
 
 mds is listening on 0.0.0.0:7777
+```
+
+#### mds meta
+
+backup and restore meta data
+
+Usage:
+
+```shell
+dingo mds meta --cmd=backup  --type=meta --coor_addr=file://./coor_list --output_type=file --out=meta_backup
+```
+
+Output:
+
+```shell
+$ dingo mds meta --cmd=backup  --type=meta --coor_addr=file://./coor_list --output_type=file --out=meta_backup --fs_id=10000
+### use cluster id: 0
+backup meta table done.
+summary total_count(9) lock_count(2) auto_increment_id_count(0) mds_heartbeat_count(3) client_heartbeat_count(1) cache_member_heartbeat_count(0) fs_count(1) fs_quota_count(1) fs_oplog_count(1).
 ```
 
 ### cache
