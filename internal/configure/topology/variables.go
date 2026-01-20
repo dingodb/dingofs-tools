@@ -75,15 +75,12 @@ var (
 
 	// NOTE: we don't support cluster variable exist in topology
 	clusterVars = []Var{
-		{name: "cluster_etcd_http_addr"},
-		{name: "cluster_etcd_addr"},
-		{name: "cluster_mds_addr"},
 		{name: "cluster_mds_dummy_addr"},
 		{name: "cluster_mds_dummy_port"},
 		{name: "cluster_metaserver_addr", kind: []string{KIND_DINGOFS}},
 		{name: "cluster_coor_srv_peers", kind: []string{KIND_DINGOSTORE, KIND_DINGOFS, KIND_DINGODB}},
 		{name: "cluster_coor_raft_peers", kind: []string{KIND_DINGOSTORE, KIND_DINGOFS, KIND_DINGODB}},
-		{name: "cluster_mdsv2_addr", kind: []string{KIND_DINGOFS}},
+		{name: "cluster_mds_addr", kind: []string{KIND_DINGOFS}},
 		{name: "coordinator_addr", kind: []string{KIND_DINGOFS, KIND_DINGOSTORE, KIND_DINGODB}},
 		{name: "diskann_server_start_port", kind: []string{KIND_DINGODB}},
 	}
@@ -268,12 +265,8 @@ func getValue(name string, dcs []*DeployConfig, idx int) string {
 		return dc.GetProjectLayout().DingoStoreRaftDir
 	case "random_uuid":
 		return uuid.NewString()
-	case "cluster_etcd_http_addr":
-		return joinEtcdPeer(dcs)
-	case "cluster_etcd_addr":
-		return joinPeer(dcs, ROLE_ETCD, SELECT_LISTEN_CLIENT_PORT)
 	case "cluster_mds_addr":
-		return joinPeer(dcs, ROLE_FS_MDS, SELECT_LISTEN_PORT)
+		return joinPeer(dcs, ROLE_FS_MDS, SELECT_SERVER_PORT)
 	case "cluster_mds_dummy_addr":
 		return joinPeer(dcs, ROLE_FS_MDS, SELECT_LISTEN_DUMMY_PORT)
 	case "cluster_mds_dummy_port":
@@ -295,8 +288,6 @@ func getValue(name string, dcs []*DeployConfig, idx int) string {
 		return joinPeer(dcs, ROLE_COORDINATOR, SELECT_LISTEN_COOR_SERVER_PORT)
 	case "cluster_coor_raft_peers":
 		return joinPeer(dcs, ROLE_COORDINATOR, SELECT_LISTEN_COOR_RAFT_PORT)
-	case "cluster_mdsv2_addr":
-		return joinPeer(dcs, ROLE_FS_MDS, SELECT_SERVER_PORT)
 	case "diskann_server_start_port":
 		return strconv.Itoa(locateDiskannPort(dcs))
 	}

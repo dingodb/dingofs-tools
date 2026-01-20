@@ -35,6 +35,9 @@ const (
 
 	CONFIG_DEFAULT_ENV_FILE = "/etc/profile"
 	STORE_BUILD_BIN_DIR     = "/opt/dingo-store/build/bin"
+
+	// dingo.yaml config keys
+	DINGOCLI_KEY_MDS_ADDR = "mdsaddr"
 )
 
 func NewMutate(dc *topology.DeployConfig, delimiter string, forceRender bool) step.Mutate {
@@ -67,9 +70,9 @@ func NewMutate(dc *topology.DeployConfig, delimiter string, forceRender bool) st
 			value = v
 		}
 
-		if muteKey == "mdsAddr" {
-			// special handle for mdsAddr config
-			value, err = dc.GetVariables().Get("cluster_mdsv2_addr")
+		if muteKey == DINGOCLI_KEY_MDS_ADDR {
+			// special handle for mdsaddr config
+			value, err = dc.GetVariables().Get(comm.KEY_ENV_MDS_ADDR)
 		} else {
 			// replace variable
 			value, err = dc.GetVariables().Rendering(value)
@@ -196,11 +199,11 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task
 
 			return t, nil
 		} else if dc.GetRole() == topology.ROLE_FS_MDS_CLI {
-			// sync create_mdsv2_tables.sh
-			createTablesScript := scripts.CREATE_MDSV2_TABLES
+			// sync create_mds_tables.sh
+			createTablesScript := scripts.CREATE_MDS_TABLES
 			createTablesScriptPath := fmt.Sprintf("%s/%s", layout.FSMdsCliBinDir, topology.SCRIPT_CREATE_MDSV2_TABLES) // /dingofs/mds-client/sbin
-			// createTablesScriptPath := fmt.Sprintf("%s/create_mdsv2_tables.sh", STORE_BUILD_BIN_DIR) // /opt/dingo-store/build/bin
-			t.AddStep(&step.InstallFile{ // install create_mdsv2_tables.sh script
+			// createTablesScriptPath := fmt.Sprintf("%s/create_mds_tables.sh", STORE_BUILD_BIN_DIR) // /opt/dingo-store/build/bin
+			t.AddStep(&step.InstallFile{ // install create_mds_tables.sh script
 				ContainerId:       &containerId,
 				ContainerDestPath: createTablesScriptPath,
 				Content:           &createTablesScript,
@@ -246,6 +249,14 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task
 			})
 
 		} else {
+			// init /root/.dingo dir in container
+			t.AddStep(&step.CreateAndUploadDir{
+				HostDirName:       ".dingo",
+				ContainerDestId:   &containerId,
+				ContainerDestPath: layout.FSToolsConfUserDir,
+				ExecOptions:       dingocli.ExecOptions(),
+			})
+
 			containerToolsSrcPath := layout.FSToolsConfSrcPath
 			t.AddStep(&step.TrySyncFile{ // sync dingocli config
 				ContainerSrcId:    &containerId,
