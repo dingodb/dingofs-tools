@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package cache
+package mds
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/internal/utils"
@@ -29,58 +28,53 @@ import (
 )
 
 const (
-	CACHE_START_EXAMPLE = `Examples:
-   $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6`
+	MDS_META_EXAMPLE = `Examples:
+   $ dingo mds meta --cmd=backup  --type=meta --coor_addr=file://./coor_list --output_type=file --out=meta_backup
+   $ dingo mds meta --cmd=restore --type=meta --coor_addr=file://./coor_list --input_type=file  --in=meta_backup`
 )
 
 var (
-	DINGOFS_CACHE_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-cache", utils.GetHomeDir())
+	DINGOFS_META_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-mds-client", utils.GetHomeDir())
 )
 
-type startOptions struct {
-	cacheBinary string
-	cmdArgs     []string
-	daemonize   bool
+type metaOptions struct {
+	metaBinary string
+	cmdArgs    []string
+	daemonize  bool
 }
 
-func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
-	var options startOptions
-
+func NewMdsMetaCommand(dingocli *cli.DingoCli) *cobra.Command {
+	var options metaOptions
 	cmd := &cobra.Command{
-		Use:                "start [OPTIONS]",
-		Short:              "start cache node",
+		Use:                "meta [OPTIONS]",
+		Short:              "manage meta data",
 		Args:               utils.RequiresMinArgs(0),
 		DisableFlagParsing: true,
-		Example:            CACHE_START_EXAMPLE,
+		Example:            MDS_META_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.cacheBinary = DINGOFS_CACHE_BINARY
+			options.metaBinary = DINGOFS_META_BINARY
 			options.cmdArgs = args
 
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
-					return runCommandHelp(cmd, options.cacheBinary)
-				}
-				if arg == "--daemonize" || arg == "-d" {
-					options.daemonize = true
+					return runMetaCommandHelp(cmd, options.metaBinary)
 				}
 			}
 
-			// check dingo-cache is exists
-			if !utils.IsFileExists(options.cacheBinary) {
-				return fmt.Errorf("%s not found", options.cacheBinary)
-
+			if !utils.IsFileExists(options.metaBinary) {
+				return fmt.Errorf("%s not found", options.metaBinary)
 			}
-			// check has execute permission
-			if !utils.HasExecutePermission(options.cacheBinary) {
-				fmt.Printf("no execute permission for %s, now add it\n", options.cacheBinary)
-				err := utils.AddExecutePermission(options.cacheBinary)
+
+			if !utils.HasExecutePermission(options.metaBinary) {
+				fmt.Printf("no execute permission for %s, now add it\n", options.metaBinary)
+				err := utils.AddExecutePermission(options.metaBinary)
 				if err != nil {
-					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.cacheBinary, err)
+					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.metaBinary, err)
 				}
 			}
 
-			return runStart(cmd, dingocli, options)
+			return runMeta(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -91,11 +85,11 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-func runStart(cmd *cobra.Command, dingocli *cli.DingoCli, options startOptions) error {
+func runMeta(cmd *cobra.Command, dingocli *cli.DingoCli, options metaOptions) error {
 	var oscmd *exec.Cmd
 	var name string
 
-	name = options.cacheBinary
+	name = options.metaBinary
 	cmdarg := options.cmdArgs
 
 	oscmd = exec.Command(name, cmdarg...)
@@ -103,33 +97,21 @@ func runStart(cmd *cobra.Command, dingocli *cli.DingoCli, options startOptions) 
 	oscmd.Stdout = os.Stdout
 	oscmd.Stderr = os.Stderr
 
-	if err := oscmd.Start(); err != nil {
-		return err
-	}
-
-	// forground mode, wait process exit
-	if options.daemonize {
-		time.Sleep(2 * time.Second)
-		fmt.Println("Successfully start dingo-cache")
-		return nil
-	}
-
-	// wait process complete
-	if err := oscmd.Wait(); err != nil {
+	if err := oscmd.Run(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func runCommandHelp(cmd *cobra.Command, command string) error {
-	// print dingocli usage
+func runMetaCommandHelp(cmd *cobra.Command, command string) error {
+	// print dingo usage
 	fmt.Printf("Usage: dingo %s %s\n", cmd.Parent().Use, cmd.Use)
 	fmt.Println("")
 	fmt.Println(cmd.Short)
 	fmt.Println("")
 
-	// print  dingo-client options
+	// print  dingo-mds-client options
 	fmt.Println("Options:")
 
 	helpArgs := []string{"--help"}

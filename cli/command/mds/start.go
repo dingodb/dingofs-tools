@@ -36,7 +36,7 @@ const (
 )
 
 var (
-	DINGOFS_MDS_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-mds", GetHomeDir())
+	DINGOFS_MDS_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-mds", utils.GetHomeDir())
 )
 
 type startOptions struct {
@@ -154,13 +154,4 @@ func runCommandHelp(cmd *cobra.Command, command string) error {
 	fmt.Println(cmd.Example)
 
 	return nil
-}
-
-func GetHomeDir() string {
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-
-	return homedir
 }
