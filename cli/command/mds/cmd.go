@@ -24,9 +24,10 @@ import (
 
 func NewMDSCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mds",
-		Short: "Manage mds cluster",
-		Args:  cliutil.NoArgs,
+		Use:     "mds",
+		Short:   "Manage mds cluster",
+		GroupID: "ADMIN",
+		Args:    cliutil.NoArgs,
 	}
 
 	cmd.AddCommand(

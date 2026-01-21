@@ -33,9 +33,10 @@ func NewEnterCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options enterOptions
 
 	cmd := &cobra.Command{
-		Use:   "enter ID",
-		Short: "Enter service container",
-		Args:  utils.ExactArgs(1),
+		Use:     "enter ID",
+		Short:   "Enter service container",
+		GroupID: "UTILS",
+		Args:    utils.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			options.id = args[0]
 			return dingocli.CheckId(options.id)

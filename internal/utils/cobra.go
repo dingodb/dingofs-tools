@@ -41,7 +41,7 @@ var (
 	ShowHelp = command.ShowHelp
 )
 
-var (
+const (
 	usageTemplate = `Usage:
 {{- if not .HasSubCommands}}  {{.UseLine}}{{end}}
 {{- if .HasSubCommands}}  {{ .CommandPath}} COMMAND {{- if .HasAvailableFlags}} [OPTIONS]{{end}}{{end}}
@@ -54,21 +54,22 @@ Aliases:
   {{.NameAndAliases}}
 {{- end}}
 
-{{- if hasManagementSubCommands . }}
+{{- range .Groups}}
+{{- $groupId := .ID}}
 
-Management Commands:
-
-{{- range managementSubCommands . }}
+{{.Title}}
+{{- range $.Commands}}
+{{- if and (eq .GroupID $groupId) (.IsAvailableCommand) (not .IsAdditionalHelpTopicCommand)}}
   {{rpad .Name .NamePadding }} {{.Short}}
 {{- end}}
-
+{{- end}}
 {{- end}}
 
-{{- if hasOperationSubCommands .}}
+{{- $ungroupedCommands := ungroupedCommands . }}
+{{- if $ungroupedCommands}}
 
 Commands:
-
-{{- range operationSubCommands . }}
+{{- range $ungroupedCommands }}
   {{rpad .Name .NamePadding }} {{.Short}}
 {{- end}}
 {{- end}}
@@ -92,6 +93,16 @@ Run '{{.CommandPath}} COMMAND --help' for more information on a command.
 {{- end}}
 `
 )
+
+func ungroupedCommands(cmd *cobra.Command) []*cobra.Command {
+	cmds := []*cobra.Command{}
+	for _, subCmd := range cmd.Commands() {
+		if subCmd.IsAvailableCommand() && subCmd.GroupID == "" {
+			cmds = append(cmds, subCmd)
+		}
+	}
+	return cmds
+}
 
 func managementSubCommands(cmd *cobra.Command) []*cobra.Command {
 	cmds := []*cobra.Command{}
@@ -147,6 +158,7 @@ func SetHelpTemplate(cmd *cobra.Command) {
 }
 
 func SetUsageTemplate(cmd *cobra.Command) {
+	cobra.AddTemplateFunc("ungroupedCommands", ungroupedCommands)
 	cobra.AddTemplateFunc("managementSubCommands", managementSubCommands)
 	cobra.AddTemplateFunc("operationSubCommands", operationSubCommands)
 	cobra.AddTemplateFunc("hasManagementSubCommands", hasManagementSubCommands)

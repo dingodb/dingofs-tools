@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"fmt"
@@ -29,52 +29,30 @@ import (
 )
 
 var (
-	START_PLAYBOOK_STEPS = []int{
-		playbook.START_SERVICE,
+	RESTART_PLAYBOOK_STEPS = []int{
+		playbook.RESTART_SERVICE,
 	}
 )
 
-type startOptions struct {
+type restartOptions struct {
 	id    string
 	role  string
 	host  string
 	force bool
 }
 
-func checkCommonOptions(dingocli *cli.DingoCli, id, role, host string) error {
-	items := []struct {
-		key      string
-		callback func(string) error
-	}{
-		{id, dingocli.CheckId},
-		{role, dingocli.CheckRole},
-		{host, dingocli.CheckHost},
-	}
-
-	for _, item := range items {
-		if item.key == "*" {
-			continue
-		}
-		err := item.callback(item.key)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func NewStartCommand(dingocli *cli.DingoCli) *cobra.Command {
-	var options startOptions
+func NewRestartCommand(dingocli *cli.DingoCli) *cobra.Command {
+	var options restartOptions
 
 	cmd := &cobra.Command{
-		Use:   "start [OPTIONS]",
-		Short: "Start service",
+		Use:   "restart [OPTIONS]",
+		Short: "Restart cluster",
 		Args:  cliutil.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return checkCommonOptions(dingocli, options.id, options.role, options.host)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runStart(dingocli, options)
+			return runRestart(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -88,9 +66,9 @@ func NewStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-func genStartPlaybook(dingocli *cli.DingoCli,
+func genRestartPlaybook(dingocli *cli.DingoCli,
 	dcs []*topology.DeployConfig,
-	options startOptions) (*playbook.Playbook, error) {
+	options restartOptions) (*playbook.Playbook, error) {
 	dcs = dingocli.FilterDeployConfig(dcs, topology.FilterOption{
 		Id:   options.id,
 		Role: options.role,
@@ -100,7 +78,7 @@ func genStartPlaybook(dingocli *cli.DingoCli,
 		return nil, errno.ERR_NO_SERVICES_MATCHED
 	}
 
-	steps := START_PLAYBOOK_STEPS
+	steps := RESTART_PLAYBOOK_STEPS
 	pb := playbook.NewPlaybook(dingocli)
 	for _, step := range steps {
 		pb.AddStep(&playbook.PlaybookStep{
@@ -111,28 +89,28 @@ func genStartPlaybook(dingocli *cli.DingoCli,
 	return pb, nil
 }
 
-func runStart(dingocli *cli.DingoCli, options startOptions) error {
+func runRestart(dingocli *cli.DingoCli, options restartOptions) error {
 	// 1) parse cluster topology
 	dcs, err := dingocli.ParseTopology()
 	if err != nil {
 		return err
 	}
 
-	// 2) generate start playbook
-	pb, err := genStartPlaybook(dingocli, dcs, options)
+	// 2) generate restart playbook
+	pb, err := genRestartPlaybook(dingocli, dcs, options)
 	if err != nil {
 		return err
 	}
 
-	// 3) force start
+	// 3) force restart
 	if options.force {
-		fmt.Print(tui.PromptStartService(options.id, options.role, options.host))
+		fmt.Print(tui.PromptRestartService(options.id, options.role, options.host))
 		return pb.Run()
 	}
 
 	// 3) confirm by user
-	if pass := tui.ConfirmYes(tui.PromptStartService(options.id, options.role, options.host)); !pass {
-		dingocli.WriteOut(tui.PromptCancelOpetation("start service"))
+	if pass := tui.ConfirmYes(tui.PromptRestartService(options.id, options.role, options.host)); !pass {
+		dingocli.WriteOut(tui.PromptCancelOpetation("restart service"))
 		return errno.ERR_CANCEL_OPERATION
 	}
 

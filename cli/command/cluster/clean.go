@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
@@ -30,9 +30,9 @@ import (
 
 const (
 	CLEAN_EXAMPLE = `Examples:
-  $ dingocli clean                               # Clean everything for all services
-  $ dingocli clean --only='log,data'             # Clean log and data for all services
-  $ dingocli clean --role=etcd --only=container  # Clean container for etcd services`
+  $ dingocli cluster clean                               # Clean everything for all services
+  $ dingocli cluster clean --only='log,data'             # Clean log and data for all services
+  $ dingocli cluster clean --role=etcd --only=container  # Clean container for etcd services`
 )
 
 var (
@@ -75,7 +75,7 @@ func NewCleanCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "clean [OPTIONS]",
-		Short:   "Clean service's environment",
+		Short:   "Clean cluster's environment",
 		Args:    cliutil.NoArgs,
 		Example: CLEAN_EXAMPLE,
 		PreRunE: func(cmd *cobra.Command, args []string) error {

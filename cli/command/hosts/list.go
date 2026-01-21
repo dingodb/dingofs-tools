@@ -52,108 +52,13 @@ func NewListCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-/*
- * pattern         description
- * ---             ---
- * label2:label2   multiple labels: all hosts belong to label <label1> plus all hosts belong to <label2>
- * label2:!label2  excluding labels: all hosts belong to label <label1> except those belong to label <label2>
- * label2:&label2  intersection labels: any hosts belong to label <label1> that are also belong to label <label2>
- */
-func parsePattern(labels []string) (include, exclude, intersect map[string]bool) {
-	include = map[string]bool{}
-	exclude = map[string]bool{}
-	intersect = map[string]bool{}
-	for _, label := range labels {
-		if len(label) == 0 {
-			continue
-		}
-
-		switch label[0] {
-		case '!':
-			exclude[label[1:]] = true
-		case '&':
-			intersect[label[1:]] = true
-		default:
-			include[label] = true
-		}
-	}
-	return
-}
-
-// return true if dropped
-func excludeOne(hc *hosts.HostConfig, exclude map[string]bool) bool {
-	if len(exclude) == 0 {
-		return false
-	}
-
-	for _, label := range hc.GetLabels() {
-		if exclude[label] {
-			return true
-		}
-	}
-	return false
-}
-
-// return true if selected
-func includeOne(hc *hosts.HostConfig, include map[string]bool) bool {
-	if len(include) == 0 {
-		return true
-	}
-
-	for _, label := range hc.GetLabels() {
-		if include[label] {
-			return true
-		}
-	}
-	return false
-}
-
-// return true if selected
-func intersectOne(hc *hosts.HostConfig, intersect map[string]bool) bool {
-	if len(intersect) == 0 {
-		return true
-	}
-
-	exist := map[string]bool{}
-	for _, label := range hc.GetLabels() {
-		if intersect[label] {
-			exist[label] = true
-		}
-	}
-	return len(exist) == len(intersect)
-}
-
-func filter(data string, labels []string) ([]*hosts.HostConfig, error) {
-	hcs, err := hosts.ParseHosts(data)
-	if err != nil {
-		return nil, err
-	}
-	if len(labels) == 0 {
-		return hcs, nil
-	}
-
-	out := []*hosts.HostConfig{}
-	include, exclude, intersect := parsePattern(labels)
-	for _, hc := range hcs {
-		if excludeOne(hc, exclude) {
-			continue
-		} else if !includeOne(hc, include) {
-			continue
-		} else if !intersectOne(hc, intersect) {
-			continue
-		}
-		out = append(out, hc)
-	}
-	return out, nil
-}
-
 func runList(dingocli *cli.DingoCli, options listOptions) error {
 	var hcs []*hosts.HostConfig
 	var err error
 	data := dingocli.Hosts()
 	if len(data) > 0 {
 		labels := strings.Split(options.labels, ":")
-		hcs, err = filter(data, labels) // filter hosts
+		hcs, err = hosts.Filter(data, labels) // filter hosts
 		if err != nil {
 			return err
 		}

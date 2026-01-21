@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
@@ -67,7 +67,7 @@ func NewUpgradeCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "upgrade [OPTIONS]",
-		Short: "Upgrade service",
+		Short: "Upgrade cluster",
 		Args:  cliutil.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return checkCommonOptions(dingocli, options.id, options.role, options.host)

@@ -33,9 +33,10 @@ func NewAuditCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options auditOptions
 
 	cmd := &cobra.Command{
-		Use:   "audit [OPTIONS]",
-		Short: "Show audit log of operation",
-		Args:  cliutil.NoArgs,
+		Use:     "audit [OPTIONS]",
+		Short:   "Show audit log of operation",
+		GroupID: "UTILS",
+		Args:    cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runAudit(dingocli, options)
 		},

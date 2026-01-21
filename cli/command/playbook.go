@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package hosts
+package command
 
 // NOTE: playbook under beta version
 import (
@@ -25,6 +25,7 @@ import (
 
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/internal/configure/hosts"
+	hostconfig "github.com/dingodb/dingocli/internal/configure/hosts"
 	"github.com/dingodb/dingocli/internal/tools"
 	"github.com/dingodb/dingocli/internal/utils"
 	cliutil "github.com/dingodb/dingocli/internal/utils"
@@ -62,9 +63,10 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options playbookOptions
 
 	cmd := &cobra.Command{
-		Use:   "playbook [OPTIONS] PLAYBOOK [ARGS...]",
-		Short: "Execute playbook",
-		Args:  cliutil.RequiresMinArgs(1),
+		Use:     "playbook [OPTIONS] PLAYBOOK [ARGS...]",
+		Short:   "Execute playbook",
+		GroupID: "UTILS",
+		Args:    cliutil.RequiresMinArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// check args num bigger than 1
 			if len(args) == 1 {
@@ -150,11 +152,11 @@ func receiver(dingocli *cli.DingoCli, total int) {
 }
 
 func runPlaybook(dingocli *cli.DingoCli, options playbookOptions) error {
-	var hcs []*hosts.HostConfig
+	var hcs []*hostconfig.HostConfig
 	var err error
 	hosts := dingocli.Hosts()
 	if len(hosts) > 0 {
-		hcs, err = filter(hosts, options.labels) // filter hosts
+		hcs, err = hostconfig.Filter(hosts, options.labels) // filter hosts
 		if err != nil {
 			return err
 		}

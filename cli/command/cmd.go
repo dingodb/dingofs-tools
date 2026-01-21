@@ -19,20 +19,15 @@ package command
 import (
 	"fmt"
 
-	"github.com/dingodb/dingocli/cli/command/export"
-	"github.com/dingodb/dingocli/cli/command/fs"
-	"github.com/dingodb/dingocli/cli/command/mds"
-	"github.com/dingodb/dingocli/cli/command/quota"
-	"github.com/dingodb/dingocli/cli/command/stats"
-	"github.com/dingodb/dingocli/cli/command/subpath"
-	"github.com/dingodb/dingocli/cli/command/warmup"
-
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/cli/command/cache"
 	"github.com/dingodb/dingocli/cli/command/cluster"
 	"github.com/dingodb/dingocli/cli/command/config"
+	"github.com/dingodb/dingocli/cli/command/fs"
 	"github.com/dingodb/dingocli/cli/command/hosts"
+	"github.com/dingodb/dingocli/cli/command/mds"
 	"github.com/dingodb/dingocli/cli/command/monitor"
+	"github.com/dingodb/dingocli/cli/command/nfs"
 	"github.com/dingodb/dingocli/internal/errno"
 	tools "github.com/dingodb/dingocli/internal/tools/upgrade"
 	cliutil "github.com/dingodb/dingocli/internal/utils"
@@ -44,11 +39,10 @@ var dingoExample = `Examples:
   $ dingo fs umount /mnt                   # Unmount filesystem from local path /mnt
   $ dingo cache start --id=<UUID>          # Start dingo-cache
   $ dingo mds start --conf ./mds.conf  	   # Start mds with specified config file
-  $ dingo playground run --kind dingofs    # Run a dingoFS playground quickly
   $ dingo cluster add c1                   # Add a cluster named 'c1'
-  $ dingo deploy                           # Deploy current cluster
-  $ dingo stop                             # Stop current cluster service
-  $ dingo clean                            # Clean current cluster
+  $ dingo cluster deploy                   # Deploy current cluster
+  $ dingo cluster stop                     # Stop current cluster service
+  $ dingo cluster clean                    # Clean current cluster
   $ dingo enter 6ff561598c6f               # Enter specified service container
   $ dingo -u                               # Upgrade dingo itself to the latest version`
 
@@ -58,35 +52,38 @@ type rootOptions struct {
 }
 
 func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
+	cmd.AddGroup(
+		&cobra.Group{
+			ID:    "ADMIN",
+			Title: "Admin Commands:",
+		},
+		&cobra.Group{
+			ID:    "DEPLOY",
+			Title: "Deploy Commands:",
+		},
+		&cobra.Group{
+			ID:    "UTILS",
+			Title: "Utils Commands:",
+		},
+	)
+
 	cmd.AddCommand(
 		cluster.NewClusterCommand(dingocli), // dingocli cluster ...
 		config.NewConfigCommand(dingocli),   // dingocli config ...
 		hosts.NewHostsCommand(dingocli),     // dingocli hosts ...
 		monitor.NewMonitorCommand(dingocli), // dingocli monitor ...
-		fs.NewFSCommand(dingocli),           // dingocli fs ...
-		subpath.NewSubpathCommand(dingocli), // dingocli subpath ...
 		cache.NewCacheCommand(dingocli),     // dingocli cache ...
-		stats.NewStatsCommand(dingocli),     // dingocli stats...
-		warmup.NewWarmupCommand(dingocli),   // dingocli warmup...
-		export.NewExportCommand(dingocli),   // dingocli export...
-		quota.NewQuotaCommand(dingocli),     // dingocli quota ...
+		nfs.NewNFSCommand(dingocli),         // dingocli export...
 		mds.NewMDSCommand(dingocli),         // dingocli mds ...
+		fs.NewFSCommand(dingocli),           // dingocli fs ...
 
 		NewAuditCommand(dingocli),      // dingocli audit
-		NewCleanCommand(dingocli),      // dingocli clean
 		NewCompletionCommand(dingocli), // dingocli completion
-		NewDeployCommand(dingocli),     // dingocli deploy
 		NewEnterCommand(dingocli),      // dingocli enter
 		NewExecCommand(dingocli),       // dingocli exec
-		NewPrecheckCommand(dingocli),   // dingocli precheck
-		NewRestartCommand(dingocli),    // dingocli restart
-		NewStartCommand(dingocli),      // dingocli start
-		NewStatusCommand(dingocli),     // dingocli status
-		NewStopCommand(dingocli),       // dingocli stop
-		NewUpgradeCommand(dingocli),    // dingocli upgrade
 		// commonly used shorthands
-		hosts.NewSSHCommand(dingocli),      // dingocli ssh
-		hosts.NewPlaybookCommand(dingocli), // dingocli playbook
+		NewSSHCommand(dingocli),      // dingocli ssh
+		NewPlaybookCommand(dingocli), // dingocli playbook
 	)
 }
 

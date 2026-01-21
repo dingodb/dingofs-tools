@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package quota
+package config
 
 import (
 	"fmt"
@@ -32,24 +32,24 @@ import (
 )
 
 const (
-	QUOTA_GET_EXAMPLE = `Examples:
-   $ dingo quota get --fsname fs1 --path /dir1`
+	FS_QUOTA_GET_EXAMPLE = `Examples:
+   $ dingo fs quota get --fsname fs1`
 )
 
 type getOptions struct {
 	fsid   uint32
-	path   string
+	fsname string
 	format string
 }
 
-func NewQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewFsQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options getOptions
 
 	cmd := &cobra.Command{
 		Use:     "get [OPTIONS]",
-		Short:   "get directory quota",
+		Short:   "get fs quota",
 		Args:    utils.NoArgs,
-		Example: QUOTA_GET_EXAMPLE,
+		Example: FS_QUOTA_GET_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
@@ -60,7 +60,12 @@ func NewQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			options.fsid = fsid
 
-			options.path = utils.GetStringFlag(cmd, "path")
+			fsname, err := rpc.GetFsName(cmd)
+			if err != nil {
+				return err
+			}
+			options.fsname = fsname
+
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
 			return runGet(cmd, dingocli, options)
@@ -74,7 +79,6 @@ func NewQuotaGetCommand(dingocli *cli.DingoCli) *cobra.Command {
 	// add flags
 	cmd.Flags().Uint32("fsid", 0, "Filesystem id")
 	cmd.Flags().String("fsname", "", "Filesystem name")
-	utils.AddStringRequiredFlag(cmd, "path", "full path of the directory within the volume")
 
 	utils.AddBoolFlag(cmd, utils.VERBOSE, "Show more debug info")
 	utils.AddConfigFileFlag(cmd)
@@ -93,24 +97,9 @@ func runGet(cmd *cobra.Command, dingocli *cli.DingoCli, options getOptions) erro
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,
 	}
-	// get epoch id
-	epoch, epochErr := rpc.GetFsEpochByFsId(cmd, options.fsid)
-	if epochErr != nil {
-		return epochErr
-	}
-	// create router
-	routerErr := rpc.InitFsMDSRouter(cmd, options.fsid)
-	if routerErr != nil {
-		return routerErr
-	}
-	//get inodeid
-	dirInodeId, inodeErr := rpc.GetDirPathInodeId(cmd, options.fsid, options.path, epoch)
-	if inodeErr != nil {
-		return inodeErr
-	}
 
 	// get quota
-	_, result, err := GetDirQuotaData(cmd, options.fsid, dirInodeId, epoch)
+	_, result, err := GetFsQuotaData(cmd, options.fsid)
 	if err != nil {
 		outputResult.Error = err
 	}
@@ -125,15 +114,16 @@ func runGet(cmd *cobra.Command, dingocli *cli.DingoCli, options getOptions) erro
 	}
 
 	// set table header
-	header := []string{common.ROW_INODE_ID, common.ROW_PATH, common.ROW_CAPACITY, common.ROW_USED, common.ROW_USED_PERCNET, common.ROW_INODES, common.ROW_INODES_IUSED, common.ROW_INODES_PERCENT}
-	table.SetHeader(header)
+	header := []string{common.ROW_FS_ID, common.ROW_FS_NAME, common.ROW_CAPACITY, common.ROW_USED, common.ROW_USED_PERCNET, common.ROW_INODES, common.ROW_INODES_IUSED, common.ROW_INODES_PERCENT}
 
-	dirQuota := result.GetQuota()
-	quotaValueSlice := utils.ConvertQuotaToHumanizeValue(uint64(dirQuota.GetMaxBytes()), dirQuota.GetUsedBytes(), uint64(dirQuota.GetMaxInodes()), dirQuota.GetUsedInodes())
+	table.SetHeader(header)
+	fsQuota := result.GetQuota()
+	quotaValueSlice := utils.ConvertQuotaToHumanizeValue(uint64(fsQuota.GetMaxBytes()), fsQuota.GetUsedBytes(), uint64(fsQuota.GetMaxInodes()), fsQuota.GetUsedInodes())
+
 	// fill table
 	row := map[string]string{
-		common.ROW_INODE_ID:       fmt.Sprintf("%d", dirInodeId),
-		common.ROW_PATH:           options.path,
+		common.ROW_FS_ID:          fmt.Sprintf("%d", options.fsid),
+		common.ROW_FS_NAME:        options.fsname,
 		common.ROW_CAPACITY:       quotaValueSlice[0],
 		common.ROW_USED:           quotaValueSlice[1],
 		common.ROW_USED_PERCNET:   quotaValueSlice[2],
@@ -144,34 +134,38 @@ func runGet(cmd *cobra.Command, dingocli *cli.DingoCli, options getOptions) erro
 
 	list := table.Map2List(row, header)
 	table.Append(list)
-	table.RenderWithNoData("no directory quota set")
+	table.RenderWithNoData("no fs quota set")
 
 	return nil
 }
 
-func GetDirQuotaData(cmd *cobra.Command, fsId uint32, dirInodeId uint64, epoch uint64) (*mds.GetDirQuotaRequest, *mds.GetDirQuotaResponse, *errno.ErrorCode) {
-	endpoint := rpc.GetEndPoint(dirInodeId)
+func GetFsQuotaData(cmd *cobra.Command, fsId uint32) (*mds.GetFsQuotaRequest, *mds.GetFsQuotaResponse, *errno.ErrorCode) {
 	// new prc
-	mdsRpc := rpc.CreateNewMdsRpcWithEndPoint(cmd, endpoint, "GetDirQuota")
-
-	// set request info
-	request := &mds.GetDirQuotaRequest{
-		Context:       &mds.Context{Epoch: epoch},
-		FsId:          fsId,
-		Ino:           dirInodeId,
-		NotUseFsQuota: true,
+	mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "getFsQuota")
+	if err != nil {
+		return nil, nil, errno.ERR_RPC_FAILED.E(err)
 	}
-	getQuotaRpc := &rpc.GetDirQuotaRpc{
+	// get epoch id
+	epoch, epochErr := rpc.GetFsEpochByFsId(cmd, fsId)
+	if epochErr != nil {
+		return nil, nil, errno.ERR_RPC_FAILED.E(epochErr)
+	}
+	// set request info
+	request := &mds.GetFsQuotaRequest{
+		Context: &mds.Context{Epoch: epoch, IsBypassCache: true},
+		FsId:    fsId,
+	}
+	requestRpc := &rpc.GetFsQuotaRpc{
 		Info:    mdsRpc,
 		Request: request,
 	}
 
 	// get rpc result
-	response, rpcError := rpc.GetRpcResponse(getQuotaRpc.Info, getQuotaRpc)
+	response, rpcError := rpc.GetRpcResponse(requestRpc.Info, requestRpc)
 	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
 		return nil, nil, rpcError
 	} else {
-		result := response.(*mds.GetDirQuotaResponse)
+		result := response.(*mds.GetFsQuotaResponse)
 		if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 			return nil, nil, errno.ERR_RPC_FAILED.S(mdsErr.String())
 		}

@@ -24,10 +24,11 @@ import (
 
 func NewConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config",
-		Short: "Manage cluster topology",
-		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingocli.Err()),
+		Use:     "config",
+		Short:   "Manage cluster topology",
+		GroupID: "DEPLOY",
+		Args:    cliutil.NoArgs,
+		RunE:    cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(

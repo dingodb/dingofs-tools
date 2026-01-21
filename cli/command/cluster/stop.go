@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func NewStopCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "stop [OPTIONS]",
-		Short: "Stop service",
+		Short: "Stop cluster",
 		Args:  cliutil.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return checkCommonOptions(dingocli, options.id, options.role, options.host)

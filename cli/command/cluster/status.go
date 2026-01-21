@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ func NewStatusCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "status [OPTIONS]",
-		Short: "Display service status",
+		Short: "Display cluster status",
 		Args:  cliutil.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runStatus(dingocli, options)
