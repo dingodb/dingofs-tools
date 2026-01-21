@@ -26,8 +26,9 @@ import (
 
 func NewCompletionCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var completionCmd = &cobra.Command{
-		Use:   "completion [bash|zsh|fish|powershell]",
-		Short: "Generate completion script",
+		Use:     "completion [bash|zsh|fish|powershell]",
+		Short:   "Generate completion script",
+		GroupID: "UTILS",
 		Long: fmt.Sprintf(`To load completions:
 
 Bash:

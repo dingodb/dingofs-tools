@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package export
+package nfs
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
@@ -22,16 +22,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewExportCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewNFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "export",
-		Short: "Manage nfs-ganesha export",
-		Args:  cliutil.NoArgs,
+		Use:     "nfs",
+		Short:   "Manage nfs-ganesha export",
+		GroupID: "ADMIN",
+		Args:    cliutil.NoArgs,
 	}
 
 	cmd.AddCommand(
-		NewExportAddCommand(dingocli),
-		NewExportRemoveCommand(dingocli),
+		NewNFSAddCommand(dingocli),
+		NewNFSRemoveCommand(dingocli),
 	)
 
 	return cmd

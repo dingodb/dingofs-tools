@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package export
+package nfs
 
 import (
 	"bytes"
@@ -90,7 +90,7 @@ type addOptions struct {
 	// user        string
 }
 
-func NewExportAddCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewNFSAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options addOptions
 
 	cmd := &cobra.Command{

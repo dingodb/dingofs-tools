@@ -26,9 +26,10 @@ import (
 
 func NewCacheCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cache",
-		Short: "Manage cache cluster",
-		Args:  cliutil.NoArgs,
+		Use:     "cache",
+		Short:   "Manage cache cluster",
+		GroupID: "ADMIN",
+		Args:    cliutil.NoArgs,
 	}
 
 	cmd.AddCommand(

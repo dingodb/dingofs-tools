@@ -35,8 +35,9 @@ func NewExecCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options execOptions
 
 	cmd := &cobra.Command{
-		Use:   "exec ID [OPTIONS]",
-		Short: "Exec a cmd in service container",
+		Use:     "exec ID [OPTIONS]",
+		Short:   "Exec a cmd in service container",
+		GroupID: "UTILS",
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			options.id = args[0]
 			options.cmd = strings.Join(args[1:], " ")

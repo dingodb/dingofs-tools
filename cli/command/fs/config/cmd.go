@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package quota
+package config
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
@@ -22,19 +22,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewQuotaCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewFsCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "quota",
-		Short: "Manage directory quota",
+		Use:   "config",
+		Short: "Manage fs quota",
 		Args:  cliutil.NoArgs,
 	}
 
 	cmd.AddCommand(
-		NewQuotaSetCommand(dingocli),
-		NewQuotaGetCommand(dingocli),
-		NewQuotaCheckCommand(dingocli),
-		NewQuotaListCommand(dingocli),
-		NewQuotaDeleteCommand(dingocli),
+		NewFsQuotaSetCommand(dingocli),
+		NewFsQuotaGetCommand(dingocli),
+		NewFsQuotaCheckCommand(dingocli),
 	)
 
 	return cmd

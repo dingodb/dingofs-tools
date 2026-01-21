@@ -25,10 +25,11 @@ import (
 
 func NewMonitorCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "monitor",
-		Short: "Manage monitor",
-		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingocli.Err()),
+		Use:     "monitor",
+		Short:   "Manage monitor",
+		GroupID: "ADMIN",
+		Args:    cliutil.NoArgs,
+		RunE:    cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package command
+package cluster
 
 import (
 	"fmt"
@@ -33,9 +33,9 @@ import (
 
 const (
 	PRECHECK_EXAMPLE = `Examples:
-  $ dingocli precheck                         # Check all items
-  $ dingocli precheck --skip topology         # Check all items except topology
-  $ dingocli precheck --skip topology,kernel  # Check all items except topology and kernel`
+  $ dingocli cluster precheck                         # Check all items
+  $ dingocli cluster precheck --skip topology         # Check all items except topology
+  $ dingocli cluster precheck --skip topology,kernel  # Check all items except topology and kernel`
 )
 
 const (

@@ -30,9 +30,9 @@ import (
 
 const (
 	ADD_EXAMPLE = `Examples:
-  $ dingocli add my-cluster                            # Add a cluster named 'my-cluster'
-  $ dingocli add my-cluster -m "deploy for test"       # Add a cluster with description
-  $ dingocli add my-cluster -f /path/to/topology.yaml  # Add a cluster with specified topology`
+  $ dingocli cluster add my-cluster                            # Add a cluster named 'my-cluster'
+  $ dingocli cluster add my-cluster -m "deploy for test"       # Add a cluster with description
+  $ dingocli cluster add my-cluster -f /path/to/topology.yaml  # Add a cluster with specified topology`
 )
 
 var (

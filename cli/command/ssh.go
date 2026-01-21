@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package hosts
+package command
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
@@ -32,9 +32,10 @@ func NewSSHCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options sshOptions
 
 	cmd := &cobra.Command{
-		Use:   "ssh HOST [OPTIONS]",
-		Short: "Connect remote host",
-		Args:  cliutil.ExactArgs(1),
+		Use:     "ssh HOST [OPTIONS]",
+		Short:   "Connect remote host",
+		GroupID: "UTILS",
+		Args:    cliutil.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.host = args[0]
 			return runSSH(dingocli, options)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package export
+package nfs
 
 import (
 	"fmt"
@@ -38,7 +38,7 @@ type removeOptions struct {
 	exportPath  string
 }
 
-func NewExportRemoveCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewNFSRemoveCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options removeOptions
 
 	cmd := &cobra.Command{

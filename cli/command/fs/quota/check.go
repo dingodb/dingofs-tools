@@ -32,26 +32,26 @@ import (
 )
 
 const (
-	FS_QUOTA_CHECK_EXAMPLE = `Examples:
-   $ dingo fs quota check --fsname fs1`
+	QUOTA_CHECK_EXAMPLE = `Examples:
+   $ dingo quota check --fsname fs1 --path /dir1`
 )
 
 type checkOptions struct {
 	fsid    uint32
-	fsname  string
-	format  string
+	path    string
 	threads uint32
+	format  string
 	repair  bool
 }
 
-func NewFsQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options checkOptions
 
 	cmd := &cobra.Command{
 		Use:     "check [OPTIONS]",
-		Short:   "check fs quota",
+		Short:   "check directory quota",
 		Args:    utils.NoArgs,
-		Example: FS_QUOTA_CHECK_EXAMPLE,
+		Example: QUOTA_CHECK_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
@@ -62,16 +62,13 @@ func NewFsQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			options.fsid = fsid
 
-			fsname, err := rpc.GetFsName(cmd)
-			if err != nil {
-				return err
-			}
-			options.fsname = fsname
+			options.path = utils.GetStringFlag(cmd, "path")
 
 			options.threads, err = cmd.Flags().GetUint32("threads")
 			if err != nil {
 				return err
 			}
+
 			options.repair, err = cmd.Flags().GetBool("repair")
 			if err != nil {
 				return err
@@ -90,7 +87,8 @@ func NewFsQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 	// add flags
 	cmd.Flags().Uint32("fsid", 0, "Filesystem id")
 	cmd.Flags().String("fsname", "", "Filesystem name")
-	cmd.Flags().Uint32("threads", 8, "Number of threads calculate filesystem usage")
+	utils.AddStringRequiredFlag(cmd, "path", "full path of the directory within the volume")
+	cmd.Flags().Uint32("threads", 8, "Number of check threads")
 	cmd.Flags().Bool("repair", false, "Repair inconsistent quota")
 
 	utils.AddBoolFlag(cmd, utils.VERBOSE, "Show more debug info")
@@ -121,8 +119,13 @@ func runCheck(cmd *cobra.Command, dingocli *cli.DingoCli, options checkOptions) 
 	if routerErr != nil {
 		return routerErr
 	}
+	//get inodeid
+	dirInodeId, inodeErr := rpc.GetDirPathInodeId(cmd, options.fsid, options.path, epoch)
+	if inodeErr != nil {
+		return inodeErr
+	}
 	// get quota
-	_, result, err := GetFsQuotaData(cmd, options.fsid)
+	_, result, err := GetDirQuotaData(cmd, options.fsid, dirInodeId, epoch)
 	if err != nil {
 		outputResult.Error = err
 	}
@@ -137,51 +140,52 @@ func runCheck(cmd *cobra.Command, dingocli *cli.DingoCli, options checkOptions) 
 	}
 
 	// get filesystem usage
-	fsUsedBytes, fsUsedInodes, getErr := rpc.GetDirectorySizeAndInodes(cmd, options.fsid, common.ROOTINODEID, true, epoch, options.threads)
+	dirUsedBytes, dirUsedInodes, getErr := rpc.GetDirectorySizeAndInodes(cmd, options.fsid, dirInodeId, false, epoch, options.threads)
 	if getErr != nil {
 		return getErr
 	}
 
 	fsQuota := result.GetQuota()
-	checkResult, ok := utils.CheckQuota(fsQuota.GetMaxBytes(), fsQuota.GetUsedBytes(), fsQuota.GetMaxInodes(), fsQuota.GetUsedInodes(), fsUsedBytes, fsUsedInodes)
+	checkResult, ok := utils.CheckQuota(fsQuota.GetMaxBytes(), fsQuota.GetUsedBytes(), fsQuota.GetMaxInodes(), fsQuota.GetUsedInodes(), dirUsedBytes, dirUsedInodes)
 
 	if options.repair && !ok { // inconsistent and need to repair
 		// new prc
-		mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "setFsQuota")
+		mdsRpc, err := rpc.CreateNewMdsRpc(cmd, "SetDirQuota")
 		if err != nil {
 			return err
 		}
 		// set request info
-		request := &mds.SetFsQuotaRequest{
+		request := &mds.SetDirQuotaRequest{
 			Context: &mds.Context{Epoch: epoch, IsBypassCache: true},
 			FsId:    options.fsid,
-			Quota:   &mds.Quota{UsedBytes: fsUsedBytes, UsedInodes: fsUsedInodes},
+			Ino:     dirInodeId,
+			Quota:   &mds.Quota{UsedBytes: dirUsedBytes, UsedInodes: dirUsedInodes},
 		}
 
-		setFsQuotaRpc := &rpc.SetFsQuotaRpc{
+		setDirQuotaRpc := &rpc.SetDirQuotaRpc{
 			Info:    mdsRpc,
 			Request: request,
 		}
 
 		// get rpc result
-		response, rpcError := rpc.GetRpcResponse(setFsQuotaRpc.Info, setFsQuotaRpc)
+		response, rpcError := rpc.GetRpcResponse(setDirQuotaRpc.Info, setDirQuotaRpc)
 		if rpcError.GetCode() != errno.ERR_OK.GetCode() {
 			return rpcError
 		} else {
-			result := response.(*mds.SetFsQuotaResponse)
+			result := response.(*mds.SetDirQuotaResponse)
 			if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
 				return errno.ERR_RPC_FAILED.S(mdsErr.String())
 			}
 		}
 
-		fmt.Println("Successfully repair fs inconsistent quota")
+		fmt.Println("Successfully repair dir inconsistent quota")
 	} else {
-		header := []string{common.ROW_FS_ID, common.ROW_FS_NAME, common.ROW_CAPACITY, common.ROW_USED, common.ROW_REAL_USED, common.ROW_INODES, common.ROW_INODES_IUSED, common.ROW_INODES_REAL_IUSED, common.ROW_STATUS}
+		header := []string{common.ROW_INODE_ID, common.ROW_NAME, common.ROW_CAPACITY, common.ROW_USED, common.ROW_REAL_USED, common.ROW_INODES, common.ROW_INODES_IUSED, common.ROW_INODES_REAL_IUSED, common.ROW_STATUS}
 		table.SetHeader(header)
 
 		row := map[string]string{
-			common.ROW_FS_ID:             fmt.Sprintf("%d", options.fsid),
-			common.ROW_FS_NAME:           options.fsname,
+			common.ROW_INODE_ID:          fmt.Sprintf("%d", dirInodeId),
+			common.ROW_NAME:              options.path,
 			common.ROW_CAPACITY:          checkResult[0],
 			common.ROW_USED:              checkResult[1],
 			common.ROW_REAL_USED:         checkResult[2],
@@ -191,7 +195,7 @@ func runCheck(cmd *cobra.Command, dingocli *cli.DingoCli, options checkOptions) 
 			common.ROW_STATUS:            checkResult[6],
 		}
 		table.Append(table.Map2List(row, header))
-		table.RenderWithNoData("no fs quota set")
+		table.RenderWithNoData("no dir quota found")
 	}
 
 	return nil

@@ -24,10 +24,11 @@ import (
 
 func NewClusterCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "cluster",
-		Short: "Manage clusters",
-		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingocli.Err()),
+		Use:     "cluster",
+		Short:   "Manage clusters",
+		GroupID: "DEPLOY",
+		Args:    cliutil.NoArgs,
+		RunE:    cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(
@@ -36,6 +37,14 @@ func NewClusterCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewListCommand(dingocli),
 		NewRemoveCommand(dingocli),
 		NewRenameCommand(dingocli),
+		NewStatusCommand(dingocli),
+		NewStartCommand(dingocli),
+		NewStopCommand(dingocli),
+		NewRestartCommand(dingocli),
+		NewDeployCommand(dingocli),
+		NewUpgradeCommand(dingocli),
+		NewCleanCommand(dingocli),
+		NewPrecheckCommand(dingocli),
 	)
 	return cmd
 }

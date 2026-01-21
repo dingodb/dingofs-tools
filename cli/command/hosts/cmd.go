@@ -24,18 +24,17 @@ import (
 
 func NewHostsCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "hosts",
-		Short: "Manage hosts",
-		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingocli.Err()),
+		Use:     "hosts",
+		Short:   "Manage hosts",
+		GroupID: "DEPLOY",
+		Args:    cliutil.NoArgs,
+		RunE:    cliutil.ShowHelp(dingocli.Err()),
 	}
 
 	cmd.AddCommand(
 		NewCommitCommand(dingocli),
 		NewShowCommand(dingocli),
 		NewListCommand(dingocli),
-		NewSSHCommand(dingocli),
-		NewPlaybookCommand(dingocli),
 	)
 	return cmd
 }

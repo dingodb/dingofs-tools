@@ -25,14 +25,16 @@ import (
 func NewQuotaCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "quota",
-		Short: "Manage fs quota",
+		Short: "Manage directory quota",
 		Args:  cliutil.NoArgs,
 	}
 
 	cmd.AddCommand(
-		NewFsQuotaSetCommand(dingocli),
-		NewFsQuotaGetCommand(dingocli),
-		NewFsQuotaCheckCommand(dingocli),
+		NewQuotaSetCommand(dingocli),
+		NewQuotaGetCommand(dingocli),
+		NewQuotaCheckCommand(dingocli),
+		NewQuotaListCommand(dingocli),
+		NewQuotaDeleteCommand(dingocli),
 	)
 
 	return cmd
