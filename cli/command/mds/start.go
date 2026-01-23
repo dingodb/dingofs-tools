@@ -20,11 +20,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
+	compmgr "github.com/dingodb/dingocli/internal/component"
 	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -55,8 +58,22 @@ func NewMdsStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 		DisableFlagParsing: true,
 		Example:            MDS_START_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.mdsBinary = DINGOFS_MDS_BINARY
 			options.cmdArgs = args
+
+			componentManager, err := compmgr.NewComponentManager()
+			if err != nil {
+				return err
+			}
+			component, err := componentManager.GetActiveComponent(compmgr.DINGO_MDS)
+			if err != nil {
+				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_MDS, compmgr.LASTEST_VERSION)
+				if err != nil {
+					return fmt.Errorf("failed to install dingo-mds binary: %v", err)
+				}
+			}
+
+			options.mdsBinary = filepath.Join(component.Path, component.Name)
 
 			// check flags
 			for _, arg := range args {
@@ -68,13 +85,14 @@ func NewMdsStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 				}
 			}
 
-			// check dingo-cache is exists
+			fmt.Printf("use dingo-mds binary: %s\n", options.mdsBinary)
+
+			// check dingo-mds is exists
 			if !utils.IsFileExists(options.mdsBinary) {
 				return fmt.Errorf("%s not found", options.mdsBinary)
 			}
 			// check has execute permission
 			if !utils.HasExecutePermission(options.mdsBinary) {
-				fmt.Printf("no execute permission for %s, now add it\n", options.mdsBinary)
 				err := utils.AddExecutePermission(options.mdsBinary)
 				if err != nil {
 					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.mdsBinary, err)

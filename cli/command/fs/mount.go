@@ -25,7 +25,9 @@ import (
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
+	compmgr "github.com/dingodb/dingocli/internal/component"
 	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +58,21 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 		DisableFlagParsing: true,
 		Example:            FS_MOUNT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.clientBinary = DINGOFS_CLIENT_BINARY
+			componentManager, err := compmgr.NewComponentManager()
+			if err != nil {
+				return err
+			}
+			component, err := componentManager.GetActiveComponent(compmgr.DINGO_CLIENT)
+			if err != nil {
+				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_CLIENT, compmgr.LASTEST_VERSION)
+				if err != nil {
+					return fmt.Errorf("failed to install dingo-client binary: %v", err)
+				}
+			}
+
+			options.clientBinary = filepath.Join(component.Path, component.Name)
+
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
@@ -70,24 +86,18 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 			if len(args) < 2 {
 				return fmt.Errorf("\"dingocli fs mount\" requires exactly 2 arguments\n\nUsage: dingocli fs mount METAURL MOUNTPOINT [OPTIONS]")
 			}
+
+			fmt.Printf("use dingo-client binary: %s\n", options.clientBinary)
+
 			options.cmdArgs = args
 			options.mountpoint = args[1]
 
 			// check dingo-client is exists
 			if !utils.IsFileExists(options.clientBinary) {
 				return fmt.Errorf("%s not found", options.clientBinary)
-				//TODO(yansp): auto download dingo-client
-				//url := "https://github.com/dingodb/dingofs/releases/download/v4.2.0/dingofs-latest.tar.gz"
-				// fmt.Printf("[%s] %s not found, download from %s\n", color.RedString("WARNING"), options.client, url)
-				// _, err := utils.DownloadFileWithProgress(url, filepath.Dir(options.client), "")
-				// if err != nil {
-				// 	return fmt.Errorf("failed to download dingo-client: %v", err)
-				// }
-
 			}
 			// check has execute permission
 			if !utils.HasExecutePermission(options.clientBinary) {
-				fmt.Printf("no execute permission for %s, now add it\n", options.clientBinary)
 				err := utils.AddExecutePermission(options.clientBinary)
 				if err != nil {
 					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.clientBinary, err)

@@ -20,10 +20,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/dingodb/dingocli/cli/cli"
+	compmgr "github.com/dingodb/dingocli/internal/component"
 	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -52,8 +55,21 @@ func NewMdsMetaCommand(dingocli *cli.DingoCli) *cobra.Command {
 		DisableFlagParsing: true,
 		Example:            MDS_META_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.metaBinary = DINGOFS_META_BINARY
 			options.cmdArgs = args
+
+			componentManager, err := compmgr.NewComponentManager()
+			if err != nil {
+				return err
+			}
+			component, err := componentManager.GetActiveComponent(compmgr.DINGO_MDS_CLIENT)
+			if err != nil {
+				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_MDS_CLIENT, compmgr.LASTEST_VERSION)
+				if err != nil {
+					return fmt.Errorf("failed to install dingo-mds binary: %v", err)
+				}
+			}
+			options.metaBinary = filepath.Join(component.Path, component.Name)
 
 			// check flags
 			for _, arg := range args {
@@ -62,12 +78,13 @@ func NewMdsMetaCommand(dingocli *cli.DingoCli) *cobra.Command {
 				}
 			}
 
+			fmt.Printf("use dingo-mds-client binary: %s\n", options.metaBinary)
+
 			if !utils.IsFileExists(options.metaBinary) {
 				return fmt.Errorf("%s not found", options.metaBinary)
 			}
 
 			if !utils.HasExecutePermission(options.metaBinary) {
-				fmt.Printf("no execute permission for %s, now add it\n", options.metaBinary)
 				err := utils.AddExecutePermission(options.metaBinary)
 				if err != nil {
 					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.metaBinary, err)

@@ -137,7 +137,6 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 	// defer resp.Body.Close()
 
 	client := &http.Client{
-		Timeout: 300 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
@@ -148,10 +147,11 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 			IdleConnTimeout:       90 * time.Second,
 			MaxIdleConns:          100,
 			MaxIdleConnsPerHost:   10,
+			DisableKeepAlives:     false,
 		},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3600*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -163,16 +163,17 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 	}
 	defer resp.Body.Close()
 
-	finalFilename := filename
-	if finalFilename == "" {
-		finalFilename = filepath.Base(url)
+	tmpFileName := filename
+	if tmpFileName == "" {
+		tmpFileName = filepath.Base(url)
 	}
+	tmpFileName = fmt.Sprintf("%s.tmp", tmpFileName)
 
 	if err := os.MkdirAll(destination, 0755); err != nil {
 		return "", err
 	}
 
-	filePath := filepath.Join(destination, finalFilename)
+	filePath := filepath.Join(destination, tmpFileName)
 	out, err := os.Create(filePath)
 	if err != nil {
 		return "", err
@@ -181,7 +182,7 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 
 	bar := progressbar.NewOptions64(
 		resp.ContentLength,
-		progressbar.OptionSetDescription(fmt.Sprintf("downloading %s:", finalFilename)),
+		progressbar.OptionSetDescription(fmt.Sprintf("[cyan]Downloading[reset] %s...", filename)),
 		progressbar.OptionSetWriter(os.Stderr),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionSetWidth(30),
@@ -189,9 +190,10 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 		progressbar.OptionOnCompletion(func() {
 			fmt.Fprint(os.Stderr, "\n")
 		}),
+		progressbar.OptionEnableColorCodes(true),
 		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "=",
-			SaucerHead:    ">",
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
 			SaucerPadding: " ",
 			BarStart:      "[",
 			BarEnd:        "]",
@@ -204,5 +206,31 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 		return "", err
 	}
 
+	if err := os.Rename(filepath.Join(destination, tmpFileName), filepath.Join(destination, filename)); err != nil {
+		return "", err
+	}
+
 	return filePath, nil
+}
+
+func GetRemoteFileContent(url string) (string, error) {
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("HTTP request failed: %w, url: %s", err, url)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("HTTP request failed with status: %s, url: %s", resp.Status, url)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w, url: %s", err, url)
+	}
+
+	return string(body), nil
 }

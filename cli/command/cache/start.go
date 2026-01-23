@@ -20,21 +20,21 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
+	compmgr "github.com/dingodb/dingocli/internal/component"
 	"github.com/dingodb/dingocli/internal/utils"
+	"github.com/fatih/color"
+
 	"github.com/spf13/cobra"
 )
 
 const (
 	CACHE_START_EXAMPLE = `Examples:
    $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6`
-)
-
-var (
-	DINGOFS_CACHE_BINARY = fmt.Sprintf("%s/.dingofs/bin/dingo-cache", utils.GetHomeDir())
 )
 
 type startOptions struct {
@@ -53,9 +53,22 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 		DisableFlagParsing: true,
 		Example:            CACHE_START_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.cacheBinary = DINGOFS_CACHE_BINARY
 			options.cmdArgs = args
 
+			componentManager, err := compmgr.NewComponentManager()
+			if err != nil {
+				return err
+			}
+			component, err := componentManager.GetActiveComponent(compmgr.DINGO_DACHE)
+			if err != nil {
+				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_DACHE, compmgr.LASTEST_VERSION)
+				if err != nil {
+					return fmt.Errorf("failed to install dingo-cache binary: %v", err)
+				}
+			}
+
+			options.cacheBinary = filepath.Join(component.Path, component.Name)
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
@@ -66,6 +79,8 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 				}
 			}
 
+			fmt.Printf("use dingo-cache binary: %s\n", options.cacheBinary)
+
 			// check dingo-cache is exists
 			if !utils.IsFileExists(options.cacheBinary) {
 				return fmt.Errorf("%s not found", options.cacheBinary)
@@ -73,7 +88,6 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			// check has execute permission
 			if !utils.HasExecutePermission(options.cacheBinary) {
-				fmt.Printf("no execute permission for %s, now add it\n", options.cacheBinary)
 				err := utils.AddExecutePermission(options.cacheBinary)
 				if err != nil {
 					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.cacheBinary, err)
