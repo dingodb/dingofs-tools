@@ -202,3 +202,10 @@ func RemoveDuplicates(strs []string) []string {
 	}
 	return result
 }
+
+func Ternary(cond bool, trueVal, falseVal string) string {
+	if cond {
+		return trueVal
+	}
+	return falseVal
+}
