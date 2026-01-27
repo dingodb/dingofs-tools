@@ -12,7 +12,6 @@ const (
 	DINGO_MDS        = "dingo-mds"
 	DINGO_MDS_CLIENT = "dingo-mds-client"
 	INSTALLED_FILE   = "installed.json"
-	MIRROR           = "https://www.dingodb.com/dingofs"
 	LASTEST_VERSION  = "latest"
 	MAIN_VERSION     = "main"
 )
