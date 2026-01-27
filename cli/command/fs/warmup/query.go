@@ -37,7 +37,7 @@ import (
 
 const (
 	WARMUP_QUERY_EXAMPLE = `Examples:
-   $ dingo warmup query /mnt/dir1`
+   $ dingo fs warmup query /mnt/dir1`
 )
 
 type queryOptions struct {

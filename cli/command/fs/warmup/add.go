@@ -34,13 +34,13 @@ import (
 const (
 	WARMUP_ADD_EXAMPLE = `Examples:
    # warmup all files in warmup.lst,file must in dingofs
-   $ dingo warmup add --filelist /mnt/warmup.lst
+   $ dingo fs warmup add --filelist /mnt/warmup.lst
 
    # warmup one file
-   $ dingo warmup add /mnt/bigfile.bin
+   $ dingo fs warmup add /mnt/bigfile.bin
 
    # warmup all files in directory dir1
-   $ dingo warmup add /mnt/dir1`
+   $ dingo fs warmup add /mnt/dir1`
 )
 
 type addOptions struct {
@@ -55,7 +55,7 @@ func NewWarmupAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "add [OPTIONS]",
 		Short:   "Tell client to warmup files(directories) to local cache",
-		Args:    utils.ExactArgs(1),
+		Args:    utils.RequiresMaxArgs(1),
 		Example: WARMUP_ADD_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.daemon = utils.GetBoolFlag(cmd, utils.DINGOFS_DAEMON)
