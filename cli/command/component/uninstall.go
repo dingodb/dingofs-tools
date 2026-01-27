@@ -47,7 +47,7 @@ func NewUninstallCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options uninstallOptions
 
 	cmd := &cobra.Command{
-		Use:     "uninstall <component1>[:version] [OPTIONS]",
+		Use:     "uninstall <component1><:version> [OPTIONS]",
 		Short:   "uninstall components",
 		Args:    utils.ExactArgs(1),
 		Example: COMPONENT_UN_EXAMPLE,
@@ -95,7 +95,9 @@ func runUninstall(cmd *cobra.Command, dingocli *cli.DingoCli, options *uninstall
 		return nil
 	}
 
-	version = utils.Ternary(version == "", component.LASTEST_VERSION, version)
+	if version == "" {
+		return fmt.Errorf("Must be specify version to uninstall")
+	}
 	// remove one component
 	if err := componentManager.RemoveComponent(name, version, options.force, true); err != nil {
 		return err

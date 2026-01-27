@@ -63,9 +63,17 @@ func ParseFromURL(url string) (*BinaryRepoData, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("Request %s failed, response (code: %d, msg: %s)", url, resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(data) == 0 { //empty version file
+		return nil, fmt.Errorf("Version file %s is empty", url)
 	}
 
 	return ParseBinaryRepoData(data)
