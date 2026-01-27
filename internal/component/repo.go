@@ -64,8 +64,8 @@ func (b *BinaryRepoData) GetName() string {
 	return b.Binary
 }
 
-func NewBinaryRepoData(name string) (*BinaryRepoData, error) {
-	requestURL := URLJoin(MIRROR, fmt.Sprintf("%s.version", name))
+func NewBinaryRepoData(url string, name string) (*BinaryRepoData, error) {
+	requestURL := URLJoin(url, fmt.Sprintf("%s.version", name))
 	metadata, err := ParseFromURL(requestURL)
 	if err != nil {
 		return nil, err

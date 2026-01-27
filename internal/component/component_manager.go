@@ -9,12 +9,23 @@ import (
 	"github.com/dingodb/dingocli/internal/utils"
 )
 
+var (
+	Mirror_URL = "https://www.dingodb.com/dingofs"
+)
+
+func init() {
+	if val, ok := os.LookupEnv("DINGOFS_MIRROR"); ok {
+		Mirror_URL = val
+	}
+}
+
 type ComponentManager struct {
 	rootDir       string
 	installedFile string
 	installed     []Component
 	avaliable     []Component
 	repodata      map[string]*BinaryRepoData
+	mirror        string
 }
 
 func NewComponentManager() (*ComponentManager, error) {
@@ -26,11 +37,12 @@ func NewComponentManager() (*ComponentManager, error) {
 		rootDir:       RepostoryDir,
 		installedFile: filepath.Join(RepostoryDir, INSTALLED_FILE),
 		repodata:      make(map[string]*BinaryRepoData),
+		mirror:        Mirror_URL,
 	}
 
 	//load remote repostory
 	for _, name := range ALL_COMPONENTS {
-		repodata, err := NewBinaryRepoData(name)
+		repodata, err := NewBinaryRepoData(Mirror_URL, name)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +94,7 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 			IsActive: false,
 			Release:  branch.BuildTime,
 			Path:     "",
-			URL:      URLJoin(MIRROR, branch.Path),
+			URL:      URLJoin(cm.mirror, branch.Path),
 		})
 	}
 
@@ -95,7 +107,7 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 			Release:  main.BuildTime,
 			IsActive: false,
 			Path:     "",
-			URL:      URLJoin(MIRROR, main.Path),
+			URL:      URLJoin(cm.mirror, main.Path),
 		})
 	}
 
@@ -181,7 +193,7 @@ func (cm *ComponentManager) InstallComponent(name, version string) (*Component, 
 		IsInstalled: true,
 		IsActive:    true,
 		Path:        filepath.Join(cm.rootDir, name, foundVersion),
-		URL:         URLJoin(MIRROR, binaryDetail.Path),
+		URL:         URLJoin(cm.mirror, binaryDetail.Path),
 	}
 
 	fmt.Printf("Download %s from %s\n", name, newComponent.URL)
@@ -229,7 +241,7 @@ func (cm *ComponentManager) UpdateComponent(name, version string) (*Component, e
 		IsInstalled: true,
 		IsActive:    isActive,
 		Path:        filepath.Join(cm.rootDir, name, version),
-		URL:         URLJoin(MIRROR, binaryDetail.Path),
+		URL:         URLJoin(cm.mirror, binaryDetail.Path),
 	}
 
 	fmt.Printf("Download %s from %s\n", name, newComponent.URL)
