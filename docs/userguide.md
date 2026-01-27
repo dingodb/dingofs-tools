@@ -16,6 +16,8 @@ A tool for DingoFS
       - [fs mountpoint](#fs-mountpoint)
       - [fs query](#fs-query)
       - [fs usage](#fs-usage)
+      - [fs stats](#fs-stats)
+        - [fs stats mountpoint](#fs-stats-mountpoint)
       - [fs quota](#fs-quota)
         - [fs quota set](#fs-quota-set)
         - [fs quota get](#fs-quota-get)
@@ -43,8 +45,6 @@ A tool for DingoFS
       - [quota list](#quota-list)
       - [quota delete](#quota-delete)
       - [quota check](#quota-check)
-    - [stats](#stats)
-      - [stats mountpoint](#stats-mountpoint)
       
 ## How to use dingo tool
 
@@ -275,6 +275,60 @@ $ dingo fs usage --humanize
 +-------+-----------+---------+-------+
 | 10000 | yanspfs01 | 3.9 GiB | 1,746 |
 +-------+-----------+---------+-------+
+```
+
+### stats
+#### stats mountpoint
+
+show real time performance statistics of dingofs mountpoint
+
+Usage:
+
+```shell
+dingo stats mountpoint MOUNTPOINT [OPTIONS]
+
+# normal
+dingo stats mountpoint /mnt/dingofs
+			
+# fuse metrics
+dingo stats mountpoint /mnt/dingofs --schema f
+
+# s3 metrics
+dingo stats mountpoint /mnt/dingofs --schema o
+
+# More metrics
+dingo stats mountpoint /mnt/dingofs --verbose
+
+# Show 3 times
+dingo stats mountpoint /mnt/dingofs --count 3
+
+# Show every 4 seconds
+dingo stats mountpoint /mnt/dingofs --interval 4s
+
+```
+Output:
+
+```shell
+dingo stats mountpoint /mnt/dingofs
+
+------usage------ ----------fuse--------- ----blockcache--- ---object-- ------remotecache------
+ cpu   mem   used| ops   lat   read write| load stage cache| get   put | load stage cache  hit 
+ 525% 4691M 2688K|   0     0     0     0 |   0     0     0 |   0     0 |   0     0     0   0.0%
+ 526% 4691M 1664K|1433  5.52   177M   95M|   0     0     0 |   0    96M| 453M    0    95M 99.4%
+ 527% 4691M 1152K|1418  5.71   157M   75M|   0     0     0 |   0    76M| 405M    0    76M 99.6%
+ 527% 4692M   64K|1531  5.24   189M   86M|   0     0     0 |   0    87M| 428M    0    86M 99.8%
+ 535% 4692M   64K|1415  5.55   180M   93M|   0     0     0 |   0    93M| 424M    0    93M 99.5%
+ 535% 4693M 1536K|1404  5.62   172M   96M|   0     0     0 |   0    95M| 396M    0    95M 99.5%
+ 537% 4692M 1152K|1420  5.55   171M   83M|   0     0     0 |   0    83M| 381M    0    84M 99.6%
+ 537% 4692M    0 |1303  5.92   170M   90M|   0     0     0 |   0    92M| 390M    0    90M 99.4%
+ 529% 4692M 2752K|1159  6.87   160M   81M|   0     0     0 |   0    79M| 391M    0    79M 99.5%
+ 528% 4692M 1600K|1372  5.87   166M   83M|   0     0     0 |   0    84M| 383M    0    86M 99.5%
+ 530% 4692M 3584K|1428  5.63   168M   79M|   0     0     0 |   0    77M| 435M    0    78M 99.4%
+ 528% 4692M    0 |1161  6.85   159M   71M|   0     0     0 |   0    74M| 363M    0    72M 99.3%
+ 500% 4692M    0 | 500  17.9    74M   37M|   0     0     0 |   0    37M| 167M    0    37M 99.6%
+ 490% 4692M 1664K|1113  7.35   146M   82M|   0     0     0 |   0    80M| 360M    0    80M 99.1%
+ 488% 4692M  640K|1431  5.53   167M   86M|   0     0     0 |   0    87M| 440M    0    87M 99.3%
+ 488% 4692M 1088K|1413  5.49   198M   92M|   0     0     0 |   0    92M| 441M    0    92M 99.6%
 ```
 
 #### fs quota
@@ -732,58 +786,4 @@ $ dingo quota check --fsname dingofs1 --path /dir01
 +-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
 | 20000005055 | /dir01 | 10,737,418,240 | 0    | 0        | 100,000 | 1     | 1         | success |
 +-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
-```
-
-### stats
-#### stats mountpoint
-
-show real time performance statistics of dingofs mountpoint
-
-Usage:
-
-```shell
-dingo stats mountpoint MOUNTPOINT [OPTIONS]
-
-# normal
-dingo stats mountpoint /mnt/dingofs
-			
-# fuse metrics
-dingo stats mountpoint /mnt/dingofs --schema f
-
-# s3 metrics
-dingo stats mountpoint /mnt/dingofs --schema o
-
-# More metrics
-dingo stats mountpoint /mnt/dingofs --verbose
-
-# Show 3 times
-dingo stats mountpoint /mnt/dingofs --count 3
-
-# Show every 4 seconds
-dingo stats mountpoint /mnt/dingofs --interval 4s
-
-```
-Output:
-
-```shell
-dingo stats mountpoint /mnt/dingofs
-
-------usage------ ----------fuse--------- ----blockcache--- ---object-- ------remotecache------
- cpu   mem   used| ops   lat   read write| load stage cache| get   put | load stage cache  hit 
- 525% 4691M 2688K|   0     0     0     0 |   0     0     0 |   0     0 |   0     0     0   0.0%
- 526% 4691M 1664K|1433  5.52   177M   95M|   0     0     0 |   0    96M| 453M    0    95M 99.4%
- 527% 4691M 1152K|1418  5.71   157M   75M|   0     0     0 |   0    76M| 405M    0    76M 99.6%
- 527% 4692M   64K|1531  5.24   189M   86M|   0     0     0 |   0    87M| 428M    0    86M 99.8%
- 535% 4692M   64K|1415  5.55   180M   93M|   0     0     0 |   0    93M| 424M    0    93M 99.5%
- 535% 4693M 1536K|1404  5.62   172M   96M|   0     0     0 |   0    95M| 396M    0    95M 99.5%
- 537% 4692M 1152K|1420  5.55   171M   83M|   0     0     0 |   0    83M| 381M    0    84M 99.6%
- 537% 4692M    0 |1303  5.92   170M   90M|   0     0     0 |   0    92M| 390M    0    90M 99.4%
- 529% 4692M 2752K|1159  6.87   160M   81M|   0     0     0 |   0    79M| 391M    0    79M 99.5%
- 528% 4692M 1600K|1372  5.87   166M   83M|   0     0     0 |   0    84M| 383M    0    86M 99.5%
- 530% 4692M 3584K|1428  5.63   168M   79M|   0     0     0 |   0    77M| 435M    0    78M 99.4%
- 528% 4692M    0 |1161  6.85   159M   71M|   0     0     0 |   0    74M| 363M    0    72M 99.3%
- 500% 4692M    0 | 500  17.9    74M   37M|   0     0     0 |   0    37M| 167M    0    37M 99.6%
- 490% 4692M 1664K|1113  7.35   146M   82M|   0     0     0 |   0    80M| 360M    0    80M 99.1%
- 488% 4692M  640K|1431  5.53   167M   86M|   0     0     0 |   0    87M| 440M    0    87M 99.3%
- 488% 4692M 1088K|1413  5.49   198M   92M|   0     0     0 |   0    92M| 441M    0    92M 99.6%
 ```
