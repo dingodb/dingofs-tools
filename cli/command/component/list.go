@@ -30,7 +30,12 @@ import (
 
 const (
 	COMPONENT_LIST_EXAMPLE = `Examples:
-   $ dingo component list"`
+   # list all components
+   $ dingo component list
+
+   # list all installed components
+   $ dingo component list --installed
+   `
 )
 
 type listOptions struct {

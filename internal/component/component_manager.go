@@ -14,6 +14,7 @@ type ComponentManager struct {
 	installedFile string
 	installed     []Component
 	avaliable     []Component
+	repodata      map[string]*BinaryRepoData
 }
 
 func NewComponentManager() (*ComponentManager, error) {
@@ -24,6 +25,16 @@ func NewComponentManager() (*ComponentManager, error) {
 	ComponentManager := &ComponentManager{
 		rootDir:       RepostoryDir,
 		installedFile: filepath.Join(RepostoryDir, INSTALLED_FILE),
+		repodata:      make(map[string]*BinaryRepoData),
+	}
+
+	//load remote repostory
+	for _, name := range ALL_COMPONENTS {
+		repodata, err := NewBinaryRepoData(name)
+		if err != nil {
+			return nil, err
+		}
+		ComponentManager.repodata[name] = repodata
 	}
 
 	if _, err := ComponentManager.LoadInstalledComponents(); err != nil {
@@ -58,12 +69,12 @@ func (cm *ComponentManager) LoadInstalledComponents() ([]Component, error) {
 func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Component, error) {
 	var components []Component
 
-	metadata, err := NewBinaryRepoData(name)
-	if err != nil {
-		return nil, err
+	repodata, exists := cm.repodata[name]
+	if !exists {
+		return nil, fmt.Errorf("component %s not found in repository", name)
 	}
 
-	for tagname, branch := range metadata.GetTags() {
+	for tagname, branch := range repodata.GetTags() {
 		components = append(components, Component{
 			Name:     name,
 			Version:  tagname,
@@ -75,16 +86,16 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 		})
 	}
 
-	latest, ok := metadata.GetLatest()
+	main, ok := repodata.GetMain()
 	if ok {
 		components = append(components, Component{
 			Name:     name,
-			Version:  LASTEST_VERSION,
-			Commit:   latest.Commit,
-			Release:  latest.BuildTime,
+			Version:  MAIN_VERSION,
+			Commit:   main.Commit,
+			Release:  main.BuildTime,
 			IsActive: false,
 			Path:     "",
-			URL:      URLJoin(MIRROR, latest.Path),
+			URL:      URLJoin(MIRROR, main.Path),
 		})
 	}
 
@@ -94,9 +105,7 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 func (cm *ComponentManager) LoadAvailableComponents() ([]Component, error) {
 	var components []Component
 
-	names := []string{DINGO_CLIENT, DINGO_DACHE, DINGO_MDS, DINGO_MDS_CLIENT}
-
-	for _, name := range names {
+	for _, name := range ALL_COMPONENTS {
 		comps, err := cm.LoadAvailableComponentVersions(name)
 		if err != nil {
 			return nil, err
@@ -118,47 +127,60 @@ func (cm *ComponentManager) SaveInstalledComponents() error {
 	return os.WriteFile(cm.installedFile, data, 0644)
 }
 
-func (cm *ComponentManager) FindBinaryDetailInfo(name, version string) (*BinaryDetail, error) {
-	metadata, err := NewBinaryRepoData(name)
+func (cm *ComponentManager) FindVersion(name, version string) (string, *BinaryDetail, error) {
+	var binaryDetail *BinaryDetail
+	var ok bool
+
+	repodata, exists := cm.repodata[name]
+	if !exists {
+		return "", nil, fmt.Errorf("component %s not found in repository", name)
+	}
+
+	var foundVersion = version // save real version, latest->v5.0.0 maybe.
+
+	switch version {
+	case LASTEST_VERSION:
+		foundVersion, binaryDetail, ok = repodata.GetLatest()
+		if !ok {
+			return "", nil, fmt.Errorf("%s: No stable version available", name)
+		}
+
+	case MAIN_VERSION:
+		binaryDetail, ok = repodata.GetMain()
+		if !ok {
+			return "", nil, fmt.Errorf("%s: main version not found", name)
+		}
+
+	default:
+		binaryDetail, ok = repodata.FindVersion(version)
+		if !ok {
+			return "", nil, fmt.Errorf("%s: version '%s' not found", name, version)
+		}
+	}
+
+	return foundVersion, binaryDetail, nil
+}
+
+func (cm *ComponentManager) InstallComponent(name, version string) (*Component, error) {
+	foundVersion, binaryDetail, err := cm.FindVersion(name, version)
 	if err != nil {
 		return nil, err
 	}
 
-	var binaryDetail *BinaryDetail
-	var ok bool
-	if version == LASTEST_VERSION {
-		binaryDetail, ok = metadata.GetLatest()
-	} else {
-		binaryDetail, ok = metadata.FindVersion(version)
-	}
-	if !ok {
-		return nil, fmt.Errorf("%s:%s not found in remote repository", name, version)
-	}
-
-	return binaryDetail, nil
-
-}
-
-func (cm *ComponentManager) InstallComponent(name, version string) (*Component, error) {
 	for _, comp := range cm.installed {
-		if comp.Name == name && comp.Version == version {
+		if comp.Name == name && comp.Version == foundVersion {
 			return nil, fmt.Errorf("%s:%s already installed", name, version)
 		}
 	}
 
-	binaryDetail, err := cm.FindBinaryDetailInfo(name, version)
-	if err != nil {
-		return nil, err
-	}
-
 	newComponent := Component{
 		Name:        name,
-		Version:     version,
+		Version:     foundVersion,
 		Commit:      binaryDetail.Commit,
 		Release:     binaryDetail.BuildTime,
 		IsInstalled: true,
 		IsActive:    true,
-		Path:        filepath.Join(cm.rootDir, name, version),
+		Path:        filepath.Join(cm.rootDir, name, foundVersion),
 		URL:         URLJoin(MIRROR, binaryDetail.Path),
 	}
 
@@ -181,12 +203,12 @@ func (cm *ComponentManager) InstallComponent(name, version string) (*Component, 
 }
 
 func (cm *ComponentManager) UpdateComponent(name, version string) (*Component, error) {
-	binaryDetail, err := cm.FindBinaryDetailInfo(name, version)
+	retVersion, binaryDetail, err := cm.FindVersion(name, version)
 	if err != nil {
 		return nil, err
 	}
 
-	component, err := cm.FindInstallComponent(name, version)
+	component, err := cm.FindInstallComponent(name, retVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -324,13 +346,13 @@ func (cm *ComponentManager) GetActiveComponent(name string) (*Component, error) 
 
 func (cm *ComponentManager) ListComponents() ([]Component, error) {
 	allComponents := cm.installed
+
 	for _, availableComp := range cm.avaliable {
 		if cm.IsInstalled(availableComp.Name, availableComp.Version) {
 			continue
-		} else {
-			allComponents = append(allComponents, availableComp)
 		}
 
+		allComponents = append(allComponents, availableComp)
 	}
 
 	return allComponents, nil
@@ -346,12 +368,11 @@ func (cm *ComponentManager) FindInstallComponent(name string, version string) (*
 	return nil, nil
 }
 
-func (cm *ComponentManager) IsInstalled(name string, version string) bool {
+func (cm *ComponentManager) IsInstalled(name, version string) bool {
 	for _, comp := range cm.installed {
 		if comp.Name == name && comp.Version == version {
 			return true
 		}
 	}
-
 	return false
 }

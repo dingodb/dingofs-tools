@@ -29,7 +29,8 @@ import (
 
 const (
 	COMPONENT_UPDATE_EXAMPLE = `Examples:
-   $ dingo component update dingo-client:v3.0.5"`
+   # update component to latest build
+   $ dingo component update dingo-client:v3.0.5`
 )
 
 type updateOptions struct {
@@ -41,7 +42,7 @@ func NewUpdateCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options updateOptions
 
 	cmd := &cobra.Command{
-		Use:     "update <component1>[:version] [component2...N] [OPTIONS]",
+		Use:     "update <component1><:version> [component2...N] [OPTIONS]",
 		Short:   "update component(s)",
 		Args:    utils.RequiresMinArgs(0),
 		Example: COMPONENT_UPDATE_EXAMPLE,

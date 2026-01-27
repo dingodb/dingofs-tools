@@ -29,7 +29,17 @@ import (
 
 const (
 	COMPONENT_INSTALL_EXAMPLE = `Examples:
-   $ dingo component install dingo-client:v3.0.5 dingo-cache dingo-mds"`
+   # install latest stable version
+   $ dingo component install dingo-client
+
+   # install specify version
+   $ dingo component install dingo-client:v3.0.5
+
+   # install main, not stable version
+   $ dingo component install dingo-client:main
+
+   # install multiple components at once
+   $ dingo component install dingo-client:main dingo-cache dingo-mds:v3.0.5`
 )
 
 type installOptions struct {
@@ -42,7 +52,7 @@ func NewInstallCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "install <component1>[:version] [component2...N] [OPTIONS]",
 		Short:   "install component(s)",
-		Args:    utils.ExactArgs(1),
+		Args:    utils.RequiresMinArgs(1),
 		Example: COMPONENT_INSTALL_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.components = args
@@ -64,15 +74,17 @@ func runInstall(cmd *cobra.Command, dingocli *cli.DingoCli, options *installOpti
 		return err
 	}
 
+	var installed []string
 	for _, comp := range options.components {
 		name, version := component.ParseComponentVersion(comp)
-		_, err := componentManager.InstallComponent(name, utils.Ternary(version == "", component.LASTEST_VERSION, version))
+		comp, err := componentManager.InstallComponent(name, utils.Ternary(version == "", component.LASTEST_VERSION, version))
 		if err != nil {
 			return err
 		}
+		installed = append(installed, fmt.Sprintf("%s:%s", comp.Name, comp.Version))
 	}
 
-	fmt.Printf("Successfully install components %s ^_^!\n", options.components)
+	fmt.Printf("Successfully install components %s ^_^!\n", installed)
 
 	return nil
 }

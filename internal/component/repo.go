@@ -28,8 +28,24 @@ func (b *BinaryRepoData) GetCommits() map[string]BinaryDetail {
 	return b.Commits
 }
 
-func (b *BinaryRepoData) GetLatest() (*BinaryDetail, bool) {
-	if branch, exists := b.Branches["main"]; exists {
+func (b *BinaryRepoData) GetLatest() (string, *BinaryDetail, bool) {
+	latest := "v0.0.0"
+	for version := range b.Tags {
+		if version > latest {
+			latest = version
+		}
+	}
+
+	tag, ok := b.Tags[latest]
+	if ok {
+		return latest, &tag, true
+	}
+
+	return "", nil, false
+}
+
+func (b *BinaryRepoData) GetMain() (*BinaryDetail, bool) {
+	if branch, exists := b.Branches[MAIN_VERSION]; exists {
 		return &branch, true
 	}
 
@@ -37,8 +53,7 @@ func (b *BinaryRepoData) GetLatest() (*BinaryDetail, bool) {
 }
 
 func (b *BinaryRepoData) FindVersion(tag string) (*BinaryDetail, bool) {
-	tags := b.GetTags()
-	if tag, exists := tags[tag]; exists {
+	if tag, exists := b.Tags[tag]; exists {
 		return &tag, true
 	}
 

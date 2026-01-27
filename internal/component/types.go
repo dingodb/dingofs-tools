@@ -6,6 +6,17 @@ import (
 	"os"
 )
 
+const (
+	DINGO_CLIENT     = "dingo-client"
+	DINGO_DACHE      = "dingo-cache"
+	DINGO_MDS        = "dingo-mds"
+	DINGO_MDS_CLIENT = "dingo-mds-client"
+	INSTALLED_FILE   = "installed.json"
+	MIRROR           = "https://www.dingodb.com/dingofs"
+	LASTEST_VERSION  = "latest"
+	MAIN_VERSION     = "main"
+)
+
 var (
 	ErrAlreadyLatest = errors.New("already with latest build")
 
@@ -15,15 +26,12 @@ var (
 	}())
 )
 
-const (
-	DINGO_CLIENT     = "dingo-client"
-	DINGO_DACHE      = "dingo-cache"
-	DINGO_MDS        = "dingo-mds"
-	DINGO_MDS_CLIENT = "dingo-mds-client"
-	INSTALLED_FILE   = "installed_components.json"
-	MIRROR           = "https://www.dingodb.com/dingofs"
-	LASTEST_VERSION  = "latest"
-)
+var ALL_COMPONENTS = []string{
+	DINGO_CLIENT,
+	DINGO_DACHE,
+	DINGO_MDS,
+	DINGO_MDS_CLIENT,
+}
 
 type Component struct {
 	Name        string `json:"name"`
