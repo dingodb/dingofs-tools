@@ -36,7 +36,7 @@ func NewConnectionPool() *ConnectionPool {
 	}
 }
 
-func (c *ConnectionPool) GetConnection(address string, timeout time.Duration) (*grpc.ClientConn, error) {
+func (c *ConnectionPool) GetConnection(address string, timeout time.Duration, retrytimes uint32) (*grpc.ClientConn, error) {
 	c.mux.Lock()
 	conns, ok := c.connections[address]
 	size := len(conns)
@@ -48,20 +48,29 @@ func (c *ConnectionPool) GetConnection(address string, timeout time.Duration) (*
 		return conn, nil
 	}
 	c.mux.Unlock()
-	log.Printf("%s: start to dial", address)
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-	conn, err := grpc.DialContext(ctx, address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-		grpc.WithMaxMsgSize(math.MaxInt32),
-		grpc.WithInitialConnWindowSize(math.MaxInt32),
-		grpc.WithInitialWindowSize(math.MaxInt32))
-	if err != nil {
-		log.Printf("%s: fail to dial", address)
-		return nil, err
+
+	for {
+		log.Printf("%s: start to dial", address)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		conn, err := grpc.DialContext(ctx, address,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithBlock(),
+			grpc.WithMaxMsgSize(math.MaxInt32),
+			grpc.WithInitialConnWindowSize(math.MaxInt32),
+			grpc.WithInitialWindowSize(math.MaxInt32))
+		if err != nil {
+			log.Printf("%s: fail to dial", address)
+			if retrytimes > 0 {
+				retrytimes--
+				continue
+			}
+
+			return nil, err
+		}
+
+		return conn, nil
 	}
-	return conn, nil
 }
 
 func (c *ConnectionPool) Release(address string) {

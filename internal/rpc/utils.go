@@ -96,7 +96,7 @@ func GetEndPoint(inodeId uint64) (endpoints []string) {
 func CreateNewMdsRpcWithEndPoint(cmd *cobra.Command, endpoint []string, serviceName string) *Rpc {
 	// new rpc
 	timeout := utils.GetDurationFlag(cmd, utils.RPCTIMEOUT)
-	retryTimes := utils.GetInt32Flag(cmd, utils.RPCRETRYTIMES)
+	retryTimes := utils.GetUint32Flag(cmd, utils.RPCRETRYTIMES)
 	retryDelay := utils.GetDurationFlag(cmd, utils.RPCRETRYDElAY)
 	verbose := utils.GetBoolFlag(cmd, utils.VERBOSE)
 
