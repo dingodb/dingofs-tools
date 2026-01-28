@@ -16,7 +16,6 @@ package rpc
 
 import (
 	"context"
-	"errors"
 	"log"
 	"time"
 
@@ -32,13 +31,13 @@ var (
 type Rpc struct {
 	Addrs         []string
 	RpcTimeout    time.Duration
-	RpcRetryTimes int32
+	RpcRetryTimes uint32
 	RpcRetryDelay time.Duration
 	RpcFuncName   string
 	RpcDataShow   bool
 }
 
-func NewRpc(addrs []string, timeout time.Duration, retryTimes int32, retryDelay time.Duration, dataShow bool, funcName string) *Rpc {
+func NewRpc(addrs []string, timeout time.Duration, retryTimes uint32, retryDelay time.Duration, dataShow bool, funcName string) *Rpc {
 	return &Rpc{
 		Addrs:         addrs,
 		RpcTimeout:    timeout,
@@ -61,17 +60,14 @@ type Result struct {
 }
 
 func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *errno.ErrorCode) {
-	reqAddrs := rpc.Addrs
-
-	// start rpc request
-	results := make([]Result, 0)
-	for _, address := range reqAddrs {
-		conn, err := pool.GetConnection(address, rpc.RpcTimeout)
+	var result Result
+	for _, address := range rpc.Addrs {
+		conn, err := pool.GetConnection(address, rpc.RpcTimeout, rpc.RpcRetryTimes)
 		if err != nil {
 			errRpc := errno.ERR_RPC_FAILED
 			errRpc.E(err)
-			results = append(results, Result{address, errRpc, nil})
-
+			result = Result{address, errRpc, nil}
+			// try other mds address, if provided
 			continue
 		}
 
@@ -86,10 +82,10 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *errno.ErrorCode) {
 				if retryTimes > 0 { // rpc failed, retrying
 					log.Printf("%s: fail to get rpc [%s] response, retrytimes[%d], retrying...", address, rpc.RpcFuncName, retryTimes)
 					time.Sleep(rpc.RpcRetryDelay)
-					retryTimes = retryTimes - 1
+					retryTimes--
 					continue
 				} else {
-					results = append(results, Result{address, errno.ERR_RPC_FAILED.E(err), nil})
+					result = Result{address, errno.ERR_RPC_FAILED.E(err), nil}
 					log.Printf("%s: fail to get rpc [%s] response", address, rpc.RpcFuncName)
 					break
 				}
@@ -103,34 +99,21 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *errno.ErrorCode) {
 				continue
 			}
 			// rpc success
-			results = append(results, Result{address, errno.ERR_OK, res})
+			result = Result{address, errno.ERR_OK, res}
+
 			log.Printf("%s: get rpc [%s] response successfully", address, rpc.RpcFuncName)
 			break
 		}
 
-		// Return Connect to Pool
+		// Return connection to Pool
 		pool.PutConnection(address, conn)
-		// for mds just choose one available mds
+		// rpc success
 		break
 	}
 
-	// get the rpc response result
-	var ret interface{}
-	var vecErrs []error
-	for _, res := range results {
-		if res.err.GetCode() != errno.ERR_OK.GetCode() {
-			vecErrs = append(vecErrs, res.err)
-		} else {
-			ret = res.result
-			break
-		}
+	if result.err.GetCode() != errno.ERR_OK.GetCode() {
+		return nil, result.err
 	}
 
-	// merge all errors
-	if len(vecErrs) >= len(reqAddrs) {
-		allErrors := errors.Join(vecErrs...)
-		return ret, errno.ERR_RPC_FAILED.E(allErrors)
-	}
-
-	return ret, errno.ERR_OK
+	return result.result, result.err
 }

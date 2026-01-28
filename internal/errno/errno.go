@@ -538,7 +538,7 @@ var (
 	ERR_CREATE_META_TABLE_FAILED = EC(650000, "create meta table failed")
 
 	// 660: rpc
-	ERR_RPC_FAILED = EC(660000, "rpc failed")
+	ERR_RPC_FAILED = EC(660000, "rpc request to mds cluster failed")
 
 	// 690: execuetr task (others)
 	ERR_START_CRONTAB_IN_CONTAINER_FAILED = EC(690000, "start crontab in container failed")
