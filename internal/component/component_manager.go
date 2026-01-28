@@ -2,6 +2,7 @@ package component
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -174,14 +175,37 @@ func (cm *ComponentManager) FindVersion(name, version string) (string, *BinaryDe
 }
 
 func (cm *ComponentManager) InstallComponent(name, version string) (*Component, error) {
+	return cm.installOrUpdateComponent(name, version, false)
+}
+
+func (cm *ComponentManager) UpdateComponent(name, version string) (*Component, error) {
+	return cm.installOrUpdateComponent(name, version, true)
+}
+
+func (cm *ComponentManager) installOrUpdateComponent(name, version string, isUpdate bool) (*Component, error) {
 	foundVersion, binaryDetail, err := cm.FindVersion(name, version)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, comp := range cm.installed {
-		if comp.Name == name && comp.Version == foundVersion {
-			return nil, fmt.Errorf("%s:%s already installed", name, version)
+	// check if is installed
+	existingComp, err := cm.FindInstallComponent(name, foundVersion)
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return nil, err
+	}
+
+	// for install , return error if exists
+	if !isUpdate && existingComp != nil {
+		return nil, fmt.Errorf("%s:%s already installed", name, foundVersion)
+	}
+
+	// for update, return if already latest build
+	if isUpdate && existingComp != nil {
+		if version == LASTEST_VERSION {
+			return existingComp, ErrAlreadyExist
+		}
+		if existingComp.Release >= binaryDetail.BuildTime {
+			return existingComp, ErrAlreadyLatest
 		}
 	}
 
@@ -191,7 +215,6 @@ func (cm *ComponentManager) InstallComponent(name, version string) (*Component, 
 		Commit:      binaryDetail.Commit,
 		Release:     binaryDetail.BuildTime,
 		IsInstalled: true,
-		IsActive:    true,
 		Path:        filepath.Join(cm.rootDir, name, foundVersion),
 		URL:         URLJoin(cm.mirror, binaryDetail.Path),
 	}
@@ -203,88 +226,45 @@ func (cm *ComponentManager) InstallComponent(name, version string) (*Component, 
 		return nil, fmt.Errorf("failed to download %s: %v", name, err)
 	}
 
-	// update other version is not active
-	for i := range cm.installed {
-		if cm.installed[i].Name == name {
-			cm.installed[i].IsActive = false
+	// for update, if already exists, replace old
+	if isUpdate && existingComp != nil {
+		for i, comp := range cm.installed {
+			if comp.Name == name && comp.Version == foundVersion {
+				cm.installed[i] = newComponent
+				break
+			}
 		}
+	} else {
+		cm.installed = append(cm.installed, newComponent)
 	}
 
-	cm.installed = append(cm.installed, newComponent)
-	return &newComponent, cm.SaveInstalledComponents()
-}
-
-func (cm *ComponentManager) UpdateComponent(name, version string) (*Component, error) {
-	retVersion, binaryDetail, err := cm.FindVersion(name, version)
-	if err != nil {
+	// set as default version
+	if err := cm.SetDefaultVersion(name, foundVersion); err != nil {
 		return nil, err
 	}
-
-	component, err := cm.FindInstallComponent(name, retVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	isActive := true
-	if component != nil { // install
-		isActive = component.IsActive
-		if component.Release >= binaryDetail.BuildTime {
-			return component, ErrAlreadyLatest
-		}
-	}
-
-	newComponent := Component{
-		Name:        name,
-		Version:     version,
-		Commit:      binaryDetail.Commit,
-		Release:     binaryDetail.BuildTime,
-		IsInstalled: true,
-		IsActive:    isActive,
-		Path:        filepath.Join(cm.rootDir, name, version),
-		URL:         URLJoin(cm.mirror, binaryDetail.Path),
-	}
-
-	fmt.Printf("Download %s from %s\n", name, newComponent.URL)
-
-	// remove old version build
-	cm.RemoveComponent(name, version, true, false)
-
-	_, err = utils.DownloadFileWithProgress(newComponent.URL, newComponent.Path, newComponent.Name)
-	if err != nil {
-		return nil, fmt.Errorf("failed to download %s: %v", name, err)
-	}
-
-	cm.installed = append(cm.installed, newComponent)
 
 	return &newComponent, cm.SaveInstalledComponents()
 }
 
 func (cm *ComponentManager) SetDefaultVersion(name, version string) error {
 	found := false
-	for i := range cm.installed {
-		if cm.installed[i].Name == name {
-			if cm.installed[i].Version == version {
-				found = true
-				break
-			}
-		}
-	}
-
-	if !found {
-		return fmt.Errorf("component %s version %s not installed", name, version)
-	}
 
 	for i := range cm.installed {
 		if cm.installed[i].Name == name {
 			if cm.installed[i].Version == version {
 				cm.installed[i].IsActive = true
+				found = true
 			} else {
 				cm.installed[i].IsActive = false
 			}
 		}
 	}
 
-	return cm.SaveInstalledComponents()
+	if !found {
+		return fmt.Errorf("component %s:%s not installed", name, version)
+	}
+
+	return nil
 }
 
 func (cm *ComponentManager) RemoveComponent(name, version string, force bool, saveToFile bool) error {
@@ -377,7 +357,7 @@ func (cm *ComponentManager) FindInstallComponent(name string, version string) (*
 		}
 	}
 
-	return nil, nil
+	return nil, ErrNotFound
 }
 
 func (cm *ComponentManager) IsInstalled(name, version string) bool {

@@ -71,6 +71,10 @@ func runUse(cmd *cobra.Command, dingocli *cli.DingoCli, options *useOptions) err
 		return err
 	}
 
+	if err := componentManager.SaveInstalledComponents(); err != nil {
+		return err
+	}
+
 	fmt.Printf("Successfully use %s:%s as default version\n", name, version)
 
 	return nil
