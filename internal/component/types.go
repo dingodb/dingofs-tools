@@ -18,6 +18,8 @@ const (
 
 var (
 	ErrAlreadyLatest = errors.New("already with latest build")
+	ErrAlreadyExist  = errors.New("already exist")
+	ErrNotFound      = errors.New("not found")
 
 	RepostoryDir = fmt.Sprintf("%s/.dingo/components", func() string {
 		homeDir, _ := os.UserHomeDir()

@@ -29,8 +29,15 @@ import (
 
 const (
 	COMPONENT_UPDATE_EXAMPLE = `Examples:
-   # update component to latest build
-   $ dingo component update dingo-client:v3.0.5`
+   # update dingo-client to latest stable version
+   $ dingo component update dingo-client
+
+   # update dingo-client:v3.0.5 to latest build
+   $ dingo component update dingo-client:v3.0.5
+
+   # update all installed components to latest build
+   $ dingo component update --all
+   `
 )
 
 type updateOptions struct {
@@ -42,7 +49,7 @@ func NewUpdateCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options updateOptions
 
 	cmd := &cobra.Command{
-		Use:     "update <component1><:version> [component2...N] [OPTIONS]",
+		Use:     "update <component1>[:version] [component2...N] [OPTIONS]",
 		Short:   "update component(s)",
 		Args:    utils.RequiresMinArgs(0),
 		Example: COMPONENT_UPDATE_EXAMPLE,
@@ -71,13 +78,16 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 	updateFunc := func(name, version string) error {
 		comp, err := componentManager.UpdateComponent(name, version)
 		if err != nil {
-			if errors.Is(err, component.ErrAlreadyLatest) {
-				fmt.Printf("%s:%s already with latest build: %s, commit: %s\n",
-					name, comp.Version, comp.Release, comp.Commit)
-				return nil
+			switch {
+			case errors.Is(err, component.ErrAlreadyLatest):
+				return fmt.Errorf("%s:%s already with latest build: %s, commit: %s\n", name, comp.Version, comp.Release, comp.Commit)
+			case errors.Is(err, component.ErrAlreadyExist):
+				return fmt.Errorf("%s:%s already installed\n", name, comp.Version)
+			default:
+				return fmt.Errorf("update component %s:%s failed: %w", name, version, err)
 			}
-			return err
 		}
+
 		return nil
 	}
 
@@ -98,11 +108,8 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 	} else {
 		for _, compinfo := range options.components {
 			name, version := component.ParseComponentVersion(compinfo)
-			targetVersion := component.LASTEST_VERSION
-			if version != "" {
-				targetVersion = version
-			}
 
+			targetVersion := utils.Ternary(version == "", component.LASTEST_VERSION, version)
 			if err := updateFunc(name, targetVersion); err != nil {
 				return err
 			}
